@@ -12,29 +12,86 @@ import { pipe } from "fp-ts/lib/function";
 
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { IntegerFromString } from "@pagopa/ts-commons/lib/numbers";
+import { withDefault } from "@pagopa/ts-commons/lib/types";
+import { BooleanFromString } from "@pagopa/ts-commons/lib/booleans";
+import { CommaSeparatedListOf } from "./types";
+
+// exclude a specific value from a type
+// as strict equality is performed, allowed input types are constrained to be values not references (object, arrays, etc)
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+const AnyBut = <A extends string | number | boolean | symbol, Out = A>(
+  but: A,
+  base: t.Type<A, Out> = t.any
+) =>
+  t.brand(
+    base,
+    (
+      s
+    ): s is t.Branded<
+      t.TypeOf<typeof base>,
+      { readonly AnyBut: unique symbol }
+    > => s !== but,
+    "AnyBut"
+  );
+
+// configuration for REQ_SERVICE_ID in dev
+export type ReqServiceIdConfig = t.TypeOf<typeof ReqServiceIdConfig>;
+export const ReqServiceIdConfig = t.union([
+  t.interface({
+    NODE_ENV: t.literal("production"),
+    REQ_SERVICE_ID: t.undefined
+  }),
+  t.interface({
+    NODE_ENV: AnyBut("production", t.string),
+    REQ_SERVICE_ID: NonEmptyString
+  })
+]);
+
+export const FeatureFlagType = t.union([
+  t.literal("none"),
+  t.literal("beta"),
+  t.literal("canary"),
+  t.literal("prod")
+]);
+export type FeatureFlagType = t.TypeOf<typeof FeatureFlagType>;
 
 // global app configuration
 export type IConfig = t.TypeOf<typeof IConfig>;
-// eslint-disable-next-line @typescript-eslint/ban-types
-export const IConfig = t.interface({
-  AzureWebJobsStorage: NonEmptyString,
+export const IConfig = t.intersection([
+  t.interface({
+    /* eslint-disable sort-keys */
+    COSMOSDB_KEY: NonEmptyString,
+    COSMOSDB_NAME: NonEmptyString,
+    COSMOSDB_URI: NonEmptyString,
 
-  COSMOSDB_KEY: NonEmptyString,
-  COSMOSDB_NAME: NonEmptyString,
-  COSMOSDB_URI: NonEmptyString,
+    MESSAGE_CONTAINER_NAME: NonEmptyString,
 
-  QueueStorageConnection: NonEmptyString,
+    QueueStorageConnection: NonEmptyString,
 
-  isProduction: t.boolean
-});
+    FF_TYPE: withDefault(t.string, "none").pipe(FeatureFlagType),
+    USE_FALLBACK: withDefault(t.string, "false").pipe(BooleanFromString),
+    FF_BETA_TESTER_LIST: withDefault(t.string, "").pipe(
+      CommaSeparatedListOf(NonEmptyString)
+    ),
+    FF_CANARY_USERS_REGEX: withDefault(t.string, "XYZ").pipe(NonEmptyString),
 
-export const envConfig = {
-  ...process.env,
-  isProduction: process.env.NODE_ENV === "production"
-};
+    isProduction: t.boolean
+    /* eslint-enable sort-keys */
+  }),
+  ReqServiceIdConfig
+]);
 
 // No need to re-evaluate this object for each call
-const errorOrConfig: t.Validation<IConfig> = IConfig.decode(envConfig);
+const errorOrConfig: t.Validation<IConfig> = IConfig.decode({
+  ...process.env,
+  SERVICE_CACHE_TTL_DURATION: pipe(
+    process.env.SERVICE_CACHE_TTL_DURATION,
+    IntegerFromString.decode,
+    E.getOrElse(() => 3600 * 8)
+  ),
+  isProduction: process.env.NODE_ENV === "production"
+});
 
 /**
  * Read the application configuration and check for invalid values.
@@ -42,7 +99,10 @@ const errorOrConfig: t.Validation<IConfig> = IConfig.decode(envConfig);
  *
  * @returns either the configuration values or a list of validation errors
  */
-export const getConfig = (): t.Validation<IConfig> => errorOrConfig;
+// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+export function getConfig(): t.Validation<IConfig> {
+  return errorOrConfig;
+}
 
 /**
  * Read the application configuration and check for invalid values.
@@ -51,10 +111,12 @@ export const getConfig = (): t.Validation<IConfig> => errorOrConfig;
  * @returns the configuration values
  * @throws validation errors found while parsing the application configuration
  */
-export const getConfigOrThrow = (): IConfig =>
-  pipe(
+// eslint-disable-next-line prefer-arrow/prefer-arrow-functions
+export function getConfigOrThrow(): IConfig {
+  return pipe(
     errorOrConfig,
-    E.getOrElseW((errors: ReadonlyArray<t.ValidationError>) => {
+    E.getOrElse(errors => {
       throw new Error(`Invalid configuration: ${readableReport(errors)}`);
     })
   );
+}

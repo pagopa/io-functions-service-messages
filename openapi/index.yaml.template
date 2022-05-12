@@ -1,0 +1,47 @@
+swagger: '2.0'
+info:
+  version: 0.0.1
+  title: IO API for service Messages
+  contact:
+    name: PagoPA
+    url: https://forum.italia.it/c/progetto-io
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: >
+    # Warning
+
+    **This is an experimental API that is (most probably) going to change as we
+    evolve the IO platform.**
+
+    # Introduction
+
+    This is the documentation of the IO API for App.
+host: api.cd.italia.it
+basePath: /api/v1
+schemes:
+  - https
+security:
+  - SubscriptionKey: []
+paths:
+  "/ping":
+    get:
+      operationId: pingOperation
+      summary: Ping
+      description: Returns function's package name and version
+      tags:
+        - restricted
+      responses:
+        '200':
+          description: Success.
+        '500':
+          description: Internal Server error
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  SubscriptionKey:
+    type: apiKey
+    name: X-Functions-Key
+    in: header
+    description: The API key obtained through the developer portal.
