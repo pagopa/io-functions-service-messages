@@ -15,7 +15,6 @@
     "docker",
     "**/__tests__",
     "**/__integrations__",
-    "**/__integrations__/env.ts",
     "Dangerfile.ts"
   ]
 }
