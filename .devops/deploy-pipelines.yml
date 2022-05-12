@@ -26,12 +26,9 @@ parameters:
     displayName: ''
     type: object
     default:
-      app1:
-        appname: io-p-service-messages-fn-1
-        rg: io-p-service-messages-rg-1
-      app2:
-        appname: io-p-service-messages-fn-2
-        rg: io-p-service-messages-rg-2
+      app:
+        appname: io-p-fn-name-fn
+        rg: io-p-fn-name-rg
 
 # Only manual activations are intended
 trigger: none
