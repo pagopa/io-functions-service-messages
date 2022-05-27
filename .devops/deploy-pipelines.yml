@@ -79,18 +79,18 @@ stages:
               command: 'login'
       - task: CmdLine@2
         inputs:
-        script: |
-          # docker will return 0 on success or 1 on failure.
-          docker manifest inspect iopcommonacr/io-functions-service-messages:latest > /dev/null ;
-          if [ $? -eq 0 ]; then
-            echo "image already exist"
-          else
-            echo "new image"
-            docker build -t iopcommonacr/io-functions-service-messages:$(Build.BuildId) .
-            docker build -t iopcommonacr/io-functions-service-messages:latest .
-            docker push iopcommonacr/io-functions-service-messages:$(Build.BuildId)
-            docker push iopcommonacr/io-functions-service-messages:latest
-          fi
+          script: |
+            # docker will return 0 on success or 1 on failure.
+            docker manifest inspect iopcommonacr/io-functions-service-messages:latest > /dev/null ;
+            if [ $? -eq 0 ]; then
+              echo "image already exist"
+            else
+              echo "new image"
+              docker build -t iopcommonacr/io-functions-service-messages:$(Build.BuildId) .
+              docker build -t iopcommonacr/io-functions-service-messages:latest .
+              docker push iopcommonacr/io-functions-service-messages:$(Build.BuildId)
+              docker push iopcommonacr/io-functions-service-messages:latest
+            fi
       # - job: 'build'
       #   steps:
       #     - task: Docker@2
