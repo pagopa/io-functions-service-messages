@@ -67,8 +67,8 @@ stages:
 
   # Build
   - stage: Build
-    dependsOn:
-      - Release
+    #dependsOn:
+    #  - Release
     jobs:
       - job: 'build'
         steps:
