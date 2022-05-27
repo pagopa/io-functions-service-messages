@@ -94,70 +94,51 @@ stages:
                   docker push iopcommonacr.azurecr.io/io-functions-service-messages:latest
                 fi
 
-  # - stage: 'Publish_artifact_helm'
-  #   displayName: 'Publish_artifact_Helm'
-  #   dependsOn: 
-  #     - Build
-  #   jobs:
-  #     - job: Publish_artifact_helm
-  #       displayName: Publish_artifact_helm
-  #       steps:
-  #         - task: PublishPipelineArtifact@1
-  #           displayName: 'Publish Artifact manifests'
-  #           inputs:
-  #             targetPath: '$(Build.Repository.LocalPath)/helm'
-  #             artifact: 'helm'
-  #             publishLocation: 'pipeline'
+  - stage: 'Serving_helm'
+    displayName: 'Serving_Helm'
+    dependsOn: Build
+    condition: or(succeeded(), ${{ parameters.skipBuild }} )
+    jobs:
+      - job: Serving_helm
+        displayName: Serving_helm
+        steps:
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Artifact manifests'
+            condition: succeeded()
+            inputs:
+              targetPath: '$(Build.Repository.LocalPath)/helm'
+              artifact: 'helm'
+              publishLocation: 'pipeline'
 
   - stage: 'Deploy'
-    # dependsOn:
-    #   - Publish_artifact_helm
+    dependsOn: "Serving_helm"
+    condition: or(succeeded(), ${{ parameters.skipBuild }} )
     jobs:
       - deployment: 'Deploy'
         pool:
           name: io-prod-linux
-        environment: 'PROD'
+        environment: PROD
         strategy:
           runOnce:
             deploy:
               steps:
-                # - download: none
-                # - task: DownloadPipelineArtifact@2
-                #   inputs:
-                #     buildType: 'current'
-                #     artifactName: 'helm'
-                #     targetPath: '$(Pipeline.Workspace)/helm'
-                - task: Bash@3
-                  displayName: 'docker build and push'
+                - download: none
+                - task: DownloadPipelineArtifact@2
                   inputs:
-                    targetType: 'inline'
-                    script: |
-                      helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
-                      ls -la
-                      helm dep build helm/
+                    buildType: 'current'
+                    artifactName: 'helm'
+                    targetPath: '$(Pipeline.Workspace)/helm'
                 - task: HelmDeploy@0
                   displayName: Helm upgrade
                   inputs:
                     kubernetesServiceEndpoint: io-messages-aks-weu-beta
-                    namespace: '$(NAMESPACE)'
+                    namespace: $(NAMESPACE)
                     command: upgrade
                     chartType: filepath
-                    # chartPath: $(Pipeline.Workspace)/helm
-                    chartPath: helm
+                    chartPath: $(Pipeline.Workspace)/helm
                     chartName: io-functions-service-messages
                     releaseName: io-functions-service-messages
-                    # valueFile: "$(Pipeline.Workspace)/helm/values-beta.yaml"
-                    valueFile: "helm/values-beta.yaml"
+                    valueFile: "$(Pipeline.Workspace)/helm/values-beta.yaml"
                     install: true
                     waitForExecution: true
-                    arguments: "--timeout 2m0s"
-                # - task: KubernetesManifest@0
-                #   displayName: Patch
-                #   inputs:
-                #     kubernetesServiceConnection: io-messages-aks-weu-beta
-                #     namespace: '$(NAMESPACE)'
-                #     action: patch
-                #     kind: deployment
-                #     name: '$(deploymentName)'
-                #     mergeStrategy: strategic
-                #     patch: '{"spec":{"template":{"metadata":{"annotations":{"buildNumber":"$(Build.BuildId)"}}}}}'
+                    arguments: "--timeout 5m0s"
