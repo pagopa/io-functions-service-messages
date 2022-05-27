@@ -70,6 +70,17 @@ stages:
     #dependsOn:
     #  - Release
     jobs:
+      # - job: 'build'
+      #   steps:
+      #     - task: Docker@2
+      #       displayName: 'login'
+      #       inputs:
+      #         containerRegistry: 'io-p-messages-acr-docker-registry-prod'
+      #         command: 'login'
+      # - job: 'build'
+      #   script: |
+      #     docker manifest inspect $IMGNAME:$IMGTAG > /dev/null ;
+      #     echo $?
       - job: 'build'
         steps:
           - task: Docker@2
@@ -108,10 +119,10 @@ stages:
                     namespace: '$(NAMESPACE)'
                     command: upgrade
                     chartType: filepath
-                    chartPath: $(Pipeline.Workspace)/helm
+                    chartPath: $(Build.Repository.LocalPath)/helm
                     chartName: io-functions-service-messages
                     releaseName: io-functions-service-messages
-                    valueFile: "$(Pipeline.Workspace)/helm/values-beta.yaml"
+                    valueFile: "$(Build.Repository.LocalPath)/helm/values-beta.yaml"
                     install: true
                     waitForExecution: true
                     arguments: "--timeout 2m0s"
