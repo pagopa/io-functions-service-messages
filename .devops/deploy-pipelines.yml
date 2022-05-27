@@ -133,7 +133,7 @@ stages:
                     script: |
                       ls -la
                       helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
-                      helm dep build helm/
+                      helm dep build $(Pipeline.Workspace)/helm
                 - task: HelmDeploy@0
                   displayName: Helm upgrade
                   inputs:
