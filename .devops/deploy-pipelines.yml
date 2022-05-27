@@ -93,22 +93,25 @@ stages:
                   docker push iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId)
                   docker push iopcommonacr.azurecr.io/io-functions-service-messages:latest
                 fi
-      # - job: 'build'
-      #   steps:
-      #     - task: Docker@2
-      #       displayName: 'Build_and_pubblish_image'
-      #       inputs:
-      #         containerRegistry: 'io-p-messages-acr-docker-registry-prod'
-      #         repository: 'io-functions-service-messages'
-      #         command: 'buildAndPush'
-      #         buildContext: '$(Build.Repository.LocalPath)'
-      #         tags: |
-      #           $(Build.BuildId)
-      #           latest
 
-  - stage: 'Deploy'
+  - stage: 'Publish_artifact_helm'
+    displayName: 'Publish_artifact_Helm'
+    dependsOn: 
+      - Build
+    jobs:
+      - job: Publish_artifact_helm
+        displayName: Publish_artifact_helm
+        steps:
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Artifact manifests'
+            inputs:
+              targetPath: '$(Build.Repository.LocalPath)/helm'
+              artifact: 'helm'
+              publishLocation: 'pipeline'
+
+  - stage: 'Publish_artifact_helm'
     dependsOn:
-     - Build
+      - Build
     jobs:
       - deployment: 'Deploy'
         pool:
@@ -119,11 +122,11 @@ stages:
             deploy:
               steps:
                 - download: none
-                # - task: DownloadPipelineArtifact@2
-                #   inputs:
-                #     buildType: 'current'
-                #     artifactName: 'helm'
-                #     targetPath: '$(Pipeline.Workspace)/helm'
+                - task: DownloadPipelineArtifact@2
+                  inputs:
+                    buildType: 'current'
+                    artifactName: 'helm'
+                    targetPath: '$(Pipeline.Workspace)/helm'
                 - task: HelmDeploy@0
                   displayName: Helm upgrade
                   inputs:
@@ -131,10 +134,10 @@ stages:
                     namespace: '$(NAMESPACE)'
                     command: upgrade
                     chartType: filepath
-                    chartPath: helm
+                    chartPath: $(Pipeline.Workspace)/helm
                     chartName: io-functions-service-messages
                     releaseName: io-functions-service-messages
-                    valueFile: "helm/values-beta.yaml"
+                    valueFile: "$(Pipeline.Workspace)/helm/values-beta.yaml"
                     install: true
                     waitForExecution: true
                     arguments: "--timeout 2m0s"
