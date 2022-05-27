@@ -110,8 +110,8 @@ stages:
   #             publishLocation: 'pipeline'
 
   - stage: 'Deploy'
-    dependsOn:
-      - Publish_artifact_helm
+    # dependsOn:
+    #   - Publish_artifact_helm
     jobs:
       - deployment: 'Deploy'
         pool:
