@@ -77,7 +77,9 @@ stages:
             inputs:
               containerRegistry: 'io-p-messages-acr-docker-registry-prod'
               command: 'login'
-      - script: |
+      - task: CmdLine@2
+        inputs:
+        script: |
           # docker will return 0 on success or 1 on failure.
           docker manifest inspect iopcommonacr/io-functions-service-messages:latest > /dev/null ;
           if [ $? -eq 0 ]; then
