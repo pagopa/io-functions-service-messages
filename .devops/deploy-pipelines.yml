@@ -133,6 +133,7 @@ stages:
                     targetType: 'inline'
                     script: |
                       helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
+                      ls -la
                       helm dep build helm/
                 - task: HelmDeploy@0
                   displayName: Helm upgrade
