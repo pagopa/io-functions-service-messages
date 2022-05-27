@@ -93,6 +93,7 @@ stages:
                   docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:latest .
                   docker push iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId)
                   docker push iopcommonacr.azurecr.io/io-functions-service-messages:latest
+                fi
       # - job: 'build'
       #   steps:
       #     - task: Docker@2
