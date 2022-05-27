@@ -97,7 +97,6 @@ stages:
   - stage: 'Serving_helm'
     displayName: 'Serving_Helm'
     dependsOn: Build
-    condition: or(succeeded(), ${{ parameters.skipBuild }} )
     jobs:
       - job: Serving_helm
         displayName: Serving_helm
@@ -112,7 +111,6 @@ stages:
 
   - stage: 'Deploy'
     dependsOn: "Serving_helm"
-    condition: or(succeeded(), ${{ parameters.skipBuild }} )
     jobs:
       - deployment: 'Deploy'
         pool:
