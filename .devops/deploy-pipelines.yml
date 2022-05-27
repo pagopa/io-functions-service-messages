@@ -121,7 +121,7 @@ stages:
           runOnce:
             deploy:
               steps:
-                - download: none
+                # - download: none
                 # - task: DownloadPipelineArtifact@2
                 #   inputs:
                 #     buildType: 'current'
