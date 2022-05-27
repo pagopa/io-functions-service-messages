@@ -126,6 +126,14 @@ stages:
                     buildType: 'current'
                     artifactName: 'helm'
                     targetPath: '$(Pipeline.Workspace)/helm'
+                - task: Bash@3
+                  displayName: 'docker build and push'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      ls -la
+                      helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
+                      helm dep build helm/
                 - task: HelmDeploy@0
                   displayName: Helm upgrade
                   inputs:
