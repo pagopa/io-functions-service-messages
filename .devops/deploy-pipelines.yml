@@ -70,29 +70,38 @@ stages:
     #dependsOn:
     #  - Release
     jobs:
-      # - job: 'build'
-      #   steps:
-      #     - task: Docker@2
-      #       displayName: 'login'
-      #       inputs:
-      #         containerRegistry: 'io-p-messages-acr-docker-registry-prod'
-      #         command: 'login'
-      # - job: 'build'
-      #   script: |
-      #     docker manifest inspect $IMGNAME:$IMGTAG > /dev/null ;
-      #     echo $?
       - job: 'build'
         steps:
           - task: Docker@2
-            displayName: 'Build_and_pubblish_image'
+            displayName: 'login'
             inputs:
               containerRegistry: 'io-p-messages-acr-docker-registry-prod'
-              repository: 'io-functions-service-messages'
-              command: 'buildAndPush'
-              buildContext: '$(Build.Repository.LocalPath)'
-              tags: |
-                $(Build.BuildId)
-                latest
+              command: 'login'
+      - job: 'build'
+        script: |
+          # docker will return 0 on success or 1 on failure.
+          docker manifest inspect iopcommonacr/io-functions-service-messages:latest > /dev/null ;
+          if [ $? -eq 0 ]; then
+            echo "image already exist"
+          else
+            echo "new image"
+            docker build -t iopcommonacr/io-functions-service-messages:$(Build.BuildId) .
+            docker build -t iopcommonacr/io-functions-service-messages:latest .
+            docker push iopcommonacr/io-functions-service-messages:$(Build.BuildId)
+            docker push iopcommonacr/io-functions-service-messages:latest
+          fi
+      # - job: 'build'
+      #   steps:
+      #     - task: Docker@2
+      #       displayName: 'Build_and_pubblish_image'
+      #       inputs:
+      #         containerRegistry: 'io-p-messages-acr-docker-registry-prod'
+      #         repository: 'io-functions-service-messages'
+      #         command: 'buildAndPush'
+      #         buildContext: '$(Build.Repository.LocalPath)'
+      #         tags: |
+      #           $(Build.BuildId)
+      #           latest
 
   - stage: 'Deploy'
     dependsOn:
