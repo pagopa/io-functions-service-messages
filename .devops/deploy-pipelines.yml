@@ -82,13 +82,12 @@ stages:
               targetType: 'inline'
               # azureSubscription: 'io-p-messages-acr-docker-registry-prod'
               script: |
-                # az acr login -n iopcommonacr.azurecr.io
                 # docker will return 0 on success or 1 on failure.
                 docker manifest inspect iopcommonacr.azurecr.io/io-functions-service-messages:latest > /dev/null
-                if [ $? -eq 1 ]; then
-                  echo "image already exist"
+                if [ $? -eq 0 ]; then
+                  echo "the image exists in the registry, skip build and push"
                 else
-                  echo "new image"
+                  echo "the image does not exist in the registry, start build and push"
                   docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId) .
                   docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:latest .
                   docker push iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId)
