@@ -82,3 +82,46 @@ stages:
               tags: |
                 $(Build.BuildId)
                 latest
+
+  - stage: 'Deploy'
+    dependsOn:
+     - Build
+    jobs:
+      - deployment: 'Deploy'
+        pool:
+          name: io-prod-linux
+        environment: 'PROD'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: none
+                - task: DownloadPipelineArtifact@2
+                  inputs:
+                    buildType: 'current'
+                    artifactName: 'helm'
+                    targetPath: '$(Pipeline.Workspace)/helm'
+                - task: HelmDeploy@0
+                  displayName: Helm upgrade
+                  inputs:
+                    kubernetesServiceEndpoint: io-messages-aks-weu-beta
+                    namespace: '$(NAMESPACE)'
+                    command: upgrade
+                    chartType: filepath
+                    chartPath: $(Pipeline.Workspace)/helm
+                    chartName: io-functions-service-messages
+                    releaseName: io-functions-service-messages
+                    valueFile: "$(Pipeline.Workspace)/helm/values-beta.yaml"
+                    install: true
+                    waitForExecution: true
+                    arguments: "--timeout 2m0s"
+                # - task: KubernetesManifest@0
+                #   displayName: Patch
+                #   inputs:
+                #     kubernetesServiceConnection: io-messages-aks-weu-beta
+                #     namespace: '$(NAMESPACE)'
+                #     action: patch
+                #     kind: deployment
+                #     name: '$(deploymentName)'
+                #     mergeStrategy: strategic
+                #     patch: '{"spec":{"template":{"metadata":{"annotations":{"buildNumber":"$(Build.BuildId)"}}}}}'
