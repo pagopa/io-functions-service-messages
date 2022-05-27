@@ -131,10 +131,10 @@ stages:
                     namespace: '$(NAMESPACE)'
                     command: upgrade
                     chartType: filepath
-                    chartPath: $(Build.Repository.LocalPath)/helm
+                    chartPath: helm
                     chartName: io-functions-service-messages
                     releaseName: io-functions-service-messages
-                    valueFile: "$(Build.Repository.LocalPath)/helm/values-beta.yaml"
+                    valueFile: "helm/values-beta.yaml"
                     install: true
                     waitForExecution: true
                     arguments: "--timeout 2m0s"
