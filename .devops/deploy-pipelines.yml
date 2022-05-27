@@ -127,6 +127,12 @@ stages:
                     buildType: 'current'
                     artifactName: 'helm'
                     targetPath: '$(Pipeline.Workspace)/helm'
+                - task: Bash@3
+                  displayName: 'docker build and push'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      helm dep build
                 - task: HelmDeploy@0
                   displayName: Helm upgrade
                   inputs:
