@@ -96,11 +96,11 @@ stages:
             deploy:
               steps:
                 - download: none
-                - task: DownloadPipelineArtifact@2
-                  inputs:
-                    buildType: 'current'
-                    artifactName: 'helm'
-                    targetPath: '$(Pipeline.Workspace)/helm'
+                # - task: DownloadPipelineArtifact@2
+                #   inputs:
+                #     buildType: 'current'
+                #     artifactName: 'helm'
+                #     targetPath: '$(Pipeline.Workspace)/helm'
                 - task: HelmDeploy@0
                   displayName: Helm upgrade
                   inputs:
