@@ -1,0 +1,16 @@
+**/node_modules
+**/generated
+**/bin
+**/__tests__/**/*
+.git/**/*
+.github/**/*
+.vscode/**/*
+.devops/**/*
+__*/**/*
+.prettierrc
+.gitignore
+.dockerignore
+README.md
+Dangerfile.js
+CODEOWNERS
+Dockerfile
