@@ -80,17 +80,19 @@ stages:
           - task: Bash@3
             inputs:
               targetType: 'inline'
+              # azureSubscription: 'io-p-messages-acr-docker-registry-prod'
               script: |
+                # az acr login -n iopcommonacr.azurecr.io
                 # docker will return 0 on success or 1 on failure.
-                docker manifest inspect iopcommonacr/io-functions-service-messages:latest > /dev/null ;
+                docker manifest inspect iopcommonacr.azurecr.io/io-functions-service-messages:latest > /dev/null ;
                 if [ $? -eq 0 ]; then
                   echo "image already exist"
                 else
                   echo "new image"
-                  docker build -t iopcommonacr/io-functions-service-messages:$(Build.BuildId) .
-                  docker build -t iopcommonacr/io-functions-service-messages:latest .
-                  docker push iopcommonacr/io-functions-service-messages:$(Build.BuildId)
-                  docker push iopcommonacr/io-functions-service-messages:latest
+                  docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId) .
+                  docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:latest .
+                  docker push iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId)
+                  docker push iopcommonacr.azurecr.io/io-functions-service-messages:latest
       # - job: 'build'
       #   steps:
       #     - task: Docker@2
