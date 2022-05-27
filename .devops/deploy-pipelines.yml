@@ -70,17 +70,17 @@ stages:
     #dependsOn:
     #  - Release
     jobs:
-      - job: 'build'
+      - job: 'Build'
         steps:
           - task: Docker@2
-            displayName: 'login'
+            displayName: 'docker login'
             inputs:
               containerRegistry: 'io-p-messages-acr-docker-registry-prod'
               command: 'login'
           - task: Bash@3
+            displayName: 'docker build and push'
             inputs:
               targetType: 'inline'
-              # azureSubscription: 'io-p-messages-acr-docker-registry-prod'
               script: |
                 # docker will return 0 on success or 1 on failure.
                 docker manifest inspect iopcommonacr.azurecr.io/io-functions-service-messages:latest > /dev/null
