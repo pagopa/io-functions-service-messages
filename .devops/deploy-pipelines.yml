@@ -109,9 +109,9 @@ stages:
               artifact: 'helm'
               publishLocation: 'pipeline'
 
-  - stage: 'Publish_artifact_helm'
+  - stage: 'Deploy'
     dependsOn:
-      - Build
+      - Publish_artifact_helm
     jobs:
       - deployment: 'Deploy'
         pool:
