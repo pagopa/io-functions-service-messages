@@ -86,7 +86,7 @@ stages:
               command: 'login'
           - task: Bash@3
             displayName: 'docker build and push (force)'
-            condition: and(succeeded(), eq(parameters.FORCE_REPLACE_DOCKER_IMAGE, True))
+            condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, True))
             inputs:
               targetType: 'inline'
               script: |
@@ -97,7 +97,7 @@ stages:
                 docker push iopcommonacr.azurecr.io/io-functions-service-messages:latest
           - task: Bash@3
             displayName: 'docker build and push'
-            condition: and(succeeded(), eq(parameters.FORCE_REPLACE_DOCKER_IMAGE, False))
+            condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, False))
             inputs:
               targetType: 'inline'
               script: |
