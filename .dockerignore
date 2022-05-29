@@ -1,6 +1,7 @@
 **/node_modules
 **/generated
 **/bin
+**/obj
 **/__tests__/**/*
 .git/**/*
 .github/**/*
