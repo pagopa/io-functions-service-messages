@@ -37,7 +37,7 @@ microservice-chart:
 
   envSecret:
     COSMOSDB_KEY: 'cosmosdb-free-key'
-    QueueStorageConnection: 'iopmessagesweubetasvcst-connection-string'
+    # QueueStorageConnection: 'iopmessagesweubetasvcst-connection-string'
 
   keyvault:
     name: 'io-p-messages-kv'
