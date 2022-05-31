@@ -28,8 +28,7 @@ RUN dotnet build -o bin
 # functions for node full tag list:
 # - https://hub.docker.com/_/microsoft-azure-functions-node
 # - https://mcr.microsoft.com/v2/azure-functions/node/tags/list
-# FROM mcr.microsoft.com/azure-functions/node:3.8.1-node14-slim
-FROM mcr.microsoft.com/azure-functions/node:3.8.1
+FROM mcr.microsoft.com/azure-functions/node:3.8.1-node14-slim
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
