@@ -4,7 +4,23 @@ microservice-chart:
     tag: "latest"
     pullPolicy: Always
 
-  namespace: "messages"
+  namespace: 'messages'
+  nameOverride: ''
+  fullnameOverride: ''
+
+  serviceAccount:
+    create: false
+    annotations: {}
+    name: ''
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
 
   resources:
     requests:
@@ -12,7 +28,7 @@ microservice-chart:
       cpu: "500m"
     limits:
       memory: "1000Mi"
-      cpu: "1000m"
+      cpu: "1100m"
 
   autoscaling:
     minReplica: 1
@@ -28,7 +44,6 @@ microservice-chart:
   
   envConfig:
     COSMOSDB_URI: "https://cosmosdb:3000/"
-    COSMOSDB_NAME: "db"
 
   envSecret:
     COSMOSDB_KEY: cosmosdb-free-key
@@ -36,3 +51,9 @@ microservice-chart:
   keyvault:
     name: "io-d-messages-kv"
     tenantId: "7788edaf-0346-4068-9d79-c868aed15b3d"
+
+  nodeSelector: {}
+
+  tolerations: []
+
+  affinity: {}

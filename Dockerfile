@@ -22,7 +22,14 @@ WORKDIR /home/node
 RUN dotnet build -o bin
 
 ### Copy files from builders in the final image
-FROM mcr.microsoft.com/azure-functions/node:3.8.1-node14-slim
+# functions base full tag list:
+# - https://hub.docker.com/_/microsoft-azure-functions-base
+# - https://mcr.microsoft.com/v2/azure-functions/base/tags/list
+# functions for node full tag list:
+# - https://hub.docker.com/_/microsoft-azure-functions-node
+# - https://mcr.microsoft.com/v2/azure-functions/node/tags/list
+# FROM mcr.microsoft.com/azure-functions/node:3.8.1-node14-slim
+FROM mcr.microsoft.com/azure-functions/node:3.8.1
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
