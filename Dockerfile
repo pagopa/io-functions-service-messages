@@ -8,7 +8,7 @@ WORKDIR /home/node
 # Danger can requires git
 # RUN apt-get update && apt-get install git -y
 
-RUN yarn install
+RUN yarn install --frozen-lockfile
 
 RUN yarn predeploy
 
