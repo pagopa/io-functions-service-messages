@@ -31,13 +31,13 @@ microservice-chart:
           value: '60'
   
   envConfig:
-    COSMOSDB_URI: 'https://cosmosdb:3000/'
+    COSMOSDB_URI: 'https://io-d-cosmos-free.documents.azure.com:443/'
     COSMOSDB_NAME: 'db'
     MESSAGE_CONTAINER_NAME: 'messages'
 
   envSecret:
     COSMOSDB_KEY: 'cosmosdb-free-key'
-    # QueueStorageConnection: 'iopmessagesweubetasvcst-connection-string'
+    QueueStorageConnection: 'iopmessagesweubetasvcst-connection-string'
 
   keyvault:
     name: 'io-p-messages-kv'
