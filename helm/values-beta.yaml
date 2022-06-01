@@ -7,6 +7,7 @@ microservice-chart:
   namespace: 'messages'
 
   ingress:
+    create: true
     host: 'weubeta.messages.internal.io.pagopa.it' 
     path: '/(.*)'
 
@@ -34,6 +35,7 @@ microservice-chart:
     COSMOSDB_URI: 'https://io-d-cosmos-free.documents.azure.com:443/'
     COSMOSDB_NAME: 'db'
     MESSAGE_CONTAINER_NAME: 'messages'
+    NODE_ENV: 'production'
 
   envSecret:
     COSMOSDB_KEY: 'cosmosdb-free-key'
