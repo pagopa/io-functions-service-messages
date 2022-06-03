@@ -37,6 +37,7 @@ microservice-chart:
   envConfig:
     NODE_ENV: 'production'
     APP_NAME: 'io-functions-service-messages'
+    WEBSITE_SITE_NAME: 'io-functions-service-messages'
     COSMOSDB_URI: 'https://io-d-cosmos-free.documents.azure.com:443/'
     COSMOSDB_NAME: 'db'
     MESSAGE_CONTAINER_NAME: 'messages'
