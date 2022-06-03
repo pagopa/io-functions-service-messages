@@ -26,7 +26,8 @@ export const initTelemetryClient = (env = process.env) =>
               env.APPINSIGHTS_SAMPLING_PERCENTAGE,
               IntegerFromString.decode,
               E.getOrElse(() => DEFAULT_SAMPLING_PERCENTAGE)
-            )
+            ),
+            cloudRole: env.APP_NAME
           })
         ),
         E.getOrElse(undefined)
