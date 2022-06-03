@@ -16,7 +16,7 @@ const DEFAULT_SAMPLING_PERCENTAGE = 5;
 export const initTelemetryClient = (env = process.env) =>
   ai.defaultClient
     ? ai.defaultClient
-    : pipe(
+    : (pipe(
         env.APPINSIGHTS_INSTRUMENTATIONKEY,
         NonEmptyString.decode,
         E.map(k =>
@@ -26,9 +26,8 @@ export const initTelemetryClient = (env = process.env) =>
               env.APPINSIGHTS_SAMPLING_PERCENTAGE,
               IntegerFromString.decode,
               E.getOrElse(() => DEFAULT_SAMPLING_PERCENTAGE)
-            ),
-            cloudRole: env.APP_NAME
+            )
           })
         ),
         E.getOrElse(undefined)
-      );
+      ).context.tags["ai.cloud.role"] = env.APP_NAME);
