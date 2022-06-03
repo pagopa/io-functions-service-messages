@@ -19,17 +19,15 @@ export const initTelemetryClient = (env = process.env) =>
     : pipe(
         env.APPINSIGHTS_INSTRUMENTATIONKEY,
         NonEmptyString.decode,
-        E.map(k => {
-          const ai = initAppInsights(k, {
+        E.map(k =>
+          initAppInsights(k, {
             disableAppInsights: env.APPINSIGHTS_DISABLE === "true",
             samplingPercentage: pipe(
               env.APPINSIGHTS_SAMPLING_PERCENTAGE,
               IntegerFromString.decode,
               E.getOrElse(() => DEFAULT_SAMPLING_PERCENTAGE)
             )
-          });
-          ai.context.tags["ai.cloud.role"] = env.APP_NAME;
-          return ai;
-        }),
+          })
+        ),
         E.getOrElse(undefined)
       );
