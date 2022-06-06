@@ -10,7 +10,7 @@ microservice-chart:
 
   ingress:
     create: true
-    host: 'weubeta.messages.internal.io.pagopa.it'
+    host: 'weuprod02.messages.internal.io.pagopa.it'
     path: '/(.*)'
 
   resources:
@@ -38,7 +38,7 @@ microservice-chart:
     # required
     NODE_ENV: 'production'
     WEBSITE_NODE_DEFAULT_VERSION: '14.16.0'
-    WEBSITE_SITE_NAME: 'io-p-weubeta-functions-service-messages' # required to show cloud role name in application insights
+    WEBSITE_SITE_NAME: 'io-p-weuprod02-functions-service-messages' # required to show cloud role name in application insights
     # app specific
     COSMOSDB_URI: 'https://io-d-cosmos-free.documents.azure.com:443/'
     COSMOSDB_NAME: 'db'
@@ -49,7 +49,7 @@ microservice-chart:
     APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentationkey'
     # app specific
     COSMOSDB_KEY: 'cosmosdb-free-key'
-    QueueStorageConnection: 'iopmessagesweubetasvcst-connection-string'
+    QueueStorageConnection: 'iopmessagesweuprod02svcst-connection-string'
 
   keyvault:
     name: 'io-p-messages-kv'
