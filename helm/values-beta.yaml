@@ -16,10 +16,10 @@ microservice-chart:
   resources:
     requests:
       memory: '96Mi'
-      cpu: '40m'
+      cpu: '50m'
     limits:
-      memory: '128Mi'
-      cpu: '150m'
+      memory: '256Mi'
+      cpu: '200m'
 
   autoscaling:
     enable: true
