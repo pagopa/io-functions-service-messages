@@ -1,11 +1,7 @@
 # Azure DevOps pipeline to release a new version and deploy to production.
 
 variables:
-  # Configuration to run the healthcheck container
-  HEALTHCHECK_CONTAINER_RG: 'io-p-rg-common'
-  HEALTHCHECK_CONTAINER_VNET: 'io-p-vnet-common'
-  HEALTHCHECK_CONTAINER_SUBNET: 'azure-devops' 
-  HEALTHCHECK_PATH: 'api/v1/info' 
+  NAMESPACE: 'messages'
 
 parameters:
   - name: 'RELEASE_SEMVER'
@@ -16,203 +12,158 @@ parameters:
       - minor
       - patch
     default: minor
-  # Map of production apps to deploy to, in the form
-  #   {logicName}: 
-  #     appname: {name of the resource}
-  #     rg: {name of the resource group}
-  # Although it's a parameter, it's not intended to be edited at runtime.
-  # It's here because variables only handle scalar values
-  - name: 'PRODUCTION_APPS'
-    displayName: ''
-    type: object
-    default:
-      app:
-        appname: io-p-fn-name-fn
-        rg: io-p-fn-name-rg
+  - name: 'FORCE_REPLACE_DOCKER_IMAGE'
+    displayName: 'Force the existing docker image to be replaced'
+    type: boolean
+    default: False
+    values:
+      - False
+      - True
 
 # Only manual activations are intended
 trigger: none
 pr: none
 
-# This pipeline has been implemented to be run on hosted agent pools based both
-# on 'windows' and 'ubuntu' virtual machine images and using the scripts defined
-# in the package.json file. Since we are deploying on Azure functions on Windows
-# runtime, the pipeline is currently configured to use a Windows hosted image for
-# the build and deploy.
-pool:
-  vmImage: 'windows-2019'
+# resources:
+#   repositories:
+#     - repository: pagopaCommons
+#       type: github
+#       name: pagopa/azure-pipeline-templates
+#       ref: refs/tags/v19
+#       endpoint: 'io-azure-devops-github-ro'
 
-resources:
-  repositories:
-    - repository: pagopaCommons
-      type: github
-      name: pagopa/azure-pipeline-templates
-      ref: refs/tags/v18
-      endpoint: 'io-azure-devops-github-ro'
+pool:
+  vmImage: 'ubuntu-latest'
 
 stages:
 
-  # Create a relase
-  # Activated when ONE OF these are met:
-  # - is on branch master 
-  # - is a tag in the form v{version}-RELEASE
-  - stage: Release
-    condition:
-      and(
-        succeeded(),
-        or(
-          eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-          and(
-            startsWith(variables['Build.SourceBranch'], 'refs/tags'),
-            endsWith(variables['Build.SourceBranch'], '-RELEASE')
-          )
-        )
-      )
-    pool:
-      vmImage: 'ubuntu-latest'
+#   # Create a relase
+#   # Activated when ONE OF these are met:
+#   # - is on branch master 
+#   # - is a tag in the form v{version}-RELEASE
+#   - stage: Release
+#     condition:
+#       and(
+#         succeeded(),
+#         or(
+#           eq(variables['Build.SourceBranch'], 'refs/heads/master'),
+#           and(
+#             startsWith(variables['Build.SourceBranch'], 'refs/tags'),
+#             endsWith(variables['Build.SourceBranch'], '-RELEASE')
+#           )
+#         )
+#       )
+#     jobs:
+#       - job: make_release
+#         steps:
+#         - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+#           - template: templates/node-job-setup/template.yaml@pagopaCommons
+#             parameters:
+#               persistCredentials: true
+#           - template: templates/node-github-release/template.yaml@pagopaCommons
+#             parameters:
+#               semver: '${{ parameters.RELEASE_SEMVER }}'
+#               gitEmail: $(GIT_EMAIL)
+#               gitUsername: $(GIT_USERNAME)
+#               gitHubConnection: $(GITHUB_CONNECTION)
+
+#         - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+#           - script: |
+#               echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
+#             displayName: 'Skip release bundle'
+
+  # Build
+  - stage: Build
+    #dependsOn:
+    #  - Release
     jobs:
-      - job: make_release
+      - job: 'Build'
         steps:
-        - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-          - template: templates/node-job-setup/template.yaml@pagopaCommons
-            parameters:
-              persistCredentials: true
-          - template: templates/node-github-release/template.yaml@pagopaCommons
-            parameters:
-              semver: '${{ parameters.RELEASE_SEMVER }}'
-              gitEmail: $(GIT_EMAIL)
-              gitUsername: $(GIT_USERNAME)
-              gitHubConnection: $(GITHUB_CONNECTION)
-
-        - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-          - script: |
-              echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
-            displayName: 'Skip release bundle'
-
-  # Prepare Artifact
-  - stage: Prepare_artifact
-    dependsOn:
-      - Release
-    jobs:
-      - job: 'prepare_artifact'
-        steps:
-          # Build application
-          - template: templates/node-job-setup/template.yaml@pagopaCommons
-            parameters:
-              # On the assumption that this stage is executed only when Relase stage is,
-              #  with this parameter we set the reference the deploy script must pull changes from.
-              # The branch/tag name is calculated from the source branch
-              #  ex: Build.SourceBranch=refs/heads/master --> master
-              #  ex: Build.SourceBranch=refs/tags/v1.2.3-RELEASE --> v1.2.3-RELEASE
-              gitReference: ${{ replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '') }}
-          - script: |
-              yarn predeploy
-            displayName: 'Build'
-
-          # Install functions extensions
-          - task: DotNetCoreCLI@2
+          - task: Docker@2
+            displayName: 'docker login'
             inputs:
-              command: "build"
-              arguments: "-o bin"   
-          # Copy application to  
-          - task: CopyFiles@2
+              containerRegistry: 'io-p-messages-acr-docker-registry-prod'
+              command: 'login'
+          - task: Bash@3
+            displayName: 'docker build and push (force)'
+            condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, True))
             inputs:
-              SourceFolder: '$(System.DefaultWorkingDirectory)'
-              TargetFolder: '$(System.DefaultWorkingDirectory)/bundle'
-              Contents: |
-                **/*
-                !.git/**/*
-                !**/*.js.map
-                !**/*.ts
-                !.vscode/**/*
-                !.devops/**/*
-                !.prettierrc
-                !.gitignore
-                !README.md
-                !jest.config.js
-                !local.settings.json
-                !test
-                !tsconfig.json
-                !tslint.json
-                !yarn.lock
-                !Dangerfile.js
-                !CODEOWNERS
-                !__*/**/*
-            displayName: 'Copy deploy files'
-          
-          - publish: $(System.DefaultWorkingDirectory)/bundle
-            artifact: Bundle
+              targetType: 'inline'
+              script: |
+                echo "the parameter FORCE_REPLACE_DOCKER_IMAGE is set to true, start build and push"
+                docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId) .
+                docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:latest .
+                docker push iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId)
+                docker push iopcommonacr.azurecr.io/io-functions-service-messages:latest
+          - task: Bash@3
+            displayName: 'docker build and push'
+            condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, False))
+            inputs:
+              targetType: 'inline'
+              script: |
+                # docker will return 0 on success or 1 on failure.
+                docker manifest inspect iopcommonacr.azurecr.io/io-functions-service-messages:latest > /dev/null
 
-  # Deploy on staging slot
-  - ${{ each app in parameters.PRODUCTION_APPS }}:
-    - stage: Deploy_${{ app.Key }}_to_staging
-      dependsOn:
-        - Prepare_artifact
-      jobs:
-        - job: 'do_deploy_${{ app.Key }}'
-          steps:
-            - checkout: none
-            - download: current
-              artifact: Bundle
-            
-            - task: AzureFunctionApp@1  
-              inputs:
-                azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
-                resourceGroupName: '${{ app.Value.rg }}'
-                appType: 'functionApp'
-                appName: '${{ app.Value.appname }}'
-                package: '$(Pipeline.Workspace)/Bundle'
-                deploymentMethod: 'auto'
-                deployToSlotOrASE: true
-                slotName: 'staging'
-              displayName: Deploy to staging slot 
+                if [ $? -eq 0 ]; then
+                  echo "docker image already exists in the registry, skip build and push"
+                else
+                  echo "docker image does not exist in the registry, start build and push"
+                  docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId) .
+                  docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:latest .
+                  docker push iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId)
+                  docker push iopcommonacr.azurecr.io/io-functions-service-messages:latest
+                fi
 
-  # Check that the staging instance is healthy
-  - ${{ each app in parameters.PRODUCTION_APPS }}:
-    - stage: Healthcheck_${{ app.Key }}
-      pool:
-        name: io-prod-linux
-      dependsOn: 
-        - Deploy_${{ app.Key }}_to_staging
-      jobs:      
-        - job: 'do_healthcheck_${{ app.Key }}'
-          steps:
-            - checkout: none
-            - script: |
-                curl -f 'https://${{ app.Value.appname }}-staging.azurewebsites.net/$(HEALTHCHECK_PATH)'
-              displayName: 'check info endpoint'
-
-  # Promote the staging instance to production
-  - ${{ each app in parameters.PRODUCTION_APPS }}:
-    - stage: Swap_${{ app.Key }}_to_production
-      dependsOn:
-        - Deploy_${{ app.Key }}_to_staging
-        # Wait for every healthcheck to succeed
-        # This implied that no app is swapped to prod if at least one healthcheck fails
-        - ${{ each appInner in parameters.PRODUCTION_APPS }}:
-          - Healthcheck_${{ appInner.Key }}
-      jobs:
-        - job: 'do_deploy_${{ app.Key }}'       
-          steps:  
-            - checkout: none
-            - task: AzureAppServiceManage@0
-              inputs:
-                azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
-                resourceGroupName: '${{ app.Value.rg }}'
-                webAppName: '${{ app.Value.appname }}'
-                sourceSlot: staging
-                swapWithProduction: true
-              displayName: Swap with production slot
-
-  # Publish client SDK to NPM
-  - stage: PublishClientSDKtoNPM
-    dependsOn: Release
-    pool:
-      vmImage: 'ubuntu-latest'
+  - stage: 'Serving_helm'
+    displayName: 'Serving_Helm'
+    dependsOn: Build
     jobs:
-      - job: publish_SDK   
+      - job: Serving_helm
+        displayName: Serving_helm
         steps:
-        # Template for generating and deploying client SDk to NPM
-        - template: templates/client-sdk-publish/template.yaml@pagopaCommons
-          parameters:
-            openapiSpecPath: 'openapi/index.yaml'
+          - task: PublishPipelineArtifact@1
+            displayName: 'Publish Artifact manifests'
+            condition: succeeded()
+            inputs:
+              targetPath: '$(Build.Repository.LocalPath)/helm'
+              artifact: 'helm'
+              publishLocation: 'pipeline'
+
+  - stage: 'Deploy'
+    dependsOn: "Serving_helm"
+    jobs:
+      - deployment: 'Deploy'
+        pool:
+          name: io-prod-linux
+        environment: PROD
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: none
+                - task: DownloadPipelineArtifact@2
+                  inputs:
+                    buildType: 'current'
+                    artifactName: 'helm'
+                    targetPath: '$(Pipeline.Workspace)/helm'
+                - task: Bash@3
+                  displayName: 'prepare helm'
+                  inputs:
+                    targetType: 'inline'
+                    script: |
+                      helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
+                      helm dep build $(Pipeline.Workspace)/helm
+                - task: HelmDeploy@0
+                  displayName: Helm upgrade
+                  inputs:
+                    kubernetesServiceEndpoint: io-messages-aks-weu-beta
+                    namespace: $(NAMESPACE)
+                    command: upgrade
+                    chartType: filepath
+                    chartPath: $(Pipeline.Workspace)/helm
+                    chartName: io-functions-service-messages
+                    releaseName: io-functions-service-messages
+                    valueFile: "$(Pipeline.Workspace)/helm/values-beta.yaml"
+                    install: true
+                    waitForExecution: true
+                    arguments: "--timeout 5m0s"
