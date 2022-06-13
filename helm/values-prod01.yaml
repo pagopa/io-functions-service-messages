@@ -11,7 +11,7 @@ microservice-chart:
   ingress:
     create: true
     host: 'weuprod01.messages.internal.io.pagopa.it'
-    path: '/(.*)'
+    path: '/service-messages/(.*)'
 
   resources:
     requests:
@@ -28,10 +28,9 @@ microservice-chart:
     pollingInterval: 30 # seconds
     cooldownPeriod: 300 # seconds
     triggers:
-      - type: 'cpu'
-        metricType: 'Utilization/ AverageValue'
+      - type: cpu
         metadata:
-          type: 'Utilization/ AverageValue' # Deprecated in favor of trigger.metricType
+          type: Utilization
           value: '60'
   
   envConfig:
@@ -49,7 +48,7 @@ microservice-chart:
     APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentationkey'
     # app specific
     COSMOSDB_KEY: 'cosmosdb-free-key'
-    QueueStorageConnection: 'iopmessagesweuprod01svcst-connection-string'
+    QueueStorageConnection: 'iopmessagesweuprod01svst-connection-string'
 
   keyvault:
     name: 'io-p-messages-kv'
