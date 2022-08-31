@@ -23,7 +23,7 @@ schemes:
 security:
   - SubscriptionKey: []
 paths:
-  "/ping":
+  /ping:
     get:
       operationId: pingOperation
       summary: Ping
@@ -35,10 +35,60 @@ paths:
           description: Success.
         '500':
           description: Internal Server error
+  /notify:
+    post:
+      operationId: notify
+      summary: Notify a user
+      description: Post the notification to the user using a push notification.
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/NotificationInfo'
+      responses:
+        '201':
+          description: Success.
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '401':
+          description: Token null or invalid.
+        '500':
+          description: >-
+            There was an error in forwarding the notification.
+          schema:
+            $ref: '#/definitions/ProblemJson'
 consumes:
   - application/json
 produces:
   - application/json
+
+definitions:
+  NotificationType:
+    type: string
+    x-extensible-enum:
+     - MESSAGE
+     - REMINDER_READ
+     - REMINDER_PAYMENT
+     - REMINDER_PAYMENT_LAST
+  NotificationInfo:
+    type: object
+    properties:
+      notification_type: 
+        $ref: "#/definitions/NotificationType"
+      fiscal_code:
+        $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/FiscalCode"
+      message_id:
+        type: string
+    required:
+      - notification_type
+      - fiscal_code
+      - message_id
+  ProblemJson:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ProblemJson"
+
 securityDefinitions:
   SubscriptionKey:
     type: apiKey
