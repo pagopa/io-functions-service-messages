@@ -70,6 +70,7 @@ definitions:
       - MESSAGE
       - REMINDER_READ
       - REMINDER_PAYMENT
+      - REMINDER_PAYMENT_LAST
   NotificationInfo:
     type: object
     properties:
