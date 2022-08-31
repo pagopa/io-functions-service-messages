@@ -7,11 +7,8 @@ import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middl
 import { withAppInsightsContext } from "@pagopa/io-functions-commons/dist/src/utils/application_insights";
 
 import { initTelemetryClient } from "../utils/appinsights";
-import { getConfigOrThrow } from "../utils/config";
 
 import { Notify } from "./handler";
-
-const config = getConfigOrThrow();
 
 // Setup Express
 const app = express();
