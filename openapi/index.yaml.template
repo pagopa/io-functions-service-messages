@@ -47,7 +47,7 @@ paths:
           schema:
             $ref: '#/definitions/NotificationInfo'
       responses:
-        '201':
+        '204':
           description: Success.
         '400':
           description: Bad request

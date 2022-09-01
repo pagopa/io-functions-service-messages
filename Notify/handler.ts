@@ -8,13 +8,13 @@ import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist
 import {
   getResponseErrorForbiddenNotAuthorized,
   IResponseErrorForbiddenNotAuthorized,
-  IResponseSuccessAccepted
+  IResponseSuccessNoContent
 } from "@pagopa/ts-commons/lib/responses";
 import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
 import { NotificationInfo } from "../generated/definitions/NotificationInfo";
 
 type NotifyHandler = () => Promise<
-  IResponseSuccessAccepted | IResponseErrorForbiddenNotAuthorized
+  IResponseSuccessNoContent | IResponseErrorForbiddenNotAuthorized
 >;
 
 export const NotifyHandler = (): NotifyHandler => async (): ReturnType<
