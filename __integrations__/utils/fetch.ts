@@ -7,7 +7,7 @@ const customHeaders = {};
 export const getNodeFetch = (
   headers: Partial<typeof customHeaders> = customHeaders,
   showLogs: boolean = false
-) => async (input: RequestInfo, init?: RequestInit): Promise<Response> => {
+): typeof fetch => async (input, init) => {
   const headersToAdd = {
     ...(init?.headers ?? {}),
     ...customHeaders,
@@ -23,9 +23,7 @@ export const getNodeFetch = (
     headers: headersToAdd
   });
 
-  if (showLogs) {
-    log("Result:", res);
-  }
+  if (showLogs) log("Result:", res);
 
   return res;
 };
