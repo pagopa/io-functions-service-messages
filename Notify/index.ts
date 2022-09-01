@@ -17,7 +17,7 @@ secureExpressApp(app);
 const telemetryClient = initTelemetryClient();
 
 // Add express route
-app.get("/api/v1/notify", Notify(telemetryClient));
+app.post("/api/v1/notify", Notify(telemetryClient));
 
 const azureFunctionHandler = createAzureFunctionHandler(app);
 
