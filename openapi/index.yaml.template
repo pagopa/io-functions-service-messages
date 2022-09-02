@@ -47,7 +47,7 @@ paths:
           schema:
             $ref: '#/definitions/NotificationInfo'
       responses:
-        '201':
+        '204':
           description: Success.
         '400':
           description: Bad request
@@ -82,6 +82,7 @@ definitions:
         $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/FiscalCode"
       message_id:
         type: string
+        minLength: 1
     required:
       - notification_type
       - fiscal_code

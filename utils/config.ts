@@ -61,6 +61,8 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
     /* eslint-disable sort-keys */
+    APPINSIGHTS_INSTRUMENTATIONKEY: NonEmptyString,
+
     COSMOSDB_KEY: NonEmptyString,
     COSMOSDB_NAME: NonEmptyString,
     COSMOSDB_URI: NonEmptyString,

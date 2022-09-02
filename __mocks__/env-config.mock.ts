@@ -7,6 +7,8 @@ const aBlacklistedFiscalCode = "AAAAAA00A00H501I" as FiscalCode;
 export const envConfig: IConfig = {
   isProduction: false,
 
+  APPINSIGHTS_INSTRUMENTATIONKEY: "aKey" as NonEmptyString,
+
   COSMOSDB_KEY: "aKey" as NonEmptyString,
   COSMOSDB_NAME: "aName" as NonEmptyString,
   COSMOSDB_URI: "aUri" as NonEmptyString,

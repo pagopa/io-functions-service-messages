@@ -47,7 +47,7 @@ paths:
           schema:
             $ref: '#/definitions/NotificationInfo'
       responses:
-        '201':
+        '204':
           description: Success.
         '400':
           description: Bad request
@@ -84,6 +84,7 @@ definitions:
         example: SPNDNL80R13C555X
       message_id:
         type: string
+        minLength: 1
     required:
       - notification_type
       - fiscal_code
