@@ -7,7 +7,7 @@ Object {
 }
 `;
 
-exports[`Printer - Template - { test: 'MESSAGE', printer: [Object] } should print da verbose notification 1`] = `
+exports[`Printer - Template - { test: 'MESSAGE', printer: [Object] } should print a verbose notification 1`] = `
 Object {
   "body": "TEST OBJECT",
   "title": "TEST ORG - TEST SERVICE",
@@ -21,7 +21,7 @@ Object {
 }
 `;
 
-exports[`Printer - Template - { test: 'REMINDER_PAYMENT', printer: [Object] } should print da verbose notification 1`] = `
+exports[`Printer - Template - { test: 'REMINDER_PAYMENT', printer: [Object] } should print a verbose notification 1`] = `
 Object {
   "body": "Entra nell’app e paga l’avviso emesso da TEST ORG",
   "title": "Hai un avviso da pagare",
@@ -35,7 +35,7 @@ Object {
 }
 `;
 
-exports[`Printer - Template - { test: 'REMINDER_PAYMENT_LAST', printer: [Object] } should print da verbose notification 1`] = `
+exports[`Printer - Template - { test: 'REMINDER_PAYMENT_LAST', printer: [Object] } should print a verbose notification 1`] = `
 Object {
   "body": "Entra nell’app e paga l’avviso emesso da TEST ORG",
   "title": "Hai un avviso che scade domani",
@@ -49,7 +49,7 @@ Object {
 }
 `;
 
-exports[`Printer - Template - { test: 'REMINDER_READ', printer: [Object] } should print da verbose notification 1`] = `
+exports[`Printer - Template - { test: 'REMINDER_READ', printer: [Object] } should print a verbose notification 1`] = `
 Object {
   "body": "TEST OBJECT",
   "title": "Leggi il messaggio da TEST ORG",
