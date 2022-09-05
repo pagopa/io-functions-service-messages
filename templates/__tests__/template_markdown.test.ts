@@ -32,7 +32,7 @@ describe.each([
     expect(result).toMatchSnapshot();
   });
 
-  it("should print da verbose notification", () => {
+  it("should print a verbose notification", () => {
     const notification = pipe(
       NotificationEntry.decode(notificationMessage),
       getOrElseW(_ => {

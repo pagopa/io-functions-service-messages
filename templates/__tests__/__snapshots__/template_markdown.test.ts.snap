@@ -45,7 +45,7 @@ Object {
 exports[`Printer - Template - { test: 'REMINDER_READ', printer: [Object] } should print a silent notification 1`] = `
 Object {
   "body": "Entra nell'app per leggerlo",
-  "title": "Hai un nuovo messaggio",
+  "title": "Hai un messaggio non letto",
 }
 `;
 
