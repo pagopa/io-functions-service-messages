@@ -3,11 +3,28 @@ microservice-chart:
     repository: 'iopcommonacr.azurecr.io/io-functions-service-messages'
     tag: 'latest'
     pullPolicy: Always
-    # readinessProbePath: '/api/ready'
-    # livenessProbePath: '/api/live'
 
   namespace: 'messages'
 
+  livenessProbe:
+    httpGet:
+      path: '/api/live'
+      port: 80
+    initialDelaySeconds: 30
+    failureThreshold: 6
+    periodSeconds: 10
+
+  readinessProbe:
+    httpGet:
+      path: '/api/ready'
+      port: 80
+    initialDelaySeconds: 30
+    failureThreshold: 6
+    periodSeconds: 10
+  
+  service:
+    create: true
+    port: 80
   ingress:
     create: true
     host: 'weubeta.messages.internal.io.pagopa.it'
@@ -15,15 +32,15 @@ microservice-chart:
 
   resources:
     requests:
-      memory: '96Mi'
-      cpu: '50m'
+      memory: '512Mi'
+      cpu: '200m'
     limits:
-      memory: '256Mi'
+      memory: '512Mi'
       cpu: '200m'
 
   autoscaling:
     enable: true
-    minReplica: 2
+    minReplica: 1
     maxReplica: 10
     pollingInterval: 30 # seconds
     cooldownPeriod: 300 # seconds
@@ -31,7 +48,7 @@ microservice-chart:
       - type: cpu
         metadata:
           type: Utilization
-          value: '60'
+          value: '70'
 
   envConfig:
     # required

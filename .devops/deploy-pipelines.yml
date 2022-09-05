@@ -1,19 +1,55 @@
 # Azure DevOps pipeline to release a new version and deploy to production.
 
 variables:
-  NAMESPACE: 'messages'
+  NAMESPACE: "$(TF_NAMESPACE)"
+  DOCKER_IMAGE_NAME: "$(TF_DOCKER_IMAGE_NAME)"
+  CONTAINER_REGISTRY_FQDN_PROD: "$(TF_CONTAINER_REGISTRY_FQDN_PROD)"
+  CONTAINER_REGISTRY_SERVICE_CONN_PROD: "$(TF_CONTAINER_REGISTRY_SERVICE_CONN_PROD)"
+  KUBERNETES_SERVICE_CONN_WEU_BETA: "$(TF_KUBERNETES_SERVICE_CONN_WEU_BETA)"
+  KUBERNETES_SERVICE_CONN_WEU_PROD_01: "$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_01)"
+  KUBERNETES_SERVICE_CONN_WEU_PROD_02: "$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_02)"
+  APPINSIGHTS_SERVICE_CONN_PROD: "$(TF_APPINSIGHTS_SERVICE_CONN_PROD)"
+  APPINSIGHTS_RESOURCE_ID_PROD: "$(TF_APPINSIGHTS_RESOURCE_ID_PROD)"
 
 parameters:
-  - name: 'RELEASE_SEMVER'
-    displayName: 'When packing a release, define the version bump to apply'
+  - name: "RELEASE_SEMVER"
+    displayName: "When packing a release, define the version bump to apply"
     type: string
     values:
       - major
       - minor
       - patch
     default: minor
-  - name: 'FORCE_REPLACE_DOCKER_IMAGE'
-    displayName: 'Force the existing docker image to be replaced'
+  - name: "FORCE_REPLACE_DOCKER_IMAGE"
+    displayName: "Force the existing docker image to be replaced"
+    type: boolean
+    default: False
+    values:
+      - False
+      - True
+  - name: "SKIP_RELEASE"
+    displayName: "Skip release"
+    type: boolean
+    default: False
+    values:
+      - False
+      - True
+  - name: "ENVIRONMENT_WEU_BETA"
+    displayName: "Deploy to weu-beta"
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: "ENVIRONMENT_WEU_PROD_01"
+    displayName: "Deploy to weu-prod-01"
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: "ENVIRONMENT_WEU_PROD_02"
+    displayName: "Deploy to weu-prod-02"
     type: boolean
     default: False
     values:
@@ -24,115 +60,80 @@ parameters:
 trigger: none
 pr: none
 
-# resources:
-#   repositories:
-#     - repository: pagopaCommons
-#       type: github
-#       name: pagopa/azure-pipeline-templates
-#       ref: refs/tags/v19
-#       endpoint: 'io-azure-devops-github-ro'
+resources:
+  repositories:
+    - repository: pagopaCommons
+      type: github
+      name: pagopa/azure-pipeline-templates
+      ref: refs/tags/v2.10.0
+      endpoint: "azure-devops-github-ro-payments"
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: "ubuntu-latest"
 
 stages:
-
-#   # Create a relase
-#   # Activated when ONE OF these are met:
-#   # - is on branch master 
-#   # - is a tag in the form v{version}-RELEASE
-#   - stage: Release
-#     condition:
-#       and(
-#         succeeded(),
-#         or(
-#           eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-#           and(
-#             startsWith(variables['Build.SourceBranch'], 'refs/tags'),
-#             endsWith(variables['Build.SourceBranch'], '-RELEASE')
-#           )
-#         )
-#       )
-#     jobs:
-#       - job: make_release
-#         steps:
-#         - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-#           - template: templates/node-job-setup/template.yaml@pagopaCommons
-#             parameters:
-#               persistCredentials: true
-#           - template: templates/node-github-release/template.yaml@pagopaCommons
-#             parameters:
-#               semver: '${{ parameters.RELEASE_SEMVER }}'
-#               gitEmail: $(GIT_EMAIL)
-#               gitUsername: $(GIT_USERNAME)
-#               gitHubConnection: $(GITHUB_CONNECTION)
-
-#         - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-#           - script: |
-#               echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
-#             displayName: 'Skip release bundle'
+  # Release
+  - stage: Release
+    jobs:
+      - job: make_release
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
+        steps:
+          - ${{ if eq(parameters['SKIP_RELEASE'], False) }}:
+              - checkout: self
+                displayName: "Checkout"
+                persistCredentials: true
+              - template: templates/maven-github-release/template.yaml@pagopaCommons
+                parameters:
+                  semver: "${{ parameters.RELEASE_SEMVER }}"
+                  gitEmail: $(GIT_EMAIL)
+                  gitUsername: $(GIT_USERNAME)
+                  gitHubConnection: $(GITHUB_CONNECTION)
+                  release_branch: master
+          - ${{ if eq(parameters['SKIP_RELEASE'], True) }}:
+              - template: templates/maven-github-current-version/template.yaml@pagopaCommons
+      - job: branch_version
+        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
+        steps:
+          - template: templates/maven-github-current-version/template.yaml@pagopaCommons
+      - job: tag_version
+        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+        steps:
+          - template: templates/maven-github-current-version/template.yaml@pagopaCommons
 
   # Build
   - stage: Build
-    #dependsOn:
-    #  - Release
+    dependsOn: Release
+    variables:
+      next_version: $[ stageDependencies.Release.make_release.outputs['next_version.value'] ]
+      current_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
+      current_version_branch: $[ stageDependencies.Release.branch_version.outputs['current_version.value'] ]
+      current_version_tag: $[ stageDependencies.Release.tag_version.outputs['current_version.value'] ]
     jobs:
-      - job: 'Build'
+      - job: "build"
         steps:
-          - task: Docker@2
-            displayName: 'docker login'
-            inputs:
-              containerRegistry: 'io-p-messages-acr-docker-registry-prod'
-              command: 'login'
-          - task: Bash@3
-            displayName: 'docker build and push (force)'
-            condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, True))
-            inputs:
-              targetType: 'inline'
-              script: |
-                echo "the parameter FORCE_REPLACE_DOCKER_IMAGE is set to true, start build and push"
-                docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId) .
-                docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:latest .
-                docker push iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId)
-                docker push iopcommonacr.azurecr.io/io-functions-service-messages:latest
-          - task: Bash@3
-            displayName: 'docker build and push'
-            condition: and(succeeded(), eq(${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}, False))
-            inputs:
-              targetType: 'inline'
-              script: |
-                # docker will return 0 on success or 1 on failure.
-                docker manifest inspect iopcommonacr.azurecr.io/io-functions-service-messages:latest > /dev/null
+          - template: templates/deploy-release-decision/template.yaml@pagopaCommons
+            parameters:
+              NEXT_VERSION: $(next_version)
+              CURRENT_VERSION: $(current_version)
+              CURRENT_VERSION_BRANCH: $(current_version_branch)
+              CURRENT_VERSION_TAG: $(current_version_tag)
+              BUILD_SOURCE_VERSION: $(Build.SourceVersion)
+              BUILD_SOURCE_BRANCH_NAME: $(Build.SourceBranchName)
+          - template: templates/docker-release/template.yaml@pagopaCommons
+            parameters:
+              CONTAINER_REGISTRY_SERVICE_CONN: $(CONTAINER_REGISTRY_SERVICE_CONN_PROD)
+              CONTAINER_REGISTRY_FQDN: $(CONTAINER_REGISTRY_FQDN_PROD)
+              DOCKER_IMAGE_NAME: $(DOCKER_IMAGE_NAME)
+              DOCKER_IMAGE_TAG: $(deploy_version_decision.value)
+              FORCE_REPLACE_DOCKER_IMAGE: ${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}
 
-                if [ $? -eq 0 ]; then
-                  echo "docker image already exists in the registry, skip build and push"
-                else
-                  echo "docker image does not exist in the registry, start build and push"
-                  docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId) .
-                  docker build -t iopcommonacr.azurecr.io/io-functions-service-messages:latest .
-                  docker push iopcommonacr.azurecr.io/io-functions-service-messages:$(Build.BuildId)
-                  docker push iopcommonacr.azurecr.io/io-functions-service-messages:latest
-                fi
-
-  - stage: 'Serving_helm'
-    displayName: 'Serving_Helm'
-    dependsOn: Build
+  # Deploy
+  - stage: "Deploy"
+    dependsOn: "Build"
+    variables:
+      deploy_version: $[ stageDependencies.Build.build.outputs['deploy_version_decision.value'] ]
     jobs:
-      - job: Serving_helm
-        displayName: Serving_helm
-        steps:
-          - task: PublishPipelineArtifact@1
-            displayName: 'Publish Artifact manifests'
-            condition: succeeded()
-            inputs:
-              targetPath: '$(Build.Repository.LocalPath)/helm'
-              artifact: 'helm'
-              publishLocation: 'pipeline'
-
-  - stage: 'Deploy'
-    dependsOn: "Serving_helm"
-    jobs:
-      - deployment: 'Deploy'
+      - deployment: "deploy"
         pool:
           name: io-prod-linux
         environment: PROD
@@ -140,30 +141,30 @@ stages:
           runOnce:
             deploy:
               steps:
-                - download: none
-                - task: DownloadPipelineArtifact@2
-                  inputs:
-                    buildType: 'current'
-                    artifactName: 'helm'
-                    targetPath: '$(Pipeline.Workspace)/helm'
-                - task: Bash@3
-                  displayName: 'prepare helm'
-                  inputs:
-                    targetType: 'inline'
-                    script: |
-                      helm repo add microservice-chart https://pagopa.github.io/aks-microservice-chart-blueprint
-                      helm dep build $(Pipeline.Workspace)/helm
-                - task: HelmDeploy@0
-                  displayName: Helm upgrade
-                  inputs:
-                    kubernetesServiceEndpoint: io-messages-aks-weu-beta
-                    namespace: $(NAMESPACE)
-                    command: upgrade
-                    chartType: filepath
-                    chartPath: $(Pipeline.Workspace)/helm
-                    chartName: io-functions-service-messages
-                    releaseName: io-functions-service-messages
-                    valueFile: "$(Pipeline.Workspace)/helm/values-beta.yaml"
-                    install: true
-                    waitForExecution: true
-                    arguments: "--timeout 5m0s"
+                - checkout: self
+                  displayName: "Checkout"
+                - template: templates/helm-microservice-chart-setup/template.yaml@pagopaCommons
+                  parameters:
+                    DEPLOY_VERSION: $(deploy_version)
+                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
+                  parameters:
+                    DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_BETA }}
+                    ENV: BETA
+                    KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
+                    NAMESPACE: $(NAMESPACE)
+                    APP_NAME: $(DOCKER_IMAGE_NAME)
+                    VALUE_FILE: "helm/values-beta.yaml"
+                    DEPLOY_VERSION: $(deploy_version)
+                    APPINSIGHTS_SERVICE_CONN: ${{ variables.APPINSIGHTS_SERVICE_CONN_PROD }}
+                    APPINSIGHTS_RESOURCE_ID: ${{ variables.APPINSIGHTS_RESOURCE_ID_PROD }}
+                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
+                  parameters:
+                    DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_PROD_01 }}
+                    ENV: PROD_01
+                    KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_01 }}
+                    NAMESPACE: $(NAMESPACE)
+                    APP_NAME: $(DOCKER_IMAGE_NAME)
+                    VALUE_FILE: "helm/values-prod01.yaml"
+                    DEPLOY_VERSION: $(deploy_version)
+                    APPINSIGHTS_SERVICE_CONN: ${{ variables.APPINSIGHTS_SERVICE_CONN_PROD }}
+                    APPINSIGHTS_RESOURCE_ID: ${{ variables.APPINSIGHTS_RESOURCE_ID_PROD }}
