@@ -54,7 +54,7 @@ microservice-chart:
     MESSAGE_CONTAINER_NAME: 'messages'
   envSecret:
     # required
-    APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentationkey'
+    APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentation-key'
     # app specific
     COSMOSDB_KEY: 'cosmosdb-free-key'
     QueueStorageConnection: 'iopmessagesweuprod01svst-connection-string'
