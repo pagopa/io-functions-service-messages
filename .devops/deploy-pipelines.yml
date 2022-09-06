@@ -79,8 +79,16 @@ stages:
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         steps:
           - ${{ if eq(parameters['SKIP_RELEASE'], False) }}:
-              - checkout: self
-                displayName: "Checkout"
+              - template: templates/node-github-release/template.yaml@pagopaCommons
+                parameters:
+                  persistCredentials: true
+              - template: templates/node-github-release/template.yaml@pagopaCommons
+                parameters:
+                  semver: "${{ parameters.RELEASE_SEMVER }}"
+                  gitEmail: $(GIT_EMAIL)
+                  gitUsername: $(GIT_USERNAME)
+                  gitHubConnection: $(GITHUB_CONNECTION)
+                  release_branch: master
           - ${{ if eq(parameters['SKIP_RELEASE'], True) }}:
               - template: templates/node-github-current-version/template.yaml@pagopaCommons
       - job: branch_version
