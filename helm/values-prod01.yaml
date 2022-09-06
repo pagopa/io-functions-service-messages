@@ -1,11 +1,9 @@
 microservice-chart:
   image:
     repository: 'iopcommonacr.azurecr.io/io-functions-service-messages'
-    tag: 'latest'
+    tag: '0.1.0'
     pullPolicy: Always
-
   namespace: 'messages'
-
   livenessProbe:
     httpGet:
       path: '/api/live'
@@ -13,7 +11,6 @@ microservice-chart:
     initialDelaySeconds: 30
     failureThreshold: 6
     periodSeconds: 10
-
   readinessProbe:
     httpGet:
       path: '/api/ready'
@@ -21,7 +18,6 @@ microservice-chart:
     initialDelaySeconds: 30
     failureThreshold: 6
     periodSeconds: 10
-  
   service:
     create: true
     port: 80
@@ -29,7 +25,6 @@ microservice-chart:
     create: true
     host: 'weuprod01.messages.internal.io.pagopa.it'
     path: '/service-messages/(.*)'
-
   resources:
     requests:
       memory: '512Mi'
@@ -37,7 +32,6 @@ microservice-chart:
     limits:
       memory: '512Mi'
       cpu: '200m'
-
   autoscaling:
     enable: true
     minReplica: 2
@@ -49,7 +43,6 @@ microservice-chart:
         metadata:
           type: Utilization
           value: '70'
-  
   envConfig:
     # required
     NODE_ENV: 'production'
@@ -59,14 +52,12 @@ microservice-chart:
     COSMOSDB_URI: 'https://io-d-cosmos-free.documents.azure.com:443/'
     COSMOSDB_NAME: 'db'
     MESSAGE_CONTAINER_NAME: 'messages'
-
   envSecret:
     # required
     APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentationkey'
     # app specific
     COSMOSDB_KEY: 'cosmosdb-free-key'
     QueueStorageConnection: 'iopmessagesweuprod01svst-connection-string'
-
   keyvault:
     name: 'io-p-messages-kv'
     tenantId: '7788edaf-0346-4068-9d79-c868aed15b3d'
