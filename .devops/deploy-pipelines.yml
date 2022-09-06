@@ -65,7 +65,7 @@ resources:
     - repository: pagopaCommons
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: fix-chart-version-update # refs/tags/v2.10.0
+      ref: refs/tags/v2.10.1
       endpoint: "azure-devops-github-ro-payments"
 
 pool:
