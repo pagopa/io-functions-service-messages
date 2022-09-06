@@ -58,3 +58,6 @@ generated
 .eslintcache
 
 azure-functions-core-tools
+
+helm/charts**
+helm/charts/*

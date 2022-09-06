@@ -1,0 +1,72 @@
+microservice-chart:
+  image:
+    repository: 'iopcommonacr.azurecr.io/io-functions-service-messages'
+    tag: 'latest'
+    pullPolicy: Always
+
+  namespace: 'messages'
+
+  livenessProbe:
+    httpGet:
+      path: '/api/live'
+      port: 80
+    initialDelaySeconds: 30
+    failureThreshold: 6
+    periodSeconds: 10
+
+  readinessProbe:
+    httpGet:
+      path: '/api/ready'
+      port: 80
+    initialDelaySeconds: 30
+    failureThreshold: 6
+    periodSeconds: 10
+  
+  service:
+    create: true
+    port: 80
+  ingress:
+    create: true
+    host: 'weubeta.messages.internal.io.pagopa.it'
+    path: '/service-messages/(.*)'
+
+  resources:
+    requests:
+      memory: '512Mi'
+      cpu: '200m'
+    limits:
+      memory: '512Mi'
+      cpu: '200m'
+
+  autoscaling:
+    enable: true
+    minReplica: 1
+    maxReplica: 10
+    pollingInterval: 30 # seconds
+    cooldownPeriod: 300 # seconds
+    triggers:
+      - type: cpu
+        metadata:
+          type: Utilization
+          value: '70'
+
+  envConfig:
+    # required
+    NODE_ENV: 'production'
+    WEBSITE_NODE_DEFAULT_VERSION: '14.16.0'
+    WEBSITE_SITE_NAME: 'io-p-weubeta-functions-service-messages' # required to show cloud role name in application insights
+    # app specific
+    COSMOSDB_URI: 'https://io-d-cosmos-free.documents.azure.com:443/'
+    COSMOSDB_NAME: 'db'
+    MESSAGE_CONTAINER_NAME: 'messages'
+
+  envSecret:
+    # required
+    APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentationkey'
+    # app specific
+    COSMOSDB_KEY: 'cosmosdb-free-key'
+    QueueStorageConnection: 'iopmessagesweubetasvst-connection-string'
+
+  keyvault:
+    name: 'io-p-messages-kv'
+    tenantId: '7788edaf-0346-4068-9d79-c868aed15b3d'

@@ -1,218 +1,162 @@
 # Azure DevOps pipeline to release a new version and deploy to production.
 
 variables:
-  # Configuration to run the healthcheck container
-  HEALTHCHECK_CONTAINER_RG: 'io-p-rg-common'
-  HEALTHCHECK_CONTAINER_VNET: 'io-p-vnet-common'
-  HEALTHCHECK_CONTAINER_SUBNET: 'azure-devops' 
-  HEALTHCHECK_PATH: 'api/v1/info' 
+  NAMESPACE: "$(TF_NAMESPACE)"
+  DOCKER_IMAGE_NAME: "$(TF_DOCKER_IMAGE_NAME)"
+  CONTAINER_REGISTRY_FQDN_PROD: "$(TF_CONTAINER_REGISTRY_FQDN_PROD)"
+  CONTAINER_REGISTRY_SERVICE_CONN_PROD: "$(TF_CONTAINER_REGISTRY_SERVICE_CONN_PROD)"
+  KUBERNETES_SERVICE_CONN_WEU_BETA: "$(TF_KUBERNETES_SERVICE_CONN_WEU_BETA)"
+  KUBERNETES_SERVICE_CONN_WEU_PROD_01: "$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_01)"
+  KUBERNETES_SERVICE_CONN_WEU_PROD_02: "$(TF_KUBERNETES_SERVICE_CONN_WEU_PROD_02)"
+  APPINSIGHTS_SERVICE_CONN_PROD: "$(TF_APPINSIGHTS_SERVICE_CONN_PROD)"
+  APPINSIGHTS_RESOURCE_ID_PROD: "$(TF_APPINSIGHTS_RESOURCE_ID_PROD)"
 
 parameters:
-  - name: 'RELEASE_SEMVER'
-    displayName: 'When packing a release, define the version bump to apply'
+  - name: "RELEASE_SEMVER"
+    displayName: "When packing a release, define the version bump to apply"
     type: string
     values:
       - major
       - minor
       - patch
     default: minor
-  # Map of production apps to deploy to, in the form
-  #   {logicName}: 
-  #     appname: {name of the resource}
-  #     rg: {name of the resource group}
-  # Although it's a parameter, it's not intended to be edited at runtime.
-  # It's here because variables only handle scalar values
-  - name: 'PRODUCTION_APPS'
-    displayName: ''
-    type: object
-    default:
-      app:
-        appname: io-p-fn-name-fn
-        rg: io-p-fn-name-rg
+  - name: "FORCE_REPLACE_DOCKER_IMAGE"
+    displayName: "Force the existing docker image to be replaced"
+    type: boolean
+    default: False
+    values:
+      - False
+      - True
+  - name: "SKIP_RELEASE"
+    displayName: "Skip release"
+    type: boolean
+    default: False
+    values:
+      - False
+      - True
+  - name: "ENVIRONMENT_WEU_BETA"
+    displayName: "Deploy to weu-beta"
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: "ENVIRONMENT_WEU_PROD_01"
+    displayName: "Deploy to weu-prod-01"
+    type: boolean
+    default: True
+    values:
+      - False
+      - True
+  - name: "ENVIRONMENT_WEU_PROD_02"
+    displayName: "Deploy to weu-prod-02"
+    type: boolean
+    default: False
+    values:
+      - False
+      - True
 
 # Only manual activations are intended
 trigger: none
 pr: none
-
-# This pipeline has been implemented to be run on hosted agent pools based both
-# on 'windows' and 'ubuntu' virtual machine images and using the scripts defined
-# in the package.json file. Since we are deploying on Azure functions on Windows
-# runtime, the pipeline is currently configured to use a Windows hosted image for
-# the build and deploy.
-pool:
-  vmImage: 'windows-2019'
 
 resources:
   repositories:
     - repository: pagopaCommons
       type: github
       name: pagopa/azure-pipeline-templates
-      ref: refs/tags/v18
-      endpoint: 'io-azure-devops-github-ro'
+      ref: refs/tags/v2.10.1
+      endpoint: "azure-devops-github-ro-payments"
+
+pool:
+  vmImage: "ubuntu-latest"
 
 stages:
-
-  # Create a relase
-  # Activated when ONE OF these are met:
-  # - is on branch master 
-  # - is a tag in the form v{version}-RELEASE
+  # Release
   - stage: Release
-    condition:
-      and(
-        succeeded(),
-        or(
-          eq(variables['Build.SourceBranch'], 'refs/heads/master'),
-          and(
-            startsWith(variables['Build.SourceBranch'], 'refs/tags'),
-            endsWith(variables['Build.SourceBranch'], '-RELEASE')
-          )
-        )
-      )
-    pool:
-      vmImage: 'ubuntu-latest'
     jobs:
       - job: make_release
+        condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         steps:
-        - ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-          - template: templates/node-job-setup/template.yaml@pagopaCommons
-            parameters:
-              persistCredentials: true
-          - template: templates/node-github-release/template.yaml@pagopaCommons
-            parameters:
-              semver: '${{ parameters.RELEASE_SEMVER }}'
-              gitEmail: $(GIT_EMAIL)
-              gitUsername: $(GIT_USERNAME)
-              gitHubConnection: $(GITHUB_CONNECTION)
-
-        - ${{ if ne(variables['Build.SourceBranch'], 'refs/heads/master') }}:
-          - script: |
-              echo "We assume this reference to be a valid release: $(Build.SourceBranch). Therefore, there is no need to bundle a new release."
-            displayName: 'Skip release bundle'
-
-  # Prepare Artifact
-  - stage: Prepare_artifact
-    dependsOn:
-      - Release
-    jobs:
-      - job: 'prepare_artifact'
+          - ${{ if eq(parameters['SKIP_RELEASE'], False) }}:
+              - checkout: self
+                displayName: "Checkout"
+          - ${{ if eq(parameters['SKIP_RELEASE'], True) }}:
+              - template: templates/node-github-current-version/template.yaml@pagopaCommons
+      - job: branch_version
+        condition: and(succeeded(), ne(variables['Build.SourceBranch'], 'refs/heads/master'))
         steps:
-          # Build application
-          - template: templates/node-job-setup/template.yaml@pagopaCommons
-            parameters:
-              # On the assumption that this stage is executed only when Relase stage is,
-              #  with this parameter we set the reference the deploy script must pull changes from.
-              # The branch/tag name is calculated from the source branch
-              #  ex: Build.SourceBranch=refs/heads/master --> master
-              #  ex: Build.SourceBranch=refs/tags/v1.2.3-RELEASE --> v1.2.3-RELEASE
-              gitReference: ${{ replace(replace(variables['Build.SourceBranch'], 'refs/tags/', ''), 'refs/heads/', '') }}
-          - script: |
-              yarn predeploy
-            displayName: 'Build'
+          - template: templates/node-github-current-version/template.yaml@pagopaCommons
+      - job: tag_version
+        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags'))
+        steps:
+          - template: templates/node-github-current-version/template.yaml@pagopaCommons
 
-          # Install functions extensions
-          - task: DotNetCoreCLI@2
-            inputs:
-              command: "build"
-              arguments: "-o bin"   
-          # Copy application to  
-          - task: CopyFiles@2
-            inputs:
-              SourceFolder: '$(System.DefaultWorkingDirectory)'
-              TargetFolder: '$(System.DefaultWorkingDirectory)/bundle'
-              Contents: |
-                **/*
-                !.git/**/*
-                !**/*.js.map
-                !**/*.ts
-                !.vscode/**/*
-                !.devops/**/*
-                !.prettierrc
-                !.gitignore
-                !README.md
-                !jest.config.js
-                !local.settings.json
-                !test
-                !tsconfig.json
-                !tslint.json
-                !yarn.lock
-                !Dangerfile.js
-                !CODEOWNERS
-                !__*/**/*
-            displayName: 'Copy deploy files'
-          
-          - publish: $(System.DefaultWorkingDirectory)/bundle
-            artifact: Bundle
-
-  # Deploy on staging slot
-  - ${{ each app in parameters.PRODUCTION_APPS }}:
-    - stage: Deploy_${{ app.Key }}_to_staging
-      dependsOn:
-        - Prepare_artifact
-      jobs:
-        - job: 'do_deploy_${{ app.Key }}'
-          steps:
-            - checkout: none
-            - download: current
-              artifact: Bundle
-            
-            - task: AzureFunctionApp@1  
-              inputs:
-                azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
-                resourceGroupName: '${{ app.Value.rg }}'
-                appType: 'functionApp'
-                appName: '${{ app.Value.appname }}'
-                package: '$(Pipeline.Workspace)/Bundle'
-                deploymentMethod: 'auto'
-                deployToSlotOrASE: true
-                slotName: 'staging'
-              displayName: Deploy to staging slot 
-
-  # Check that the staging instance is healthy
-  - ${{ each app in parameters.PRODUCTION_APPS }}:
-    - stage: Healthcheck_${{ app.Key }}
-      pool:
-        name: io-prod-linux
-      dependsOn: 
-        - Deploy_${{ app.Key }}_to_staging
-      jobs:      
-        - job: 'do_healthcheck_${{ app.Key }}'
-          steps:
-            - checkout: none
-            - script: |
-                curl -f 'https://${{ app.Value.appname }}-staging.azurewebsites.net/$(HEALTHCHECK_PATH)'
-              displayName: 'check info endpoint'
-
-  # Promote the staging instance to production
-  - ${{ each app in parameters.PRODUCTION_APPS }}:
-    - stage: Swap_${{ app.Key }}_to_production
-      dependsOn:
-        - Deploy_${{ app.Key }}_to_staging
-        # Wait for every healthcheck to succeed
-        # This implied that no app is swapped to prod if at least one healthcheck fails
-        - ${{ each appInner in parameters.PRODUCTION_APPS }}:
-          - Healthcheck_${{ appInner.Key }}
-      jobs:
-        - job: 'do_deploy_${{ app.Key }}'       
-          steps:  
-            - checkout: none
-            - task: AzureAppServiceManage@0
-              inputs:
-                azureSubscription: '$(PRODUCTION_AZURE_SUBSCRIPTION)'
-                resourceGroupName: '${{ app.Value.rg }}'
-                webAppName: '${{ app.Value.appname }}'
-                sourceSlot: staging
-                swapWithProduction: true
-              displayName: Swap with production slot
-
-  # Publish client SDK to NPM
-  - stage: PublishClientSDKtoNPM
+  # Build
+  - stage: Build
     dependsOn: Release
-    pool:
-      vmImage: 'ubuntu-latest'
+    variables:
+      next_version: $[ stageDependencies.Release.make_release.outputs['next_version.value'] ]
+      current_version: $[ stageDependencies.Release.make_release.outputs['current_version.value'] ]
+      current_version_branch: $[ stageDependencies.Release.branch_version.outputs['current_version.value'] ]
+      current_version_tag: $[ stageDependencies.Release.tag_version.outputs['current_version.value'] ]
     jobs:
-      - job: publish_SDK   
+      - job: "build"
         steps:
-        # Template for generating and deploying client SDk to NPM
-        - template: templates/client-sdk-publish/template.yaml@pagopaCommons
-          parameters:
-            openapiSpecPath: 'openapi/index.yaml'
+          - template: templates/deploy-release-decision/template.yaml@pagopaCommons
+            parameters:
+              NEXT_VERSION: $(next_version)
+              CURRENT_VERSION: $(current_version)
+              CURRENT_VERSION_BRANCH: $(current_version_branch)
+              CURRENT_VERSION_TAG: $(current_version_tag)
+              BUILD_SOURCE_VERSION: $(Build.SourceVersion)
+              BUILD_SOURCE_BRANCH_NAME: $(Build.SourceBranchName)
+          - template: templates/docker-release/template.yaml@pagopaCommons
+            parameters:
+              CONTAINER_REGISTRY_SERVICE_CONN: $(CONTAINER_REGISTRY_SERVICE_CONN_PROD)
+              CONTAINER_REGISTRY_FQDN: $(CONTAINER_REGISTRY_FQDN_PROD)
+              DOCKER_IMAGE_NAME: $(DOCKER_IMAGE_NAME)
+              DOCKER_IMAGE_TAG: $(deploy_version_decision.value)
+              FORCE_REPLACE_DOCKER_IMAGE: ${{ parameters.FORCE_REPLACE_DOCKER_IMAGE }}
+
+  # Deploy
+  - stage: "Deploy"
+    dependsOn: "Build"
+    variables:
+      deploy_version: $[ stageDependencies.Build.build.outputs['deploy_version_decision.value'] ]
+    jobs:
+      - deployment: "deploy"
+        pool:
+          name: io-prod-linux
+        environment: PROD
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - checkout: self
+                  displayName: "Checkout"
+                - template: templates/helm-microservice-chart-setup/template.yaml@pagopaCommons
+                  parameters:
+                    DEPLOY_VERSION: $(deploy_version)
+                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
+                  parameters:
+                    DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_BETA }}
+                    ENV: BETA
+                    KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_BETA }}
+                    NAMESPACE: $(NAMESPACE)
+                    APP_NAME: $(DOCKER_IMAGE_NAME)
+                    VALUE_FILE: "helm/values-beta.yaml"
+                    DEPLOY_VERSION: $(deploy_version)
+                    APPINSIGHTS_SERVICE_CONN: ${{ variables.APPINSIGHTS_SERVICE_CONN_PROD }}
+                    APPINSIGHTS_RESOURCE_ID: ${{ variables.APPINSIGHTS_RESOURCE_ID_PROD }}
+                - template: templates/helm-microservice-chart-deploy/template.yaml@pagopaCommons
+                  parameters:
+                    DO_DEPLOY: ${{ parameters.ENVIRONMENT_WEU_PROD_01 }}
+                    ENV: PROD_01
+                    KUBERNETES_SERVICE_CONN: ${{ variables.KUBERNETES_SERVICE_CONN_WEU_PROD_01 }}
+                    NAMESPACE: $(NAMESPACE)
+                    APP_NAME: $(DOCKER_IMAGE_NAME)
+                    VALUE_FILE: "helm/values-prod01.yaml"
+                    DEPLOY_VERSION: $(deploy_version)
+                    APPINSIGHTS_SERVICE_CONN: ${{ variables.APPINSIGHTS_SERVICE_CONN_PROD }}
+                    APPINSIGHTS_RESOURCE_ID: ${{ variables.APPINSIGHTS_RESOURCE_ID_PROD }}
