@@ -27,7 +27,7 @@ microservice-chart:
     port: 80
   ingress:
     create: true
-    host: 'weubeta.messages.internal.io.pagopa.it'
+    host: 'weuprod01.messages.internal.io.pagopa.it'
     path: '/service-messages/(.*)'
 
   resources:
