@@ -79,7 +79,7 @@ stages:
         condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/master'))
         steps:
           - ${{ if eq(parameters['SKIP_RELEASE'], False) }}:
-              - template: templates/node-github-release/template.yaml@pagopaCommons
+              - template: templates/node-job-setup/template.yaml@pagopaCommons
                 parameters:
                   persistCredentials: true
               - template: templates/node-github-release/template.yaml@pagopaCommons
