@@ -43,6 +43,7 @@ microservice-chart:
         metadata:
           type: Utilization
           value: '70'
+  
   envConfig:
     # required
     NODE_ENV: 'production'
@@ -52,12 +53,24 @@ microservice-chart:
     COSMOSDB_URI: 'https://io-d-cosmos-free.documents.azure.com:443/'
     COSMOSDB_NAME: 'db'
     MESSAGE_CONTAINER_NAME: 'messages'
+    # io-backend endpoint
+    BACKEND_BASE_URL: 'https://io-p-app-appbackendli.azurewebsites.net'
+    # fn-pushnotification queue
+    NOTIFICATION_QUEUE_NAME: 'push-notifications'
+
   envSecret:
     # required
     APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentation-key'
     # app specific
     COSMOSDB_KEY: 'cosmosdb-free-key'
     QueueStorageConnection: 'iopmessagesweuprod01svst-connection-string'
+    # message content storage conn string
+    MESSAGE_CONTENT_STORAGE_CONNECTION: 'iopstapi-connection-string'
+    # io-backend endpoint token
+    BACKEND_TOKEN: 'appbackendli-token'
+    # fn-pushnotification queue conn string
+    NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: 'iopstnotifications-connection-string'
+
   keyvault:
     name: 'io-p-messages-kv'
     tenantId: '7788edaf-0346-4068-9d79-c868aed15b3d'
