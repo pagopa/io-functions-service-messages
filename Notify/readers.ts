@@ -63,7 +63,7 @@ const getMessageMetadata = (messageModel: MessageModel) => (
   pipe(
     messageModel.findMessageForRecipient(fiscalCode, messageId),
     TE.mapLeft<CosmosErrors, IResponseErrorNotFound | IResponseErrorInternal>(
-      _ => ResponseErrorInternal("Error while retrieving the message")
+      _ => ResponseErrorInternal("Error while retrieving the message metadata")
     ),
     TE.chainOptionK(() =>
       ResponseErrorNotFound(
