@@ -84,6 +84,7 @@ export const IConfig = t.intersection([
   t.interface({
     BACKEND_BASE_URL: NonEmptyString,
     BACKEND_TOKEN: NonEmptyString,
+    MESSAGE_CONTENT_STORAGE_CONNECTION: NonEmptyString,
     NOTIFICATION_QUEUE_NAME: NonEmptyString,
     NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: NonEmptyString
   }),
