@@ -55,6 +55,10 @@ paths:
             $ref: '#/definitions/ProblemJson'
         '401':
           description: Token null or invalid.
+        '403':
+          description: Request not authorized.
+        '404':
+          description: Resource not found.
         '500':
           description: There was an error in forwarding the notification.
           schema:
