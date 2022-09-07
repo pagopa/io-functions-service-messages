@@ -22,5 +22,11 @@ export const envConfig: IConfig = {
   FF_CANARY_USERS_REGEX: "XYZ" as NonEmptyString,
 
   NODE_ENV: "production",
-  REQ_SERVICE_ID: undefined
+  REQ_SERVICE_ID: undefined,
+
+  NOTIFICATION_QUEUE_NAME: "aQueueName" as NonEmptyString,
+  NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: "aQueueName" as NonEmptyString,
+
+  BACKEND_BASE_URL: "aBaseUrl" as NonEmptyString,
+  BACKEND_TOKEN: "aToken" as NonEmptyString
 };

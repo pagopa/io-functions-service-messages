@@ -81,6 +81,12 @@ export const IConfig = t.intersection([
     isProduction: t.boolean
     /* eslint-enable sort-keys */
   }),
+  t.interface({
+    BACKEND_BASE_URL: NonEmptyString,
+    BACKEND_TOKEN: NonEmptyString,
+    NOTIFICATION_QUEUE_NAME: NonEmptyString,
+    NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: NonEmptyString
+  }),
   ReqServiceIdConfig
 ]);
 
