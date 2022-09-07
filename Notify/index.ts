@@ -46,7 +46,7 @@ const messageModel = new MessageModel(
 );
 
 const blobService = createBlobService(
-  config.MESSAGE_CONTENT_STORAGE_CONNECTION
+  config.MESSAGE_CONTENT_STORAGE_CONNECTION_STRING
 );
 
 const serviceModel = new ServiceModel(

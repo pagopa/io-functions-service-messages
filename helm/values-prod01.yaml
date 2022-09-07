@@ -65,7 +65,7 @@ microservice-chart:
     COSMOSDB_KEY: 'cosmosdb-free-key'
     QueueStorageConnection: 'iopmessagesweuprod01svst-connection-string'
     # message content storage conn string
-    MESSAGE_CONTENT_STORAGE_CONNECTION: 'iopstapi-connection-string'
+    MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: 'iopstapi-connection-string'
     # io-backend endpoint token
     BACKEND_TOKEN: 'appbackendli-token'
     # fn-pushnotification queue conn string

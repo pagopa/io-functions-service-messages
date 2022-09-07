@@ -24,7 +24,7 @@ export const envConfig: IConfig = {
   NODE_ENV: "production",
   REQ_SERVICE_ID: undefined,
 
-  MESSAGE_CONTENT_STORAGE_CONNECTION: "aConnString" as NonEmptyString,
+  MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: "aConnString" as NonEmptyString,
 
   NOTIFICATION_QUEUE_NAME: "aQueueName" as NonEmptyString,
   NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: "aQueueName" as NonEmptyString,
