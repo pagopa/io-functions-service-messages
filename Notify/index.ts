@@ -1,4 +1,6 @@
 import * as express from "express";
+
+import { createBlobService } from "azure-storage";
 import { AzureFunction, Context } from "@azure/functions";
 import { QueueClient } from "@azure/storage-queue";
 
@@ -10,24 +12,23 @@ import {
   MessageModel,
   MESSAGE_COLLECTION_NAME
 } from "@pagopa/io-functions-commons/dist/src/models/message";
-
-import { initTelemetryClient } from "../utils/appinsights";
-import { getConfigOrThrow } from "../utils/config";
-
-import { Notify } from "./handler";
-import { sendNotification } from "./notification";
-import { cosmosdbInstance } from "../utils/cosmosdb";
-import { createBlobService } from "azure-storage";
 import {
   ServiceModel,
   SERVICE_COLLECTION_NAME
 } from "@pagopa/io-functions-commons/dist/src/models/service";
+
+import { initTelemetryClient } from "../utils/appinsights";
+import { getConfigOrThrow } from "../utils/config";
+import { cosmosdbInstance } from "../utils/cosmosdb";
+import { createClient } from "../generated/session/client";
+
+import { Notify } from "./handler";
+import { sendNotification } from "./notification";
 import {
   getMessageWithContent,
   getService,
   getUserSessionStatusReader
 } from "./readers";
-import { createClient } from "../generated/session/client";
 
 // Get config
 const config = getConfigOrThrow();
@@ -53,6 +54,7 @@ const serviceModel = new ServiceModel(
 const sessionClient = createClient<"token">({
   baseUrl: config.BACKEND_BASE_URL,
   fetchApi: fetch,
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   withDefaults: op => params => op({ ...params, token: config.BACKEND_TOKEN })
 });
 

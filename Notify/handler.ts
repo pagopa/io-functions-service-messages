@@ -59,6 +59,7 @@ const canSendReminderNotification = (
 
 /**
  * Check whether a notification can be sent to user
+ *
  * @param notificationType
  * @param fiscalCode
  * @returns a TaskEither of Error or boolean
@@ -75,6 +76,7 @@ const checkSendNotificationPermission = (
 /**
  * Check whether a notification should not contain personal information
  * depending on user' session status
+ *
  * @param notificationType
  * @param fiscalCode
  * @returns a TaskEither of Error or boolean
