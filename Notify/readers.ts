@@ -28,7 +28,7 @@ import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmos
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { MessageContent } from "@pagopa/io-functions-commons/dist/generated/definitions/MessageContent";
 
-import { UserSession as UserSessionStatus } from "../generated/session/UserSession";
+import { UserSessionInfo } from "../generated/session/UserSessionInfo";
 import { Client as SessionClient } from "../generated/session/client";
 
 export type ServiceReader = (
@@ -128,7 +128,7 @@ export const getMessageWithContent = (
 
 export type SessionStatusReader = (
   fiscalCode: FiscalCode
-) => TE.TaskEither<IResponseErrorInternal, UserSessionStatus>;
+) => TE.TaskEither<IResponseErrorInternal, UserSessionInfo>;
 
 export const getUserSessionStatusReader = (
   sessionClient: SessionClient<"token">

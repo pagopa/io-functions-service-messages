@@ -1,9 +1,19 @@
 import * as express from "express";
 
+import nodeFetch from "node-fetch";
+
 import { createBlobService } from "azure-storage";
 import { AzureFunction, Context } from "@azure/functions";
 import { QueueClient } from "@azure/storage-queue";
 
+import { pipe } from "fp-ts/lib/function";
+
+import { Millisecond } from "@pagopa/ts-commons/lib/units";
+import {
+  AbortableFetch,
+  setFetchTimeout,
+  toFetch
+} from "@pagopa/ts-commons/lib/fetch";
 import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
 import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
@@ -30,6 +40,16 @@ import {
   getUserSessionStatusReader
 } from "./readers";
 
+const DEFAULT_REQUEST_TIMEOUT_MS = 10000 as Millisecond;
+
+// Generic HTTP/HTTPS fetch with optional keepalive agent
+// @see https://github.com/pagopa/io-ts-commons/blob/master/src/agent.ts#L10
+const httpOrHttpsApiFetch = pipe(
+  AbortableFetch((nodeFetch as unknown) as typeof fetch),
+  abortableFetch => setFetchTimeout(DEFAULT_REQUEST_TIMEOUT_MS, abortableFetch),
+  fetchWithTimeout => toFetch(fetchWithTimeout)
+);
+
 // Get config
 const config = getConfigOrThrow();
 
@@ -55,7 +75,7 @@ const serviceModel = new ServiceModel(
 
 const sessionClient = createClient<"token">({
   baseUrl: config.BACKEND_BASE_URL,
-  fetchApi: fetch,
+  fetchApi: httpOrHttpsApiFetch,
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
   withDefaults: op => params => op({ ...params, token: config.BACKEND_TOKEN })
 });

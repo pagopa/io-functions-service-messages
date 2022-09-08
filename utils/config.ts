@@ -78,15 +78,14 @@ export const IConfig = t.intersection([
     ),
     FF_CANARY_USERS_REGEX: withDefault(t.string, "XYZ").pipe(NonEmptyString),
 
-    isProduction: t.boolean
-    /* eslint-enable sort-keys */
-  }),
-  t.interface({
     BACKEND_BASE_URL: NonEmptyString,
     BACKEND_TOKEN: NonEmptyString,
     MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: NonEmptyString,
     NOTIFICATION_QUEUE_NAME: NonEmptyString,
-    NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: NonEmptyString
+    NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: NonEmptyString,
+
+    isProduction: t.boolean
+    /* eslint-enable sort-keys */
   }),
   ReqServiceIdConfig
 ]);
