@@ -73,7 +73,7 @@ export const IConfig = t.intersection([
 
     FF_TYPE: withDefault(t.string, "none").pipe(FeatureFlagType),
     USE_FALLBACK: withDefault(t.string, "false").pipe(BooleanFromString),
-    FF_BETA_TESTER_LIST: withDefault(t.string, "").pipe(
+    FF_BETA_TESTERS: withDefault(t.string, "").pipe(
       CommaSeparatedListOf(NonEmptyString)
     ),
     FF_CANARY_USERS_REGEX: withDefault(t.string, "XYZ").pipe(NonEmptyString),

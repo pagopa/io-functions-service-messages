@@ -70,6 +70,9 @@ microservice-chart:
     BACKEND_TOKEN: 'appbackendli-token'
     # fn-pushnotification queue conn string
     NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: 'iopstnotifications-connection-string'
+    # beta testers
+    FF_BETA_TESTERS: 'ff-beta-testers'
+
   keyvault:
     name: 'io-p-messages-kv'
     tenantId: '7788edaf-0346-4068-9d79-c868aed15b3d'
