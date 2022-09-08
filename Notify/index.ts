@@ -30,6 +30,7 @@ import {
 import { initTelemetryClient } from "../utils/appinsights";
 import { getConfigOrThrow } from "../utils/config";
 import { cosmosdbInstance } from "../utils/cosmosdb";
+import { getIsBetaTester } from "../utils/tests";
 import { createClient } from "../generated/session/client";
 
 import { Notify } from "./handler";
@@ -84,6 +85,7 @@ const sessionClient = createClient<"token">({
 app.post(
   "/api/v1/notify",
   Notify(
+    getIsBetaTester(config.FF_BETA_TESTERS),
     getUserSessionStatusReader(sessionClient),
     getMessageWithContent(messageModel, blobService),
     getService(serviceModel),

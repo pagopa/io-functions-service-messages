@@ -46,6 +46,8 @@ const aMockedRequestWithRightParams = {
 // Mocks
 // -------------------------------------
 
+const isBetaTesterMock = jest.fn(_ => true);
+
 const userSessionReaderMock = jest.fn(
   fiscalCode => TE.of({ active: true }) as ReturnType<SessionStatusReader>
 );
@@ -67,6 +69,7 @@ const sendNotificationMock = jest.fn(
 
 const getHandler = () =>
   NotifyHandler(
+    isBetaTesterMock,
     userSessionReaderMock,
     messageReaderMock,
     serviceReaderMock,
@@ -84,6 +87,7 @@ describe("Notify Middlewares", () => {
     } as e.Request;
 
     const notifyhandler = Notify(
+      isBetaTesterMock,
       userSessionReaderMock,
       messageReaderMock,
       serviceReaderMock,
@@ -115,6 +119,7 @@ describe("Notify Middlewares", () => {
     } as e.Request;
 
     const notifyhandler = Notify(
+      isBetaTesterMock,
       userSessionReaderMock,
       messageReaderMock,
       serviceReaderMock,
@@ -275,6 +280,24 @@ describe("Notify |> Reminder |> Errors", () => {
     expect(res).toMatchObject({
       kind: "IResponseErrorInternal",
       detail: "Internal server error: Error while sending notification to queue"
+    });
+  });
+
+  // TODO: Remove after e2e tests
+  it("should return IResponseErrorForbiddenNotAuthorized if user is not a beta tester", async () => {
+    isBetaTesterMock.mockImplementationOnce(_ => {
+      console.log("CI SONO", _);
+      return false;
+    });
+
+    const notifyhandler = getHandler();
+
+    const res = await notifyhandler(aValidReadReminderNotifyPayload);
+
+    expect(res).toMatchObject({
+      kind: "IResponseErrorForbiddenNotAuthorized",
+      detail:
+        "You are not allowed here: You're not allowed to send the notification"
     });
   });
 });

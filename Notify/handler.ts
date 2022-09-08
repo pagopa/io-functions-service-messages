@@ -31,6 +31,7 @@ import {
   getPrinterForTemplate,
   NotificationPrinter
 } from "../templates/printer";
+import { IsBetaTester } from "../utils/tests";
 
 import { SendNotification } from "./notification";
 import {
@@ -64,12 +65,16 @@ const canSendReminderNotification = (
  * @param fiscalCode
  * @returns a TaskEither of Error or boolean
  */
-const checkSendNotificationPermission = (
+const checkSendNotificationPermission = (isBetaTester: IsBetaTester) => (
   notificationType: NotificationType,
   fiscalCode: FiscalCode
 ): TE.TaskEither<Error, boolean> =>
   match(notificationType)
-    .when(isReminderNotification, _ => canSendReminderNotification(fiscalCode))
+    .when(isReminderNotification, _ =>
+      isBetaTester(fiscalCode)
+        ? canSendReminderNotification(fiscalCode)
+        : TE.of(false)
+    )
     // Not implemented yet
     .otherwise(_ => TE.of(false));
 
@@ -145,6 +150,7 @@ type NotifyHandler = (
 >;
 
 export const NotifyHandler = (
+  isBetaTester: IsBetaTester,
   retrieveUserSession: SessionStatusReader,
   retrieveMessageWithContent: MessageWithContentReader,
   retrieveService: ServiceReader,
@@ -155,7 +161,10 @@ export const NotifyHandler = (
   notification_type
 }): ReturnType<NotifyHandler> =>
   pipe(
-    checkSendNotificationPermission(notification_type, fiscal_code),
+    checkSendNotificationPermission(isBetaTester)(
+      notification_type,
+      fiscal_code
+    ),
     TE.mapLeft(_ => ResponseErrorInternal("Error checking user preferences")),
     TE.chainW(
       TE.fromPredicate(identity, () =>
@@ -184,14 +193,17 @@ export const NotifyHandler = (
   )();
 
 export const Notify = (
+  isBetaTester: IsBetaTester,
   retrieveUserSession: SessionStatusReader,
   retrieveMessageWithContent: MessageWithContentReader,
   retrieveService: ServiceReader,
   sendNotification: SendNotification,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   telemetryClient: ReturnType<typeof initAppInsights>
+  // eslint-disable-next-line max-params
 ): express.RequestHandler => {
   const handler = NotifyHandler(
+    isBetaTester,
     retrieveUserSession,
     retrieveMessageWithContent,
     retrieveService,
