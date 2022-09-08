@@ -1,6 +1,7 @@
 import { QueueClient } from "@azure/storage-queue";
 
 import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
 
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/lib/function";
@@ -50,10 +51,10 @@ export const sendNotification = (
           notificationQueueClient.sendMessage(
             base64EncodeObject(notifyMessage)
           ),
-        (error: { readonly message?: string }) =>
-          Error(
-            `Error while sending notify message to the queue [${error.message}]`
-          )
+        E.toError
       ),
+    TE.mapLeft(err =>
+      Error(`Error while sending notify message to the queue [${err.message}]`)
+    ),
     TE.map(_ => void 0)
   );

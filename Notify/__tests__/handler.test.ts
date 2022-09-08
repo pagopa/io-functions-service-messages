@@ -15,15 +15,13 @@ import {
   aRetrievedMessageWithContent,
   aRetrievedService
 } from "../../__mocks__/models.mock";
-import {
-  ResponseErrorInternal,
-  ResponseSuccessNoContent
-} from "@pagopa/ts-commons/lib/responses";
+import { ResponseErrorInternal } from "@pagopa/ts-commons/lib/responses";
 import {
   MessageWithContentReader,
   ServiceReader,
   SessionStatusReader
 } from "../readers";
+import { SendNotification } from "../notification";
 
 const aValidMessageNotifyPayload: NotificationInfo = {
   notification_type: NotificationTypeEnum.MESSAGE,
@@ -63,7 +61,9 @@ const serviceReaderMock = jest.fn(
   _ => TE.of(aRetrievedService) as ReturnType<ServiceReader>
 );
 
-const sendNotificationMock = jest.fn(_ => TE.of(void 0));
+const sendNotificationMock = jest.fn(
+  _ => TE.of(void 0) as ReturnType<SendNotification>
+);
 
 const getHandler = () =>
   NotifyHandler(
@@ -261,5 +261,20 @@ describe("Notify |> Reminder |> Errors", () => {
       detail: "Internal server error: an Error"
     });
     expect(sendNotificationMock).not.toHaveBeenCalled();
+  });
+
+  it("should return InternalError if sendNotification fails", async () => {
+    sendNotificationMock.mockImplementationOnce(_ =>
+      TE.left(Error("a Queue Error"))
+    );
+
+    const notifyhandler = getHandler();
+
+    const res = await notifyhandler(aValidReadReminderNotifyPayload);
+
+    expect(res).toMatchObject({
+      kind: "IResponseErrorInternal",
+      detail: "Internal server error: Error while sending notification to queue"
+    });
   });
 });
