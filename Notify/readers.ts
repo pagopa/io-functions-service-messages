@@ -1,5 +1,5 @@
 import { BlobService } from "azure-storage";
-import { flow, identity, pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
 
 import * as TE from "fp-ts/TaskEither";
 import * as AP from "fp-ts/lib/Apply";
@@ -24,7 +24,6 @@ import {
   ResponseErrorNotFound
 } from "@pagopa/ts-commons/lib/responses";
 import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitions/ServiceId";
-import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { MessageContent } from "@pagopa/io-functions-commons/dist/generated/definitions/MessageContent";
 
@@ -42,15 +41,17 @@ export const getService = (serviceModel: ServiceModel): ServiceReader => (
 ): ReturnType<ServiceReader> =>
   pipe(
     serviceModel.findOneByServiceId(serviceId),
-    TE.mapLeft<CosmosErrors, IResponseErrorNotFound | IResponseErrorInternal>(
-      _ => ResponseErrorInternal("Error while retrieving the service")
+    TE.mapLeft(_ =>
+      ResponseErrorInternal("Error while retrieving the service")
     ),
-    TE.chainOptionK(() =>
-      ResponseErrorNotFound(
-        "Service not found",
-        `Service ${serviceId} was not found in the system.`
+    TE.chainW(
+      TE.fromOption(() =>
+        ResponseErrorNotFound(
+          "Service not found",
+          `Service ${serviceId} was not found in the system.`
+        )
       )
-    )(identity)
+    )
   );
 
 const getMessageMetadata = (messageModel: MessageModel) => (
@@ -62,15 +63,17 @@ const getMessageMetadata = (messageModel: MessageModel) => (
 > =>
   pipe(
     messageModel.findMessageForRecipient(fiscalCode, messageId),
-    TE.mapLeft<CosmosErrors, IResponseErrorNotFound | IResponseErrorInternal>(
-      _ => ResponseErrorInternal("Error while retrieving the message metadata")
+    TE.mapLeft(_ =>
+      ResponseErrorInternal("Error while retrieving the message metadata")
     ),
-    TE.chainOptionK(() =>
-      ResponseErrorNotFound(
-        "Message not found",
-        `Message ${messageId} was not found for the given Fiscal Code`
+    TE.chainW(
+      TE.fromOption(() =>
+        ResponseErrorNotFound(
+          "Message not found",
+          `Message ${messageId} was not found for the given Fiscal Code`
+        )
       )
-    )(identity)
+    )
   );
 
 const getMessageContent = (
@@ -84,15 +87,17 @@ const getMessageContent = (
 > =>
   pipe(
     messageModel.getContentFromBlob(blobService, messageId),
-    TE.mapLeft<Error, IResponseErrorInternal | IResponseErrorNotFound>(_ =>
+    TE.mapLeft(_ =>
       ResponseErrorInternal("Error while retrieving the message")
     ),
-    TE.chainOptionK(() =>
-      ResponseErrorNotFound(
-        "Message content not found",
-        `Content of message ${messageId} was not found for the given Fiscal Code`
+    TE.chainW(
+      TE.fromOption(() =>
+        ResponseErrorNotFound(
+          "Message content not found",
+          `Content of message ${messageId} was not found for the given Fiscal Code`
+        )
       )
-    )(identity)
+    )
   );
 
 export type MessageWithContentReader = (
