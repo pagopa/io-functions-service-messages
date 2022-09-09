@@ -58,29 +58,29 @@ describe("IConfig - FF_TYPE", () => {
   });
 });
 
-describe("IConfig - FF_BETA_TESTER_LIST", () => {
-  it("should decode FF_BETA_TESTER_LIST with empty array, when not set", () => {
+describe("IConfig - FF_BETA_TESTERS", () => {
+  it("should decode FF_BETA_TESTERS with empty array, when not set", () => {
     const p = IConfig.encode(envConfig);
-    const { FF_BETA_TESTER_LIST, ...env } = p;
+    const { FF_BETA_TESTERS, ...env } = p;
 
     const res = IConfig.decode(env);
 
     expect(E.isRight(res)).toBe(true);
     if (E.isRight(res)) {
-      expect(res.right.FF_BETA_TESTER_LIST).toEqual([]);
+      expect(res.right.FF_BETA_TESTERS).toEqual([]);
     }
   });
 
-  it("should decode FF_BETA_TESTER_LIST with right value, when set", () => {
+  it("should decode FF_BETA_TESTERS with right value, when set", () => {
     const p = IConfig.encode(envConfig);
     const { FF_TYPE, ...env } = p;
-    const env2 = { ...env, FF_BETA_TESTER_LIST: "TEST1,TEST2" };
+    const env2 = { ...env, FF_BETA_TESTERS: "TEST1,TEST2" };
 
     const res = IConfig.decode(env2);
 
     expect(E.isRight(res)).toBe(true);
     if (E.isRight(res)) {
-      expect(res.right.FF_BETA_TESTER_LIST).toEqual(["TEST1", "TEST2"]);
+      expect(res.right.FF_BETA_TESTERS).toEqual(["TEST1", "TEST2"]);
     }
   });
 });

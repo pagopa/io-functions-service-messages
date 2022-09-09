@@ -18,9 +18,17 @@ export const envConfig: IConfig = {
 
   FF_TYPE: "none",
   USE_FALLBACK: false,
-  FF_BETA_TESTER_LIST: [],
+  FF_BETA_TESTERS: [],
   FF_CANARY_USERS_REGEX: "XYZ" as NonEmptyString,
 
   NODE_ENV: "production",
-  REQ_SERVICE_ID: undefined
+  REQ_SERVICE_ID: undefined,
+
+  MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: "aConnString" as NonEmptyString,
+
+  NOTIFICATION_QUEUE_NAME: "aQueueName" as NonEmptyString,
+  NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: "aQueueName" as NonEmptyString,
+
+  BACKEND_BASE_URL: "aBaseUrl" as NonEmptyString,
+  BACKEND_TOKEN: "aToken" as NonEmptyString
 };

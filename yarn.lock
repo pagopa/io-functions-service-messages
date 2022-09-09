@@ -755,10 +755,10 @@
   resolved "https://registry.yarnpkg.com/@pagopa/express-azure-functions/-/express-azure-functions-2.1.1.tgz#ac6aa6d8c8d82b64e0db19ccadd2e89cc35ea725"
   integrity sha512-x2kBGS6JKYqVp7PS9QiBc2AWIOPBObHwlaheJmxZJacnxmLdXHobomTzN2UJMxu55fxMd7xIxqM8VGMQxSzqiw==
 
-"@pagopa/io-functions-commons@^25.6.0":
-  version "25.6.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-functions-commons/-/io-functions-commons-25.6.0.tgz#35bb4e09d88647f959333ea998b20b8ac65f4e30"
-  integrity sha512-RxWMUlLNGYt57qejfTy9caWSpSSjHTnzGp5m2T1dpCW49mKLIvFmv935aqJcV8Sdi4un2EV4LpSsC2EAON4BHQ==
+"@pagopa/io-functions-commons@^25.7.0":
+  version "25.7.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-functions-commons/-/io-functions-commons-25.7.0.tgz#44b861abb2487f8a193eea259efefd1f5af9ad90"
+  integrity sha512-RiSSav/5emMSqRGIlbInXn88WkuvnKuFbrSKr+B9vqrTqqEd8CpgXP6uhAZ+2+sV0YX2nws0vacea4X8aWdVfA==
   dependencies:
     "@azure/cosmos" "^3.15.1"
     "@pagopa/ts-commons" "^10.9.0"
@@ -8561,6 +8561,11 @@ ts-jest@^24.0.2:
     resolve "1.x"
     semver "^5.5"
     yargs-parser "10.x"
+
+ts-pattern@^4.0.5:
+  version "4.0.5"
+  resolved "https://registry.yarnpkg.com/ts-pattern/-/ts-pattern-4.0.5.tgz#8e87db265b890ddb0dfc10deda36568296ebd5c3"
+  integrity sha512-Bq44KCEt7JVaNLa148mBCJkcQf4l7jtLEBDuDdeuLynWDA+1a60P4D0rMkqSM9mOKLQbIWUddE9h3XKyKwBeqA==
 
 tsconfig-paths@^3.12.0:
   version "3.14.0"

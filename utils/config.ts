@@ -73,10 +73,16 @@ export const IConfig = t.intersection([
 
     FF_TYPE: withDefault(t.string, "none").pipe(FeatureFlagType),
     USE_FALLBACK: withDefault(t.string, "false").pipe(BooleanFromString),
-    FF_BETA_TESTER_LIST: withDefault(t.string, "").pipe(
+    FF_BETA_TESTERS: withDefault(t.string, "").pipe(
       CommaSeparatedListOf(NonEmptyString)
     ),
     FF_CANARY_USERS_REGEX: withDefault(t.string, "XYZ").pipe(NonEmptyString),
+
+    BACKEND_BASE_URL: NonEmptyString,
+    BACKEND_TOKEN: NonEmptyString,
+    MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: NonEmptyString,
+    NOTIFICATION_QUEUE_NAME: NonEmptyString,
+    NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: NonEmptyString,
 
     isProduction: t.boolean
     /* eslint-enable sort-keys */

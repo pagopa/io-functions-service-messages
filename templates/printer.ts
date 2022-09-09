@@ -17,7 +17,7 @@ export const NotificationEntry = t.interface({
 });
 export type NotificationEntry = t.TypeOf<typeof NotificationEntry>;
 
-interface NotificationPrinter {
+export interface NotificationPrinter {
   readonly title: string;
   readonly body: string;
 }
