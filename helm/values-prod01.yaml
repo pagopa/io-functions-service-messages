@@ -49,7 +49,7 @@ microservice-chart:
     WEBSITE_NODE_DEFAULT_VERSION: '14.16.0'
     WEBSITE_SITE_NAME: 'io-p-weuprod01-functions-service-messages' # required to show cloud role name in application insights
     # app specific
-    COSMOSDB_URI: 'https://io-d-cosmos-free.documents.azure.com:443/'
+    COSMOSDB_URI: 'https://io-p-cosmos-api.documents.azure.com:443/'
     COSMOSDB_NAME: 'db'
     MESSAGE_CONTAINER_NAME: 'messages'
     # io-backend endpoint
@@ -60,7 +60,7 @@ microservice-chart:
     # required
     APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentation-key'
     # app specific
-    COSMOSDB_KEY: 'cosmosdb-free-key'
+    COSMOSDB_KEY: 'cosmosdb-api-key'
     QueueStorageConnection: 'iopmessagesweuprod01svst-connection-string'
     # message content storage conn string
     MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: 'iopstapi-connection-string'
