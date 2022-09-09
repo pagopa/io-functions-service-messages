@@ -60,7 +60,7 @@ microservice-chart:
     # required
     APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentation-key'
     # app specific
-    COSMOSDB_KEY: 'cosmosdb-api-key'
+    COSMOSDB_KEY: 'io-p-cosmos-api-master-key'
     QueueStorageConnection: 'iopmessagesweubetasvst-connection-string'
     # message content storage conn string
     MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: 'iopstapi-connection-string'
