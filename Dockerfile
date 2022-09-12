@@ -1,5 +1,5 @@
 ### Build with node
-FROM node:14.16.0-slim as node-builder
+FROM node:14.16.0-slim@sha256:7ff9cf5e411481ee734479637265f063c5f356f496d0f9c47112312cb7b46d42 as node-builder
 
 COPY . /home/node
 
@@ -13,7 +13,10 @@ RUN yarn install --frozen-lockfile
 RUN yarn predeploy
 
 ### Install dotnet extensions
-FROM mcr.microsoft.com/dotnet/sdk:3.1-alpine as dotnet-builder
+# dotnet core sdk tag list:
+# - https://hub.docker.com/_/microsoft-dotnet-sdk/
+# - https://mcr.microsoft.com/v2/dotnet/sdk/tags/list
+FROM mcr.microsoft.com/dotnet/sdk:3.1.422-alpine3.16@sha256:715916c8d1c479d3450fce05791fbfa4380116661222bfd187a83510254227c2 as dotnet-builder
 
 COPY . /home/node
 
@@ -28,7 +31,7 @@ RUN dotnet build -o bin
 # functions for node full tag list:
 # - https://hub.docker.com/_/microsoft-azure-functions-node
 # - https://mcr.microsoft.com/v2/azure-functions/node/tags/list
-FROM mcr.microsoft.com/azure-functions/node:3.8.1-node14-slim
+FROM mcr.microsoft.com/azure-functions/node:3.8.1-node14-slim@sha256:dec7ed3ab2f19c13e4be0999a0e9c6240771e42bf9b796beb4b5add2e441c32f
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
