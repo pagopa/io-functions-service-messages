@@ -22,6 +22,7 @@ import {
   SessionStatusReader
 } from "../readers";
 import { SendNotification } from "../notification";
+import { UserGroup } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/azure_api_auth";
 
 const aValidMessageNotifyPayload: NotificationInfo = {
   notification_type: NotificationTypeEnum.MESSAGE,
@@ -143,6 +144,46 @@ describe("Notify Middlewares", () => {
       })
     );
   });
+
+  it.each([ {notification_type: NotificationTypeEnum.MESSAGE, x_user_groups:  UserGroup.ApiMessageRead },
+            {notification_type: NotificationTypeEnum.REMINDER_PAYMENT, x_user_groups:  UserGroup.ApiMessageRead },
+            {notification_type: NotificationTypeEnum.REMINDER_PAYMENT_LAST, x_user_groups:  UserGroup.ApiMessageRead },
+            {notification_type: NotificationTypeEnum.REMINDER_READ, x_user_groups:  UserGroup.ApiMessageRead }
+          ])("should return 403 if user groups are not corrects", async ({notification_type, x_user_groups}) => {
+    const aRequestWithNotAllowedPayload = {
+      ...aMockedRequestWithRightParams,
+      body: { ...aValidMessageNotifyPayload, notification_type: notification_type },
+      header: name => new Map<string, string>([
+                        ["x-user-groups", x_user_groups]
+                      ]).get(name)
+    } as e.Request;
+
+
+    const notifyhandler = Notify(
+      isBetaTesterMock,
+      userSessionReaderMock,
+      messageReaderMock,
+      serviceReaderMock,
+      sendNotificationMock,
+      {} as TelemetryClient
+    );
+
+    const res = mockRes();
+    await notifyhandler(
+      aRequestWithNotAllowedPayload,
+      (res as any) as e.Response,
+      {} as e.NextFunction
+    );
+
+    expect(res.status).toHaveBeenCalledWith(403);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: 403,
+        title: "You are not allowed here",
+        detail: `No valid scopes, you are not allowed to send such payloads. Ask the administrator to give you the required permissions.`
+      })
+    );
+  });
 });
 
 describe("Notify |> Reminder |> Success", () => {
@@ -213,6 +254,40 @@ describe("Notify |> Reminder |> Success", () => {
       `Hai un messaggio non letto`,
       `Entra nell'app per leggerlo`
     );
+  });
+
+  it.each([
+    { notification_type: NotificationTypeEnum.REMINDER_PAYMENT, x_user_groups: UserGroup.ApiReminderNotify },
+    { notification_type: NotificationTypeEnum.REMINDER_PAYMENT_LAST, x_user_groups: UserGroup.ApiReminderNotify },
+    { notification_type: NotificationTypeEnum.REMINDER_READ, x_user_groups: UserGroup.ApiReminderNotify }
+  ])("should return 204 with the correct user groups", async ({ notification_type, x_user_groups }) => {
+    const aRequestWithNotAllowedPayload = {
+      ...aMockedRequestWithRightParams,
+      body: { ...aValidMessageNotifyPayload, notification_type: notification_type },
+      header: name => new Map<string, string>([
+        ["x-user-groups", x_user_groups]
+      ]).get(name)
+    } as e.Request;
+
+
+    const notifyhandler = Notify(
+      isBetaTesterMock,
+      userSessionReaderMock,
+      messageReaderMock,
+      serviceReaderMock,
+      sendNotificationMock,
+      {} as TelemetryClient
+    );
+
+    const res = mockRes();
+    await notifyhandler(
+      aRequestWithNotAllowedPayload,
+      (res as any) as e.Response,
+      {} as e.NextFunction
+    );
+
+    expect(res.status).toHaveBeenCalledWith(204);
+    
   });
 });
 
