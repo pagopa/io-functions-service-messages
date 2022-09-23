@@ -154,6 +154,18 @@ type NotifyHandler = (
   | IResponseErrorForbiddenNotAuthorized
 >;
 
+const MessageNotificationInfo = t.interface({
+  notification_type: t.literal(NotificationTypeEnum.MESSAGE)
+});
+
+const ReminderNotificationInfo = t.interface({
+  notification_type: t.union([
+    t.literal(NotificationTypeEnum.REMINDER_PAYMENT),
+    t.literal(NotificationTypeEnum.REMINDER_PAYMENT_LAST),
+    t.literal(NotificationTypeEnum.REMINDER_READ)
+  ])
+});
+
 export const NotifyHandler = (
   isBetaTester: IsBetaTester,
   retrieveUserSession: SessionStatusReader,
@@ -217,19 +229,11 @@ export const Notify = (
   const middlewaresWrap = withRequestMiddlewares(
     RequiredBodyPayloadMiddleware(NotificationInfo),
     AzureAllowBodyPayloadMiddleware(
-      t.interface({
-        notification_type: t.literal(NotificationTypeEnum.MESSAGE)
-      }),
+      MessageNotificationInfo,
       new Set([UserGroup.ApiNewMessageNotify])
     ),
     AzureAllowBodyPayloadMiddleware(
-      t.interface({
-        notification_type: t.union([
-          t.literal(NotificationTypeEnum.REMINDER_PAYMENT),
-          t.literal(NotificationTypeEnum.REMINDER_PAYMENT_LAST),
-          t.literal(NotificationTypeEnum.REMINDER_READ)
-        ])
-      }),
+      ReminderNotificationInfo,
       new Set([UserGroup.ApiReminderNotify])
     )
   );
