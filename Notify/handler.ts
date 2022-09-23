@@ -2,6 +2,7 @@ import * as express from "express";
 
 import { identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import * as t from "io-ts";
 
 import { match } from "ts-pattern";
 
@@ -9,6 +10,10 @@ import {
   withRequestMiddlewares,
   wrapRequestHandler
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
+import {
+  AzureAllowBodyPayloadMiddleware,
+  UserGroup
+} from "@pagopa/io-functions-commons/dist/src/utils/middlewares/azure_api_auth";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
 import {
   getResponseErrorForbiddenNotAuthorized,
@@ -149,6 +154,18 @@ type NotifyHandler = (
   | IResponseErrorForbiddenNotAuthorized
 >;
 
+const MessageNotificationInfo = t.interface({
+  notification_type: t.literal(NotificationTypeEnum.MESSAGE)
+});
+
+const ReminderNotificationInfo = t.interface({
+  notification_type: t.union([
+    t.literal(NotificationTypeEnum.REMINDER_PAYMENT),
+    t.literal(NotificationTypeEnum.REMINDER_PAYMENT_LAST),
+    t.literal(NotificationTypeEnum.REMINDER_READ)
+  ])
+});
+
 export const NotifyHandler = (
   isBetaTester: IsBetaTester,
   retrieveUserSession: SessionStatusReader,
@@ -210,7 +227,15 @@ export const Notify = (
     sendNotification
   );
   const middlewaresWrap = withRequestMiddlewares(
-    RequiredBodyPayloadMiddleware(NotificationInfo)
+    RequiredBodyPayloadMiddleware(NotificationInfo),
+    AzureAllowBodyPayloadMiddleware(
+      MessageNotificationInfo,
+      new Set([UserGroup.ApiNewMessageNotify])
+    ),
+    AzureAllowBodyPayloadMiddleware(
+      ReminderNotificationInfo,
+      new Set([UserGroup.ApiReminderNotify])
+    )
   );
   return wrapRequestHandler(middlewaresWrap(handler));
 };
