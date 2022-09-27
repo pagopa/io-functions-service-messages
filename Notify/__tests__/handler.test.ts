@@ -107,8 +107,7 @@ describe("Notify Middlewares", () => {
       userSessionReaderMock,
       messageReaderMock,
       serviceReaderMock,
-      sendNotificationMock,
-      {} as TelemetryClient
+      sendNotificationMock
     );
 
     const res = mockRes();
@@ -139,8 +138,7 @@ describe("Notify Middlewares", () => {
       userSessionReaderMock,
       messageReaderMock,
       serviceReaderMock,
-      sendNotificationMock,
-      {} as TelemetryClient
+      sendNotificationMock
     );
 
     const res = mockRes();
@@ -195,8 +193,7 @@ describe("Notify Middlewares", () => {
         userSessionReaderMock,
         messageReaderMock,
         serviceReaderMock,
-        sendNotificationMock,
-        {} as TelemetryClient
+        sendNotificationMock
       );
 
       const res = mockRes();
@@ -319,8 +316,7 @@ describe("Notify |> Reminder |> Success", () => {
         userSessionReaderMock,
         messageReaderMock,
         serviceReaderMock,
-        sendNotificationMock,
-        {} as TelemetryClient
+        sendNotificationMock
       );
 
       const res = mockRes();
