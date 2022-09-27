@@ -2,6 +2,7 @@ import * as e from "express";
 import { TelemetryClient } from "applicationinsights";
 
 import * as TE from "fp-ts/TaskEither";
+import * as E from "fp-ts/Either";
 
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
@@ -23,6 +24,7 @@ import {
 } from "../readers";
 import { SendNotification } from "../notification";
 import { UserGroup } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/azure_api_auth";
+import { Context } from "@azure/functions";
 
 const aValidMessageNotifyPayload: NotificationInfo = {
   notification_type: NotificationTypeEnum.MESSAGE,
@@ -67,6 +69,19 @@ const serviceReaderMock = jest.fn(
 const sendNotificationMock = jest.fn(
   _ => TE.of(void 0) as ReturnType<SendNotification>
 );
+
+const mockContext = {} as Context;
+const mockContextMiddleware = jest.fn(async () => E.of(mockContext));
+
+const context_middleware = require("@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware");
+jest
+  .spyOn(context_middleware, "ContextMiddleware")
+  .mockReturnValue(mockContextMiddleware);
+
+const logger = {
+  info: s => console.log(`Notify|${s}`),
+  error: s => console.log(`Notify|${s}`)
+};
 
 const getHandler = () =>
   NotifyHandler(
@@ -145,45 +160,62 @@ describe("Notify Middlewares", () => {
     );
   });
 
-  it.each([ {notification_type: NotificationTypeEnum.MESSAGE, x_user_groups:  UserGroup.ApiMessageRead },
-            {notification_type: NotificationTypeEnum.REMINDER_PAYMENT, x_user_groups:  UserGroup.ApiMessageRead },
-            {notification_type: NotificationTypeEnum.REMINDER_PAYMENT_LAST, x_user_groups:  UserGroup.ApiMessageRead },
-            {notification_type: NotificationTypeEnum.REMINDER_READ, x_user_groups:  UserGroup.ApiMessageRead }
-          ])("should return 403 if user groups are not corrects", async ({notification_type, x_user_groups}) => {
-    const aRequestWithNotAllowedPayload = {
-      ...aMockedRequestWithRightParams,
-      body: { ...aValidMessageNotifyPayload, notification_type: notification_type },
-      header: name => new Map<string, string>([
-                        ["x-user-groups", x_user_groups]
-                      ]).get(name)
-    } as e.Request;
+  it.each([
+    {
+      notification_type: NotificationTypeEnum.MESSAGE,
+      x_user_groups: UserGroup.ApiMessageRead
+    },
+    {
+      notification_type: NotificationTypeEnum.REMINDER_PAYMENT,
+      x_user_groups: UserGroup.ApiMessageRead
+    },
+    {
+      notification_type: NotificationTypeEnum.REMINDER_PAYMENT_LAST,
+      x_user_groups: UserGroup.ApiMessageRead
+    },
+    {
+      notification_type: NotificationTypeEnum.REMINDER_READ,
+      x_user_groups: UserGroup.ApiMessageRead
+    }
+  ])(
+    "should return 403 if user groups are not corrects",
+    async ({ notification_type, x_user_groups }) => {
+      const aRequestWithNotAllowedPayload = {
+        ...aMockedRequestWithRightParams,
+        body: {
+          ...aValidMessageNotifyPayload,
+          notification_type: notification_type
+        },
+        header: name =>
+          new Map<string, string>([["x-user-groups", x_user_groups]]).get(name)
+      } as e.Request;
 
+      const notifyhandler = Notify(
+        isBetaTesterMock,
+        userSessionReaderMock,
+        messageReaderMock,
+        serviceReaderMock,
+        sendNotificationMock,
+        {} as TelemetryClient
+      );
 
-    const notifyhandler = Notify(
-      isBetaTesterMock,
-      userSessionReaderMock,
-      messageReaderMock,
-      serviceReaderMock,
-      sendNotificationMock,
-      {} as TelemetryClient
-    );
+      const res = mockRes();
+      await notifyhandler(
+        aRequestWithNotAllowedPayload,
+        (res as any) as e.Response,
+        {} as e.NextFunction
+      );
 
-    const res = mockRes();
-    await notifyhandler(
-      aRequestWithNotAllowedPayload,
-      (res as any) as e.Response,
-      {} as e.NextFunction
-    );
-
-    expect(res.status).toHaveBeenCalledWith(403);
-    expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({
-        status: 403,
-        title: "You are not allowed here",
-        detail: `No valid scopes, you are not allowed to send such payloads. Ask the administrator to give you the required permissions.`
-      })
-    );
-  });
+      expect(res.status).toHaveBeenCalledWith(403);
+      expect(res.json).toHaveBeenCalledWith(
+        expect.objectContaining({
+          status: 403,
+          title: "You are not allowed here",
+          detail: `No valid scopes, you are not allowed to send such payloads. Ask the administrator to give you the required permissions.`
+        })
+      );
+    }
+  );
 });
 
 describe("Notify |> Reminder |> Success", () => {
@@ -192,7 +224,7 @@ describe("Notify |> Reminder |> Success", () => {
   it("should return Success if a Read Reminder is sent to allowed fiscal code with verbose notification", async () => {
     const notifyhandler = getHandler();
 
-    const res = await notifyhandler(aValidReadReminderNotifyPayload);
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
 
     expect(res).toMatchObject({ kind: "IResponseSuccessNoContent" });
     expect(sendNotificationMock).toHaveBeenCalledWith(
@@ -208,7 +240,7 @@ describe("Notify |> Reminder |> Success", () => {
 
     const notifyhandler = getHandler();
 
-    const res = await notifyhandler(aValidReadReminderNotifyPayload);
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
 
     expect(res).toMatchObject({ kind: "IResponseSuccessNoContent" });
     expect(sendNotificationMock).toHaveBeenCalledWith(
@@ -222,7 +254,7 @@ describe("Notify |> Reminder |> Success", () => {
   it("should return Success if a Payment Reminder is sent to allowed fiscal code with verbose notification", async () => {
     const notifyhandler = getHandler();
 
-    const res = await notifyhandler({
+    const res = await notifyhandler(logger, {
       ...aValidReadReminderNotifyPayload,
       notification_type: NotificationTypeEnum.REMINDER_PAYMENT
     });
@@ -244,7 +276,7 @@ describe("Notify |> Reminder |> Success", () => {
 
     const notifyhandler = getHandler();
 
-    const res = await notifyhandler(aValidReadReminderNotifyPayload);
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
 
     expect(res).toMatchObject({ kind: "IResponseSuccessNoContent" });
 
@@ -257,38 +289,50 @@ describe("Notify |> Reminder |> Success", () => {
   });
 
   it.each([
-    { notification_type: NotificationTypeEnum.REMINDER_PAYMENT, x_user_groups: UserGroup.ApiReminderNotify },
-    { notification_type: NotificationTypeEnum.REMINDER_PAYMENT_LAST, x_user_groups: UserGroup.ApiReminderNotify },
-    { notification_type: NotificationTypeEnum.REMINDER_READ, x_user_groups: UserGroup.ApiReminderNotify }
-  ])("should return 204 with the correct user groups", async ({ notification_type, x_user_groups }) => {
-    const aRequestWithNotAllowedPayload = {
-      ...aMockedRequestWithRightParams,
-      body: { ...aValidMessageNotifyPayload, notification_type: notification_type },
-      header: name => new Map<string, string>([
-        ["x-user-groups", x_user_groups]
-      ]).get(name)
-    } as e.Request;
+    {
+      notification_type: NotificationTypeEnum.REMINDER_PAYMENT,
+      x_user_groups: UserGroup.ApiReminderNotify
+    },
+    {
+      notification_type: NotificationTypeEnum.REMINDER_PAYMENT_LAST,
+      x_user_groups: UserGroup.ApiReminderNotify
+    },
+    {
+      notification_type: NotificationTypeEnum.REMINDER_READ,
+      x_user_groups: UserGroup.ApiReminderNotify
+    }
+  ])(
+    "should return 204 with the correct user groups",
+    async ({ notification_type, x_user_groups }) => {
+      const aRequestWithNotAllowedPayload = {
+        ...aMockedRequestWithRightParams,
+        body: {
+          ...aValidMessageNotifyPayload,
+          notification_type: notification_type
+        },
+        header: name =>
+          new Map<string, string>([["x-user-groups", x_user_groups]]).get(name)
+      } as e.Request;
 
+      const notifyhandler = Notify(
+        isBetaTesterMock,
+        userSessionReaderMock,
+        messageReaderMock,
+        serviceReaderMock,
+        sendNotificationMock,
+        {} as TelemetryClient
+      );
 
-    const notifyhandler = Notify(
-      isBetaTesterMock,
-      userSessionReaderMock,
-      messageReaderMock,
-      serviceReaderMock,
-      sendNotificationMock,
-      {} as TelemetryClient
-    );
+      const res = mockRes();
+      await notifyhandler(
+        aRequestWithNotAllowedPayload,
+        (res as any) as e.Response,
+        {} as e.NextFunction
+      );
 
-    const res = mockRes();
-    await notifyhandler(
-      aRequestWithNotAllowedPayload,
-      (res as any) as e.Response,
-      {} as e.NextFunction
-    );
-
-    expect(res.status).toHaveBeenCalledWith(204);
-    
-  });
+      expect(res.status).toHaveBeenCalledWith(204);
+    }
+  );
 });
 
 describe("Notify |> Reminder |> Errors", () => {
@@ -298,7 +342,7 @@ describe("Notify |> Reminder |> Errors", () => {
   it("should return NotAuthorized if a MESSAGE notification type is sent", async () => {
     const notifyhandler = getHandler();
 
-    const res = await notifyhandler({
+    const res = await notifyhandler(logger, {
       ...aValidReadReminderNotifyPayload,
       notification_type: NotificationTypeEnum.MESSAGE
     });
@@ -318,7 +362,7 @@ describe("Notify |> Reminder |> Errors", () => {
 
     const notifyhandler = getHandler();
 
-    const res = await notifyhandler(aValidReadReminderNotifyPayload);
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
 
     expect(res).toMatchObject({
       kind: "IResponseErrorInternal",
@@ -334,7 +378,7 @@ describe("Notify |> Reminder |> Errors", () => {
 
     const notifyhandler = getHandler();
 
-    const res = await notifyhandler(aValidReadReminderNotifyPayload);
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
 
     expect(res).toMatchObject({
       kind: "IResponseErrorInternal",
@@ -350,7 +394,7 @@ describe("Notify |> Reminder |> Errors", () => {
 
     const notifyhandler = getHandler();
 
-    const res = await notifyhandler(aValidReadReminderNotifyPayload);
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
 
     expect(res).toMatchObject({
       kind: "IResponseErrorInternal",
@@ -367,7 +411,7 @@ describe("Notify |> Reminder |> Errors", () => {
 
     const notifyhandler = getHandler();
 
-    const res = await notifyhandler(aValidReadReminderNotifyPayload);
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
 
     expect(res).toMatchObject({
       kind: "IResponseErrorForbiddenNotAuthorized",
