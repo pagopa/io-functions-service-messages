@@ -26,6 +26,7 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
+import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
 import { NotificationInfo } from "../generated/definitions/NotificationInfo";
 import {
   NotificationType,
@@ -117,8 +118,19 @@ const prepareNotification = (
 > =>
   pipe(
     canSendVerboseNotification(retrieveUserSession, fiscal_code),
+    TE.map(verbose => {
+      logger.trackEvent({
+        name: "notification.info",
+        properties: { verbose }
+      });
+      return verbose;
+    }),
     TE.orElse(_err => {
-      logger.info(`Error retrieving user session, switch to anonymous`);
+      logger.warning(`Error retrieving user session, switch to anonymous`);
+      logger.trackEvent({
+        name: "notification.info",
+        properties: { switchedToAnonymous: true, verbose: false }
+      });
       return TE.of(false);
     }),
     TE.bindTo("sendVerboseNotification"),
@@ -241,7 +253,8 @@ export const Notify = (
   retrieveUserSession: SessionStatusReader,
   retrieveMessageWithContent: MessageWithContentReader,
   retrieveService: ServiceReader,
-  sendNotification: SendNotification
+  sendNotification: SendNotification,
+  telemetryClient: ReturnType<typeof initAppInsights>
   // eslint-disable-next-line max-params
 ): express.RequestHandler => {
   const handler = NotifyHandler(
@@ -264,6 +277,8 @@ export const Notify = (
     )
   );
   return wrapRequestHandler(
-    middlewaresWrap((context, _) => handler(createLogger(context, "Notify"), _))
+    middlewaresWrap((context, _) =>
+      handler(createLogger(context, telemetryClient, "Notify"), _)
+    )
   );
 };

@@ -66,7 +66,7 @@ winston.add(contextTransport);
 const app = express();
 secureExpressApp(app);
 
-initTelemetryClient();
+const telemetryClient = initTelemetryClient();
 
 // Models
 const messageModel = new MessageModel(
@@ -102,7 +102,8 @@ app.post(
         config.NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING,
         config.NOTIFICATION_QUEUE_NAME
       )
-    )
+    ),
+    telemetryClient
   )
 );
 
