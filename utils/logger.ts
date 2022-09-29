@@ -1,4 +1,22 @@
+import * as t from "io-ts";
+
 import { Context } from "@azure/functions";
+import { TelemetryClient } from "applicationinsights";
+
+export const NotificationInfoEvent = t.type({
+  name: t.literal("notification.info"),
+  properties: t.intersection([
+    t.type({
+      verbose: t.boolean
+    }),
+    t.partial({
+      switchedToAnonymous: t.boolean
+    })
+  ])
+});
+
+export const BusinessEvent = NotificationInfoEvent;
+export type BusinessEvent = t.TypeOf<typeof BusinessEvent>;
 
 export interface ILogger {
   /**
@@ -8,11 +26,23 @@ export interface ILogger {
    */
   readonly error: (s: string) => void;
   /**
+   * Logs a warning string
+   *
+   * @param s an info string
+   */
+  readonly warning: (s: string) => void;
+  /**
    * Logs an info string
    *
    * @param s an info string
    */
   readonly info: (s: string) => void;
+  /**
+   * Logs an info string
+   *
+   * @param s an info string
+   */
+  readonly trackEvent: (e: BusinessEvent) => void;
 }
 
 /**
@@ -21,11 +51,25 @@ export interface ILogger {
  * @param logPrefix
  * @returns
  */
-export const createLogger = (context: Context, logPrefix: string): ILogger => ({
+export const createLogger = (
+  context: Context,
+  telemetryClient: TelemetryClient,
+  logPrefix: string
+): ILogger => ({
   error: (s: string): void => {
     context.log.error(`${logPrefix}|${s}`);
   },
   info: (s: string): void => {
     context.log.info(`${logPrefix}|${s}`);
+  },
+  trackEvent: (e): void => {
+    telemetryClient.trackEvent({
+      name: e.name,
+      properties: e.properties,
+      tagOverrides: { samplingEnabled: "false" }
+    });
+  },
+  warning: (s: string): void => {
+    context.log.warn(`${logPrefix}|${s}`);
   }
 });
