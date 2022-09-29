@@ -80,7 +80,11 @@ jest
 
 const logger = {
   info: s => console.log(`Notify|${s}`),
-  error: s => console.log(`Notify|${s}`)
+  error: s => console.log(`Notify|${s}`),
+  warning: s => console.log(`Notify|${s}`),
+  trackEvent: jest.fn(e => {
+    return void 0;
+  })
 };
 
 const getHandler = () =>
@@ -107,7 +111,8 @@ describe("Notify Middlewares", () => {
       userSessionReaderMock,
       messageReaderMock,
       serviceReaderMock,
-      sendNotificationMock
+      sendNotificationMock,
+      {} as TelemetryClient
     );
 
     const res = mockRes();
@@ -138,7 +143,8 @@ describe("Notify Middlewares", () => {
       userSessionReaderMock,
       messageReaderMock,
       serviceReaderMock,
-      sendNotificationMock
+      sendNotificationMock,
+      {} as TelemetryClient
     );
 
     const res = mockRes();
@@ -193,7 +199,8 @@ describe("Notify Middlewares", () => {
         userSessionReaderMock,
         messageReaderMock,
         serviceReaderMock,
-        sendNotificationMock
+        sendNotificationMock,
+        {} as TelemetryClient
       );
 
       const res = mockRes();
@@ -230,6 +237,12 @@ describe("Notify |> Reminder |> Success", () => {
       `Leggi il messaggio da ${aRetrievedService.organizationName}`,
       aRetrievedMessageWithContent.content.subject
     );
+    expect(logger.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "notification.info",
+        properties: { verbose: true }
+      })
+    );
   });
 
   it("should return Success if a Read Reminder is sent to allowed fiscal code with silent notification", async () => {
@@ -245,6 +258,12 @@ describe("Notify |> Reminder |> Success", () => {
       aValidReadReminderNotifyPayload.message_id,
       `Hai un messaggio non letto`,
       `Entra nell'app per leggerlo`
+    );
+    expect(logger.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "notification.info",
+        properties: { verbose: false }
+      })
     );
   });
 
@@ -264,6 +283,12 @@ describe("Notify |> Reminder |> Success", () => {
       `Hai un avviso da pagare`,
       `Entra nell’app e paga l’avviso emesso da ${aRetrievedService.organizationName}`
     );
+    expect(logger.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "notification.info",
+        properties: { verbose: true }
+      })
+    );
   });
 
   it("should return Success if user session cannot be retrieved, sending a silent notification", async () => {
@@ -282,6 +307,12 @@ describe("Notify |> Reminder |> Success", () => {
       aValidReadReminderNotifyPayload.message_id,
       `Hai un messaggio non letto`,
       `Entra nell'app per leggerlo`
+    );
+    expect(logger.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "notification.info",
+        properties: { verbose: false, switchedToAnonymous: true }
+      })
     );
   });
 
@@ -316,7 +347,12 @@ describe("Notify |> Reminder |> Success", () => {
         userSessionReaderMock,
         messageReaderMock,
         serviceReaderMock,
-        sendNotificationMock
+        sendNotificationMock,
+        {
+          trackEvent: _ => {
+            return void 0;
+          }
+        } as TelemetryClient
       );
 
       const res = mockRes();
