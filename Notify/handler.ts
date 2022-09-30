@@ -2,6 +2,8 @@ import * as express from "express";
 
 import { identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import * as T from "fp-ts/Task";
+import * as E from "fp-ts/Either";
 import * as t from "io-ts";
 
 import { match } from "ts-pattern";
@@ -37,9 +39,11 @@ import {
   getPrinterForTemplate,
   NotificationPrinter
 } from "../templates/printer";
-import { IsBetaTester } from "../utils/tests";
 
+import { IsBetaTester } from "../utils/tests";
 import { createLogger, ILogger } from "../utils/logger";
+import { toHash } from "../utils/crypto";
+
 import { SendNotification } from "./notification";
 import {
   MessageWithContentReader,
@@ -118,19 +122,27 @@ const prepareNotification = (
 > =>
   pipe(
     canSendVerboseNotification(retrieveUserSession, fiscal_code),
-    TE.map(verbose => {
+    T.map(errorOrResult => {
+      const properties = {
+        hashedFiscalCode: toHash(fiscal_code) as NonEmptyString,
+        messageId: message_id,
+        notificationType: notification_type,
+        verbose: E.isRight(errorOrResult) ? errorOrResult.right : false
+      };
+
       logger.trackEvent({
-        name: "notification.info",
-        properties: { verbose }
+        name: "send-notification.info",
+        properties: E.isRight(errorOrResult)
+          ? properties
+          : {
+              ...properties,
+              switchedToAnonymous: E.isLeft(errorOrResult) ? true : undefined
+            }
       });
-      return verbose;
+      return errorOrResult;
     }),
     TE.orElse(_err => {
       logger.warning(`Error retrieving user session, switch to anonymous`);
-      logger.trackEvent({
-        name: "notification.info",
-        properties: { switchedToAnonymous: true, verbose: false }
-      });
       return TE.of(false);
     }),
     TE.bindTo("sendVerboseNotification"),

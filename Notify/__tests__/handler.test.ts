@@ -25,6 +25,7 @@ import {
 import { SendNotification } from "../notification";
 import { UserGroup } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/azure_api_auth";
 import { Context } from "@azure/functions";
+import { toHash } from "../../utils/crypto";
 
 const aValidMessageNotifyPayload: NotificationInfo = {
   notification_type: NotificationTypeEnum.MESSAGE,
@@ -239,8 +240,15 @@ describe("Notify |> Reminder |> Success", () => {
     );
     expect(logger.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "notification.info",
-        properties: { verbose: true }
+        name: "send-notification.info",
+        properties: {
+          hashedFiscalCode: toHash(
+            aValidReadReminderNotifyPayload.fiscal_code
+          ) as NonEmptyString,
+          messageId: aValidReadReminderNotifyPayload.message_id,
+          notificationType: aValidReadReminderNotifyPayload.notification_type,
+          verbose: true
+        }
       })
     );
   });
@@ -261,8 +269,15 @@ describe("Notify |> Reminder |> Success", () => {
     );
     expect(logger.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "notification.info",
-        properties: { verbose: false }
+        name: "send-notification.info",
+        properties: {
+          hashedFiscalCode: toHash(
+            aValidReadReminderNotifyPayload.fiscal_code
+          ) as NonEmptyString,
+          messageId: aValidReadReminderNotifyPayload.message_id,
+          notificationType: aValidReadReminderNotifyPayload.notification_type,
+          verbose: false
+        }
       })
     );
   });
@@ -285,8 +300,15 @@ describe("Notify |> Reminder |> Success", () => {
     );
     expect(logger.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "notification.info",
-        properties: { verbose: true }
+        name: "send-notification.info",
+        properties: {
+          hashedFiscalCode: toHash(
+            aValidReadReminderNotifyPayload.fiscal_code
+          ) as NonEmptyString,
+          messageId: aValidReadReminderNotifyPayload.message_id,
+          notificationType: NotificationTypeEnum.REMINDER_PAYMENT,
+          verbose: true
+        }
       })
     );
   });
@@ -310,8 +332,16 @@ describe("Notify |> Reminder |> Success", () => {
     );
     expect(logger.trackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        name: "notification.info",
-        properties: { verbose: false, switchedToAnonymous: true }
+        name: "send-notification.info",
+        properties: {
+          hashedFiscalCode: toHash(
+            aValidReadReminderNotifyPayload.fiscal_code
+          ) as NonEmptyString,
+          messageId: aValidReadReminderNotifyPayload.message_id,
+          notificationType: aValidReadReminderNotifyPayload.notification_type,
+          verbose: false,
+          switchedToAnonymous: true
+        }
       })
     );
   });

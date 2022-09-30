@@ -2,11 +2,16 @@ import * as t from "io-ts";
 
 import { Context } from "@azure/functions";
 import { TelemetryClient } from "applicationinsights";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { NotificationType } from "../generated/definitions/NotificationType";
 
 export const NotificationInfoEvent = t.type({
-  name: t.literal("notification.info"),
+  name: t.literal("send-notification.info"),
   properties: t.intersection([
     t.type({
+      hashedFiscalCode: NonEmptyString,
+      messageId: NonEmptyString,
+      notificationType: NotificationType,
       verbose: t.boolean
     }),
     t.partial({
