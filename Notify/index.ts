@@ -1,5 +1,5 @@
 import * as express from "express";
-
+import * as winston from "winston";
 import nodeFetch from "node-fetch";
 
 import { createBlobService } from "azure-storage";
@@ -18,6 +18,7 @@ import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
 import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { withAppInsightsContext } from "@pagopa/io-functions-commons/dist/src/utils/application_insights";
+import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/utils/logging";
 import {
   MessageModel,
   MESSAGE_COLLECTION_NAME
@@ -53,6 +54,13 @@ const httpOrHttpsApiFetch = pipe(
 
 // Get config
 const config = getConfigOrThrow();
+
+// eslint-disable-next-line functional/no-let
+let logger: Context["log"] | undefined;
+const contextTransport = new AzureContextTransport(() => logger, {
+  level: "debug"
+});
+winston.add(contextTransport);
 
 // Setup Express
 const app = express();
@@ -102,6 +110,8 @@ app.post(
 const azureFunctionHandler = createAzureFunctionHandler(app);
 
 const httpStart: AzureFunction = (context: Context): void => {
+  logger = context.log;
+
   setAppContext(app, context);
   withAppInsightsContext(context, () => azureFunctionHandler(context));
 };

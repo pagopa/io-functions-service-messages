@@ -2,6 +2,8 @@ import * as express from "express";
 
 import { identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import * as T from "fp-ts/Task";
+import * as E from "fp-ts/Either";
 import * as t from "io-ts";
 
 import { match } from "ts-pattern";
@@ -24,8 +26,9 @@ import {
   ResponseErrorInternal,
   ResponseSuccessNoContent
 } from "@pagopa/ts-commons/lib/responses";
-import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
+import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
 import { NotificationInfo } from "../generated/definitions/NotificationInfo";
 import {
   NotificationType,
@@ -36,7 +39,10 @@ import {
   getPrinterForTemplate,
   NotificationPrinter
 } from "../templates/printer";
+
 import { IsBetaTester } from "../utils/tests";
+import { createLogger, ILogger } from "../utils/logger";
+import { toHash } from "../utils/crypto";
 
 import { SendNotification } from "./notification";
 import {
@@ -102,6 +108,7 @@ const canSendVerboseNotification = (
   );
 
 const prepareNotification = (
+  logger: ILogger,
   retrieveUserSession: SessionStatusReader,
   retrieveMessageWithContent: MessageWithContentReader,
   retrieveService: ServiceReader
@@ -115,13 +122,49 @@ const prepareNotification = (
 > =>
   pipe(
     canSendVerboseNotification(retrieveUserSession, fiscal_code),
-    TE.orElse(_err => TE.of(false)),
+    T.map(errorOrResult => {
+      const properties = {
+        hashedFiscalCode: toHash(fiscal_code) as NonEmptyString,
+        messageId: message_id,
+        notificationType: notification_type,
+        verbose: E.isRight(errorOrResult) ? errorOrResult.right : false
+      };
+
+      logger.trackEvent({
+        name: "send-notification.info",
+        properties: E.isRight(errorOrResult)
+          ? properties
+          : {
+              ...properties,
+              switchedToAnonymous: E.isLeft(errorOrResult) ? true : undefined
+            }
+      });
+      return errorOrResult;
+    }),
+    TE.orElse(_err => {
+      logger.warning(`Error retrieving user session, switch to anonymous`);
+      return TE.of(false);
+    }),
     TE.bindTo("sendVerboseNotification"),
     TE.bindW("messageWithContent", () =>
-      retrieveMessageWithContent(fiscal_code, message_id)
+      pipe(
+        retrieveMessageWithContent(fiscal_code, message_id),
+        TE.mapLeft(response => {
+          logger.error(
+            `Error retrieving message with content|${response.detail}`
+          );
+          return response;
+        })
+      )
     ),
     TE.bindW("service", ({ messageWithContent }) =>
-      retrieveService(messageWithContent.senderServiceId)
+      pipe(
+        retrieveService(messageWithContent.senderServiceId),
+        TE.mapLeft(response => {
+          logger.error(`Error retrieving service|${response.detail}`);
+          return response;
+        })
+      )
     ),
     TE.map(({ sendVerboseNotification, messageWithContent, service }) => ({
       notificationEntry: {
@@ -146,6 +189,7 @@ const prepareNotification = (
 // -------------------------------------
 
 type NotifyHandler = (
+  logger: ILogger,
   notificationInfo: NotificationInfo
 ) => Promise<
   | IResponseSuccessNoContent
@@ -172,26 +216,30 @@ export const NotifyHandler = (
   retrieveMessageWithContent: MessageWithContentReader,
   retrieveService: ServiceReader,
   sendNotification: SendNotification
-): NotifyHandler => async ({
-  fiscal_code,
-  message_id,
-  notification_type
-}): ReturnType<NotifyHandler> =>
+): NotifyHandler => async (
+  logger,
+  { fiscal_code, message_id, notification_type }
+): ReturnType<NotifyHandler> =>
   pipe(
     checkSendNotificationPermission(isBetaTester)(
       notification_type,
       fiscal_code
     ),
-    TE.mapLeft(_ => ResponseErrorInternal("Error checking user preferences")),
+    TE.mapLeft(errorMsg => {
+      logger.error(`Error checking user preferences|${errorMsg}`);
+      return ResponseErrorInternal("Error checking user preferences");
+    }),
     TE.chainW(
-      TE.fromPredicate(identity, () =>
-        getResponseErrorForbiddenNotAuthorized(
+      TE.fromPredicate(identity, () => {
+        logger.error(`Service is not allowed to send notification to user`);
+        return getResponseErrorForbiddenNotAuthorized(
           "You're not allowed to send the notification"
-        )
-      )
+        );
+      })
     ),
     TE.chainW(_ =>
       prepareNotification(
+        logger,
         retrieveUserSession,
         retrieveMessageWithContent,
         retrieveService
@@ -200,9 +248,12 @@ export const NotifyHandler = (
     TE.chainW(({ body, title }) =>
       pipe(
         sendNotification(fiscal_code, message_id, title, body),
-        TE.mapLeft(_err =>
-          ResponseErrorInternal("Error while sending notification to queue")
-        )
+        TE.mapLeft(err => {
+          logger.error(`Error while sending notification to queue|${err}`);
+          return ResponseErrorInternal(
+            "Error while sending notification to queue"
+          );
+        })
       )
     ),
     TE.map(_ => ResponseSuccessNoContent()),
@@ -215,7 +266,6 @@ export const Notify = (
   retrieveMessageWithContent: MessageWithContentReader,
   retrieveService: ServiceReader,
   sendNotification: SendNotification,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   telemetryClient: ReturnType<typeof initAppInsights>
   // eslint-disable-next-line max-params
 ): express.RequestHandler => {
@@ -227,6 +277,7 @@ export const Notify = (
     sendNotification
   );
   const middlewaresWrap = withRequestMiddlewares(
+    ContextMiddleware(),
     RequiredBodyPayloadMiddleware(NotificationInfo),
     AzureAllowBodyPayloadMiddleware(
       MessageNotificationInfo,
@@ -237,5 +288,9 @@ export const Notify = (
       new Set([UserGroup.ApiReminderNotify])
     )
   );
-  return wrapRequestHandler(middlewaresWrap(handler));
+  return wrapRequestHandler(
+    middlewaresWrap((context, _) =>
+      handler(createLogger(context, telemetryClient, "Notify"), _)
+    )
+  );
 };
