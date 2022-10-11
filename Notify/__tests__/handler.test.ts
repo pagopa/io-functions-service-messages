@@ -14,18 +14,21 @@ import { mockReq, mockRes } from "../../__mocks__/express-types";
 import {
   aFiscalCode,
   aRetrievedMessageWithContent,
+  aRetrievedProfile,
   aRetrievedService
 } from "../../__mocks__/models.mock";
 import { ResponseErrorInternal } from "@pagopa/ts-commons/lib/responses";
 import {
   MessageWithContentReader,
   ServiceReader,
-  SessionStatusReader
+  SessionStatusReader,
+  UserProfileReader
 } from "../readers";
 import { SendNotification } from "../notification";
 import { UserGroup } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/azure_api_auth";
 import { Context } from "@azure/functions";
 import { toHash } from "../../utils/crypto";
+import { ReminderStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ReminderStatus";
 
 const aValidMessageNotifyPayload: NotificationInfo = {
   notification_type: NotificationTypeEnum.MESSAGE,
@@ -67,6 +70,14 @@ const serviceReaderMock = jest.fn(
   _ => TE.of(aRetrievedService) as ReturnType<ServiceReader>
 );
 
+const userProfileReaderMock = jest.fn(
+  _ =>
+    TE.of({
+      ...aRetrievedProfile,
+      reminderStatus: ReminderStatusEnum.ENABLED
+    }) as ReturnType<UserProfileReader>
+);
+
 const sendNotificationMock = jest.fn(
   _ => TE.of(void 0) as ReturnType<SendNotification>
 );
@@ -91,6 +102,7 @@ const logger = {
 const getHandler = () =>
   NotifyHandler(
     isBetaTesterMock,
+    userProfileReaderMock,
     userSessionReaderMock,
     messageReaderMock,
     serviceReaderMock,
@@ -109,6 +121,7 @@ describe("Notify Middlewares", () => {
 
     const notifyhandler = Notify(
       isBetaTesterMock,
+      userProfileReaderMock,
       userSessionReaderMock,
       messageReaderMock,
       serviceReaderMock,
@@ -141,6 +154,7 @@ describe("Notify Middlewares", () => {
 
     const notifyhandler = Notify(
       isBetaTesterMock,
+      userProfileReaderMock,
       userSessionReaderMock,
       messageReaderMock,
       serviceReaderMock,
@@ -197,6 +211,7 @@ describe("Notify Middlewares", () => {
 
       const notifyhandler = Notify(
         isBetaTesterMock,
+        userProfileReaderMock,
         userSessionReaderMock,
         messageReaderMock,
         serviceReaderMock,
@@ -374,6 +389,7 @@ describe("Notify |> Reminder |> Success", () => {
 
       const notifyhandler = Notify(
         isBetaTesterMock,
+        userProfileReaderMock,
         userSessionReaderMock,
         messageReaderMock,
         serviceReaderMock,
@@ -398,8 +414,9 @@ describe("Notify |> Reminder |> Success", () => {
 });
 
 describe("Notify |> Reminder |> Errors", () => {
-  beforeEach(() => jest.clearAllMocks());
-
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
   // TODO: This will change in future
   it("should return NotAuthorized if a MESSAGE notification type is sent", async () => {
     const notifyhandler = getHandler();
@@ -414,6 +431,39 @@ describe("Notify |> Reminder |> Errors", () => {
       detail:
         "You are not allowed here: You're not allowed to send the notification"
     });
+    expect(sendNotificationMock).not.toHaveBeenCalled();
+  });
+
+  it("should return NotAuthorized if user has not enabled reminder notification", async () => {
+    userProfileReaderMock.mockImplementationOnce(_ => TE.of(aRetrievedProfile));
+
+    const notifyhandler = getHandler();
+
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
+
+    expect(res).toMatchObject({
+      kind: "IResponseErrorForbiddenNotAuthorized",
+      detail:
+        "You are not allowed here: You're not allowed to send the notification"
+    });
+    expect(userProfileReaderMock).toHaveBeenCalled();
+    expect(sendNotificationMock).not.toHaveBeenCalled();
+  });
+
+  it("should return InternalError if user's profile cannot be retrieved", async () => {
+    userProfileReaderMock.mockImplementationOnce(_ =>
+      TE.left(ResponseErrorInternal("an Error"))
+    );
+
+    const notifyhandler = getHandler();
+
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
+
+    expect(res).toMatchObject({
+      kind: "IResponseErrorInternal",
+      detail: "Internal server error: Error checking user preferences"
+    });
+    expect(userProfileReaderMock).toHaveBeenCalled();
     expect(sendNotificationMock).not.toHaveBeenCalled();
   });
 
