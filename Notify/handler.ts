@@ -29,6 +29,7 @@ import {
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
+import { ReminderStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ReminderStatus";
 import { NotificationInfo } from "../generated/definitions/NotificationInfo";
 import {
   NotificationType,
@@ -51,7 +52,6 @@ import {
   SessionStatusReader,
   UserProfileReader
 } from "./readers";
-import { ReminderStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ReminderStatus";
 
 const isReminderNotification = (notificationType: NotificationType): boolean =>
   [
