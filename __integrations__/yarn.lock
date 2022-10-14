@@ -609,13 +609,13 @@
   resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.0.3.tgz#13a12ae9e05c2a782f7b5e84c3cbfda4225eaf80"
   integrity sha512-puWxACExDe9nxbBB3lOymQFrLYml2dVOrd7USiVRnSbgXE+KwBu+HxFvxrzfqsiSda9IWsXJG1ef7C1O2/GmKQ==
 
-"@pagopa/io-functions-commons@^24.3.0":
-  version "24.3.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-functions-commons/-/io-functions-commons-24.3.0.tgz#5422c1ec43160789d901807bc3f4faeefe23a0cb"
-  integrity sha512-un6UtZxZjFP1dk35rVA0LFA9aRLGue07edzjEjWtYP9KA9X0ne3cmkAmgVSkoW2+rdbO7QeDukqObFx/72M8Kg==
+"@pagopa/io-functions-commons@^25.9.1":
+  version "25.9.1"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-functions-commons/-/io-functions-commons-25.9.1.tgz#f0152e377fa6ce67105b95342aa69652716aa7b3"
+  integrity sha512-0Usc5FCR1imb8P7FAsOJa70p476kdKwED2/kGlxb4x87cFiTzmWd9XEbSZoWlU/KA668MXCh3SazI99pSNKMAg==
   dependencies:
     "@azure/cosmos" "^3.15.1"
-    "@pagopa/ts-commons" "^10.3.0"
+    "@pagopa/ts-commons" "^10.9.0"
     applicationinsights "^1.8.10"
     azure-storage "^2.10.5"
     cidr-matcher "^2.1.1"
@@ -664,10 +664,10 @@
     node-fetch "^2.6.0"
     validator "^10.1.0"
 
-"@pagopa/ts-commons@^10.3.0":
-  version "10.3.0"
-  resolved "https://registry.yarnpkg.com/@pagopa/ts-commons/-/ts-commons-10.3.0.tgz#6edccb731d5f99ad22c32c59e2a11f53a5f90207"
-  integrity sha512-pTp7qfOaL9cJSNEKrMMbYPtqrtZJNDrWMa9HnqiRQA4SAErrzGNGLTgxkLyOEsC1B4mS3uPWntAk+bblOKpyZw==
+"@pagopa/ts-commons@^10.10.0", "@pagopa/ts-commons@^10.9.0":
+  version "10.10.0"
+  resolved "https://registry.yarnpkg.com/@pagopa/ts-commons/-/ts-commons-10.10.0.tgz#9eae84003956ac44aad710b91abd7614bb09665e"
+  integrity sha512-/bIEHIvswrp9mi+NdBOJftPAP9YeI5Z1+mK1WV/RDTvy6nb5Zd7C9kwdBJbXjl4zW/eiQsb5PqLHEC6odQKlWg==
   dependencies:
     abort-controller "^3.0.0"
     agentkeepalive "^4.1.4"

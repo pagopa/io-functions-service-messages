@@ -29,6 +29,7 @@ import {
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
+import { ReminderStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ReminderStatus";
 import { NotificationInfo } from "../generated/definitions/NotificationInfo";
 import {
   NotificationType,
@@ -48,7 +49,8 @@ import { SendNotification } from "./notification";
 import {
   MessageWithContentReader,
   ServiceReader,
-  SessionStatusReader
+  SessionStatusReader,
+  UserProfileReader
 } from "./readers";
 
 const isReminderNotification = (notificationType: NotificationType): boolean =>
@@ -66,8 +68,14 @@ const isReminderNotification = (notificationType: NotificationType): boolean =>
  * @returns
  */
 const canSendReminderNotification = (
-  _fiscalCode: FiscalCode
-): TE.TaskEither<Error, boolean> => TE.right(true);
+  retrieveUserProfile: UserProfileReader
+) => (fiscalCode: FiscalCode): TE.TaskEither<Error, boolean> =>
+  pipe(
+    retrieveUserProfile(fiscalCode),
+    TE.mapLeft(err => Error(err.detail)),
+    // reminder is allowed only if user has explicitly enabled it
+    TE.map(profile => profile.reminderStatus === ReminderStatusEnum.ENABLED)
+  );
 
 /**
  * Check whether a notification can be sent to user
@@ -76,14 +84,17 @@ const canSendReminderNotification = (
  * @param fiscalCode
  * @returns a TaskEither of Error or boolean
  */
-const checkSendNotificationPermission = (isBetaTester: IsBetaTester) => (
+const checkSendNotificationPermission = (
+  isBetaTester: IsBetaTester,
+  retrieveUserProfile: UserProfileReader
+) => (
   notificationType: NotificationType,
   fiscalCode: FiscalCode
 ): TE.TaskEither<Error, boolean> =>
   match(notificationType)
     .when(isReminderNotification, _ =>
       isBetaTester(fiscalCode)
-        ? canSendReminderNotification(fiscalCode)
+        ? canSendReminderNotification(retrieveUserProfile)(fiscalCode)
         : TE.of(false)
     )
     // Not implemented yet
@@ -212,16 +223,18 @@ const ReminderNotificationInfo = t.interface({
 
 export const NotifyHandler = (
   isBetaTester: IsBetaTester,
+  retrieveUserProfile: UserProfileReader,
   retrieveUserSession: SessionStatusReader,
   retrieveMessageWithContent: MessageWithContentReader,
   retrieveService: ServiceReader,
   sendNotification: SendNotification
+  // eslint-disable-next-line max-params
 ): NotifyHandler => async (
   logger,
   { fiscal_code, message_id, notification_type }
 ): ReturnType<NotifyHandler> =>
   pipe(
-    checkSendNotificationPermission(isBetaTester)(
+    checkSendNotificationPermission(isBetaTester, retrieveUserProfile)(
       notification_type,
       fiscal_code
     ),
@@ -262,6 +275,7 @@ export const NotifyHandler = (
 
 export const Notify = (
   isBetaTester: IsBetaTester,
+  retrieveUserProfile: UserProfileReader,
   retrieveUserSession: SessionStatusReader,
   retrieveMessageWithContent: MessageWithContentReader,
   retrieveService: ServiceReader,
@@ -271,6 +285,7 @@ export const Notify = (
 ): express.RequestHandler => {
   const handler = NotifyHandler(
     isBetaTester,
+    retrieveUserProfile,
     retrieveUserSession,
     retrieveMessageWithContent,
     retrieveService,

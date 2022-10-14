@@ -9,6 +9,11 @@ export const COSMOSDB_URI = process.env.COSMOSDB_URI;
 export const COSMOSDB_KEY = process.env.COSMOSDB_KEY;
 export const COSMOSDB_NAME = process.env.COSMOSDB_NAME ?? "db";
 
+export const BACKEND_PORT = Number(process.env.BACKEND_PORT ?? 0);
+
+export const NOTIFICATION_QUEUE_NAME =
+  process.env.NOTIFICATION_QUEUE_NAME ?? "push-notifications";
+
 export const FF_TYPE = process.env.FF_TYPE;
 
 export const MESSAGE_CONTAINER_NAME =

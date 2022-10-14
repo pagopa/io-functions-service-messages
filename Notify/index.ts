@@ -27,6 +27,10 @@ import {
   ServiceModel,
   SERVICE_COLLECTION_NAME
 } from "@pagopa/io-functions-commons/dist/src/models/service";
+import {
+  ProfileModel,
+  PROFILE_COLLECTION_NAME
+} from "@pagopa/io-functions-commons/dist/src/models/profile";
 
 import { initTelemetryClient } from "../utils/appinsights";
 import { getConfigOrThrow } from "../utils/config";
@@ -39,6 +43,7 @@ import { sendNotification } from "./notification";
 import {
   getMessageWithContent,
   getService,
+  getUserProfileReader,
   getUserSessionStatusReader
 } from "./readers";
 
@@ -82,6 +87,10 @@ const serviceModel = new ServiceModel(
   cosmosdbInstance.container(SERVICE_COLLECTION_NAME)
 );
 
+const profileModel = new ProfileModel(
+  cosmosdbInstance.container(PROFILE_COLLECTION_NAME)
+);
+
 const sessionClient = createClient<"token">({
   baseUrl: config.BACKEND_BASE_URL,
   fetchApi: httpOrHttpsApiFetch,
@@ -94,6 +103,7 @@ app.post(
   "/api/v1/notify",
   Notify(
     getIsBetaTester(config.FF_BETA_TESTERS),
+    getUserProfileReader(profileModel),
     getUserSessionStatusReader(sessionClient),
     getMessageWithContent(messageModel, blobService),
     getService(serviceModel),
