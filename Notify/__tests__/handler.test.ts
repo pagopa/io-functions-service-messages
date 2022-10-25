@@ -263,7 +263,7 @@ describe("Notify |> Reminder |> Success", () => {
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: aValidReadReminderNotifyPayload.notification_type,
           verbose: true,
-          switchedToAnonymous: false
+          userSessionRetrieved: true
         }
       })
     );
@@ -293,7 +293,7 @@ describe("Notify |> Reminder |> Success", () => {
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: aValidReadReminderNotifyPayload.notification_type,
           verbose: false,
-          switchedToAnonymous: false
+          userSessionRetrieved: true
         }
       })
     );
@@ -325,7 +325,7 @@ describe("Notify |> Reminder |> Success", () => {
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: aValidReadReminderNotifyPayload.notification_type,
           verbose: false,
-          switchedToAnonymous: false
+          userSessionRetrieved: true
         }
       })
     );
@@ -357,7 +357,7 @@ describe("Notify |> Reminder |> Success", () => {
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: NotificationTypeEnum.REMINDER_PAYMENT,
           verbose: true,
-          switchedToAnonymous: false
+          userSessionRetrieved: true
         }
       })
     );
@@ -390,7 +390,7 @@ describe("Notify |> Reminder |> Success", () => {
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: aValidReadReminderNotifyPayload.notification_type,
           verbose: false,
-          switchedToAnonymous: true
+          userSessionRetrieved: false
         }
       })
     );

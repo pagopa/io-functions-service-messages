@@ -133,13 +133,13 @@ const prepareNotification = (
     canSendVerboseNotification(retrieveUserSession, fiscal_code),
     TE.map(sendVerboseNotification => ({
       sendVerboseNotification,
-      switchedToAnonymous: false
+      userSessionRetrieved: true
     })),
     TE.orElse(_err => {
       logger.warning(`Error retrieving user session, switch to anonymous`);
       return TE.of({
         sendVerboseNotification: false,
-        switchedToAnonymous: true
+        userSessionRetrieved: false
       });
     }),
     TE.bindW("messageWithContent", () =>
@@ -173,7 +173,7 @@ const prepareNotification = (
           hashedFiscalCode: toHash(fiscal_code) as NonEmptyString,
           messageId: message_id,
           notificationType: notification_type,
-          switchedToAnonymous: data.switchedToAnonymous,
+          userSessionRetrieved: data.userSessionRetrieved,
           verbose: data.sendVerboseNotification
         },
         properties =>
