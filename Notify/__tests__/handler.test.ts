@@ -262,7 +262,8 @@ describe("Notify |> Reminder |> Success", () => {
           ) as NonEmptyString,
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: aValidReadReminderNotifyPayload.notification_type,
-          verbose: true
+          verbose: true,
+          userSessionRetrieved: true
         }
       })
     );
@@ -291,7 +292,40 @@ describe("Notify |> Reminder |> Success", () => {
           ) as NonEmptyString,
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: aValidReadReminderNotifyPayload.notification_type,
-          verbose: false
+          verbose: false,
+          userSessionRetrieved: true
+        }
+      })
+    );
+  });
+
+  it("should return Success if a Read Reminder is sent to allowed fiscal code with silent notification when service is privacy critical", async () => {
+    serviceReaderMock.mockImplementationOnce(_ =>
+      TE.of({ ...aRetrievedService, requireSecureChannels: true })
+    );
+
+    const notifyhandler = getHandler();
+
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
+
+    expect(res).toMatchObject({ kind: "IResponseSuccessNoContent" });
+    expect(sendNotificationMock).toHaveBeenCalledWith(
+      aFiscalCode,
+      aValidReadReminderNotifyPayload.message_id,
+      `Hai un messaggio non letto`,
+      `Entra nell'app per leggerlo`
+    );
+    expect(logger.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "send-notification.info",
+        properties: {
+          hashedFiscalCode: toHash(
+            aValidReadReminderNotifyPayload.fiscal_code
+          ) as NonEmptyString,
+          messageId: aValidReadReminderNotifyPayload.message_id,
+          notificationType: aValidReadReminderNotifyPayload.notification_type,
+          verbose: false,
+          userSessionRetrieved: true
         }
       })
     );
@@ -322,7 +356,8 @@ describe("Notify |> Reminder |> Success", () => {
           ) as NonEmptyString,
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: NotificationTypeEnum.REMINDER_PAYMENT,
-          verbose: true
+          verbose: true,
+          userSessionRetrieved: true
         }
       })
     );
@@ -355,7 +390,7 @@ describe("Notify |> Reminder |> Success", () => {
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: aValidReadReminderNotifyPayload.notification_type,
           verbose: false,
-          switchedToAnonymous: true
+          userSessionRetrieved: false
         }
       })
     );

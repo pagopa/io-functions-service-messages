@@ -2,8 +2,6 @@ import * as express from "express";
 
 import { identity, pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as T from "fp-ts/Task";
-import * as E from "fp-ts/Either";
 import * as t from "io-ts";
 
 import { match } from "ts-pattern";
@@ -133,30 +131,17 @@ const prepareNotification = (
 > =>
   pipe(
     canSendVerboseNotification(retrieveUserSession, fiscal_code),
-    T.map(errorOrResult => {
-      const properties = {
-        hashedFiscalCode: toHash(fiscal_code) as NonEmptyString,
-        messageId: message_id,
-        notificationType: notification_type,
-        verbose: E.isRight(errorOrResult) ? errorOrResult.right : false
-      };
-
-      logger.trackEvent({
-        name: "send-notification.info",
-        properties: E.isRight(errorOrResult)
-          ? properties
-          : {
-              ...properties,
-              switchedToAnonymous: E.isLeft(errorOrResult) ? true : undefined
-            }
-      });
-      return errorOrResult;
-    }),
+    TE.map(sendVerboseNotification => ({
+      sendVerboseNotification,
+      userSessionRetrieved: true
+    })),
     TE.orElse(_err => {
       logger.warning(`Error retrieving user session, switch to anonymous`);
-      return TE.of(false);
+      return TE.of({
+        sendVerboseNotification: false,
+        userSessionRetrieved: false
+      });
     }),
-    TE.bindTo("sendVerboseNotification"),
     TE.bindW("messageWithContent", () =>
       pipe(
         retrieveMessageWithContent(fiscal_code, message_id),
@@ -175,6 +160,28 @@ const prepareNotification = (
           logger.error(`Error retrieving service|${response.detail}`);
           return response;
         })
+      )
+    ),
+    TE.map(data => ({
+      ...data,
+      sendVerboseNotification:
+        data.sendVerboseNotification && !data.service.requireSecureChannels
+    })),
+    TE.map(data =>
+      pipe(
+        {
+          hashedFiscalCode: toHash(fiscal_code) as NonEmptyString,
+          messageId: message_id,
+          notificationType: notification_type,
+          userSessionRetrieved: data.userSessionRetrieved,
+          verbose: data.sendVerboseNotification
+        },
+        properties =>
+          logger.trackEvent({
+            name: "send-notification.info",
+            properties
+          }),
+        () => data
       )
     ),
     TE.map(({ sendVerboseNotification, messageWithContent, service }) => ({
