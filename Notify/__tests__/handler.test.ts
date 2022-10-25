@@ -262,7 +262,8 @@ describe("Notify |> Reminder |> Success", () => {
           ) as NonEmptyString,
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: aValidReadReminderNotifyPayload.notification_type,
-          verbose: true
+          verbose: true,
+          switchedToAnonymous: false
         }
       })
     );
@@ -291,7 +292,8 @@ describe("Notify |> Reminder |> Success", () => {
           ) as NonEmptyString,
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: aValidReadReminderNotifyPayload.notification_type,
-          verbose: false
+          verbose: false,
+          switchedToAnonymous: false
         }
       })
     );
@@ -322,7 +324,8 @@ describe("Notify |> Reminder |> Success", () => {
           ) as NonEmptyString,
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: aValidReadReminderNotifyPayload.notification_type,
-          verbose: false
+          verbose: false,
+          switchedToAnonymous: false
         }
       })
     );
@@ -353,7 +356,8 @@ describe("Notify |> Reminder |> Success", () => {
           ) as NonEmptyString,
           messageId: aValidReadReminderNotifyPayload.message_id,
           notificationType: NotificationTypeEnum.REMINDER_PAYMENT,
-          verbose: true
+          verbose: true,
+          switchedToAnonymous: false
         }
       })
     );

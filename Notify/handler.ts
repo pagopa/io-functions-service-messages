@@ -28,7 +28,6 @@ import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
 import { ReminderStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ReminderStatus";
-import { withoutUndefinedValues } from "@pagopa/ts-commons/lib/types";
 import { NotificationInfo } from "../generated/definitions/NotificationInfo";
 import {
   NotificationType,
@@ -174,10 +173,9 @@ const prepareNotification = (
           hashedFiscalCode: toHash(fiscal_code) as NonEmptyString,
           messageId: message_id,
           notificationType: notification_type,
-          switchedToAnonymous: data.switchedToAnonymous ? true : undefined,
+          switchedToAnonymous: data.switchedToAnonymous,
           verbose: data.sendVerboseNotification
         },
-        withoutUndefinedValues,
         properties =>
           logger.trackEvent({
             name: "send-notification.info",
