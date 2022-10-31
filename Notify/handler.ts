@@ -103,8 +103,12 @@ const checkSendNotificationPermission = (
  * @returns a TaskEither of Error or boolean
  */
 const canSendVerboseNotification = (
-  userSessionInfo: UserSessionInfo
-): boolean => userSessionInfo.active;
+  userSessionInfo: UserSessionInfo,
+  userProfile: RetrievedProfile
+): boolean =>
+  userSessionInfo.active &&
+  userProfile.pushNotificationsContentType ===
+    PushNotificationsContentTypeEnum.FULL;
 
 const prepareNotification = (
   logger: ILogger,
@@ -127,7 +131,10 @@ const prepareNotification = (
     ),
     TE.bindTo("userSession"),
     TE.map(({ userSession }) => ({
-      sendVerboseNotification: canSendVerboseNotification(userSession),
+      sendVerboseNotification: canSendVerboseNotification(
+        userSession,
+        userProfile
+      ),
       userSessionRetrieved: true
     })),
     TE.orElse(_err => {
