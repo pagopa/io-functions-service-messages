@@ -1,6 +1,6 @@
 import * as express from "express";
 
-import { identity, pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as t from "io-ts";
 
@@ -28,6 +28,8 @@ import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
 import { ReminderStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ReminderStatus";
+import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
+import { PushNotificationsContentTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/PushNotificationsContentType";
 import { NotificationInfo } from "../generated/definitions/NotificationInfo";
 import {
   NotificationType,
@@ -43,6 +45,7 @@ import { IsBetaTester } from "../utils/tests";
 import { createLogger, ILogger } from "../utils/logger";
 import { toHash } from "../utils/crypto";
 
+import { UserSessionInfo } from "../generated/session/UserSessionInfo";
 import { SendNotification } from "./notification";
 import {
   MessageWithContentReader,
@@ -66,14 +69,10 @@ const isReminderNotification = (notificationType: NotificationType): boolean =>
  * @returns
  */
 const canSendReminderNotification = (
-  retrieveUserProfile: UserProfileReader
-) => (fiscalCode: FiscalCode): TE.TaskEither<Error, boolean> =>
-  pipe(
-    retrieveUserProfile(fiscalCode),
-    TE.mapLeft(err => Error(err.detail)),
-    // reminder is allowed only if user has explicitly enabled it
-    TE.map(profile => profile.reminderStatus === ReminderStatusEnum.ENABLED)
-  );
+  retrievedUserProfile: RetrievedProfile
+): boolean =>
+  // reminder is allowed only if user has explicitly enabled it
+  retrievedUserProfile.reminderStatus === ReminderStatusEnum.ENABLED;
 
 /**
  * Check whether a notification can be sent to user
@@ -84,19 +83,16 @@ const canSendReminderNotification = (
  */
 const checkSendNotificationPermission = (
   isBetaTester: IsBetaTester,
-  retrieveUserProfile: UserProfileReader
-) => (
-  notificationType: NotificationType,
-  fiscalCode: FiscalCode
-): TE.TaskEither<Error, boolean> =>
+  retrievedUserProfile: RetrievedProfile
+) => (notificationType: NotificationType, fiscalCode: FiscalCode): boolean =>
   match(notificationType)
     .when(isReminderNotification, _ =>
       isBetaTester(fiscalCode)
-        ? canSendReminderNotification(retrieveUserProfile)(fiscalCode)
-        : TE.of(false)
+        ? canSendReminderNotification(retrievedUserProfile)
+        : false
     )
     // Not implemented yet
-    .otherwise(_ => TE.of(false));
+    .otherwise(_ => false);
 
 /**
  * Check whether a notification should not contain personal information
@@ -107,17 +103,12 @@ const checkSendNotificationPermission = (
  * @returns a TaskEither of Error or boolean
  */
 const canSendVerboseNotification = (
-  retrieveUserSession: SessionStatusReader,
-  fiscalCode: FiscalCode
-): TE.TaskEither<Error, boolean> =>
-  pipe(
-    retrieveUserSession(fiscalCode),
-    TE.mapLeft(_ => Error("Error checking user session")),
-    TE.map(sessionStatus => sessionStatus.active)
-  );
+  userSessionInfo: UserSessionInfo
+): boolean => userSessionInfo.active;
 
 const prepareNotification = (
   logger: ILogger,
+  userProfile: RetrievedProfile,
   retrieveUserSession: SessionStatusReader,
   retrieveMessageWithContent: MessageWithContentReader,
   retrieveService: ServiceReader
@@ -130,9 +121,13 @@ const prepareNotification = (
   NotificationPrinter
 > =>
   pipe(
-    canSendVerboseNotification(retrieveUserSession, fiscal_code),
-    TE.map(sendVerboseNotification => ({
-      sendVerboseNotification,
+    pipe(
+      retrieveUserSession(fiscal_code),
+      TE.mapLeft(_ => Error("Error checking user session"))
+    ),
+    TE.bindTo("userSession"),
+    TE.map(({ userSession }) => ({
+      sendVerboseNotification: canSendVerboseNotification(userSession),
       userSessionRetrieved: true
     })),
     TE.orElse(_err => {
@@ -241,25 +236,39 @@ export const NotifyHandler = (
   { fiscal_code, message_id, notification_type }
 ): ReturnType<NotifyHandler> =>
   pipe(
-    checkSendNotificationPermission(isBetaTester, retrieveUserProfile)(
-      notification_type,
-      fiscal_code
-    ),
-    TE.mapLeft(errorMsg => {
-      logger.error(`Error checking user preferences|${errorMsg}`);
-      return ResponseErrorInternal("Error checking user preferences");
-    }),
-    TE.chainW(
-      TE.fromPredicate(identity, () => {
-        logger.error(`Service is not allowed to send notification to user`);
-        return getResponseErrorForbiddenNotAuthorized(
-          "You're not allowed to send the notification"
-        );
+    pipe(
+      fiscal_code,
+      retrieveUserProfile,
+      TE.mapLeft(errorMsg => {
+        logger.error(`Error checking user preferences|${errorMsg}`);
+        return ResponseErrorInternal("Error checking user preferences");
       })
     ),
-    TE.chainW(_ =>
+    TE.bindTo("userProfile"),
+    TE.bind("notificationPermission", ({ userProfile }) =>
+      pipe(
+        checkSendNotificationPermission(isBetaTester, userProfile)(
+          notification_type,
+          fiscal_code
+        ),
+        TE.of
+      )
+    ),
+    TE.chainW(
+      TE.fromPredicate(
+        ({ notificationPermission }) => notificationPermission,
+        () => {
+          logger.error(`Service is not allowed to send notification to user`);
+          return getResponseErrorForbiddenNotAuthorized(
+            "You're not allowed to send the notification"
+          );
+        }
+      )
+    ),
+    TE.chainW(({ userProfile }) =>
       prepareNotification(
         logger,
+        userProfile,
         retrieveUserSession,
         retrieveMessageWithContent,
         retrieveService
