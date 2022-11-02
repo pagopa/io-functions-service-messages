@@ -125,12 +125,8 @@ const prepareNotification = (
   NotificationPrinter
 > =>
   pipe(
-    pipe(
-      retrieveUserSession(fiscal_code),
-      TE.mapLeft(_ => Error("Error checking user session"))
-    ),
-    TE.bindTo("userSession"),
-    TE.map(({ userSession }) => ({
+    retrieveUserSession(fiscal_code),
+    TE.map(userSession => ({
       sendVerboseNotification: canSendVerboseNotification(
         userSession,
         userProfile
