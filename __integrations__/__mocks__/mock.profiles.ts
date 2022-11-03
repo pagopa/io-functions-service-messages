@@ -8,6 +8,7 @@ import {
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { ReminderStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ReminderStatus";
 import { aFiscalCodeWithMessages } from "./mock.messages";
+import { PushNotificationsContentTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/PushNotificationsContentType";
 
 // ---------------------------------
 // Profiles
@@ -30,7 +31,8 @@ const autoProfile: Profile = {
     mode: ServicesPreferencesModeEnum.AUTO,
     version: 1 as NonNegativeInteger
   },
-  lastAppVersion: process.env.MIN_APP_VERSION_WITH_READ_AUTH as Semver
+  lastAppVersion: process.env.MIN_APP_VERSION_WITH_READ_AUTH as Semver,
+  pushNotificationsContentType: PushNotificationsContentTypeEnum.FULL
 };
 
 export const profiles = [

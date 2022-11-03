@@ -29,6 +29,7 @@ import { UserGroup } from "@pagopa/io-functions-commons/dist/src/utils/middlewar
 import { Context } from "@azure/functions";
 import { toHash } from "../../utils/crypto";
 import { ReminderStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ReminderStatus";
+import { PushNotificationsContentTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/PushNotificationsContentType";
 
 const aValidMessageNotifyPayload: NotificationInfo = {
   notification_type: NotificationTypeEnum.MESSAGE,
@@ -391,6 +392,83 @@ describe("Notify |> Reminder |> Success", () => {
           notificationType: aValidReadReminderNotifyPayload.notification_type,
           verbose: false,
           userSessionRetrieved: false
+        }
+      })
+    );
+  });
+
+  it("should return Success if user did not choose push notification verbosity level, sending a silent notification", async () => {
+    userProfileReaderMock.mockImplementationOnce(_ => {
+      const { pushNotificationsContentType, ...oldProfile } = aRetrievedProfile;
+      return TE.of({
+        ...oldProfile,
+        reminderStatus: ReminderStatusEnum.ENABLED
+      });
+    });
+
+    const notifyhandler = getHandler();
+
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
+
+    console.log(res);
+    expect(res).toMatchObject({ kind: "IResponseSuccessNoContent" });
+
+    expect(sendNotificationMock).toHaveBeenCalledWith(
+      aFiscalCode,
+      aValidReadReminderNotifyPayload.message_id,
+      `Hai un messaggio non letto`,
+      `Entra nell'app per leggerlo`
+    );
+    expect(logger.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "send-notification.info",
+        properties: {
+          hashedFiscalCode: toHash(
+            aValidReadReminderNotifyPayload.fiscal_code
+          ) as NonEmptyString,
+          messageId: aValidReadReminderNotifyPayload.message_id,
+          notificationType: aValidReadReminderNotifyPayload.notification_type,
+          verbose: false,
+          userSessionRetrieved: true
+        }
+      })
+    );
+  });
+
+  it("should return Success if user choosed to receve anonymous push notification, sending a silent notification", async () => {
+    userProfileReaderMock.mockImplementationOnce(_ => {
+      return TE.of({
+        ...aRetrievedProfile,
+        pushNotificationsContentType:
+          PushNotificationsContentTypeEnum.ANONYMOUS,
+        reminderStatus: ReminderStatusEnum.ENABLED
+      });
+    });
+
+    const notifyhandler = getHandler();
+
+    const res = await notifyhandler(logger, aValidReadReminderNotifyPayload);
+
+    console.log(res);
+    expect(res).toMatchObject({ kind: "IResponseSuccessNoContent" });
+
+    expect(sendNotificationMock).toHaveBeenCalledWith(
+      aFiscalCode,
+      aValidReadReminderNotifyPayload.message_id,
+      `Hai un messaggio non letto`,
+      `Entra nell'app per leggerlo`
+    );
+    expect(logger.trackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "send-notification.info",
+        properties: {
+          hashedFiscalCode: toHash(
+            aValidReadReminderNotifyPayload.fiscal_code
+          ) as NonEmptyString,
+          messageId: aValidReadReminderNotifyPayload.message_id,
+          notificationType: aValidReadReminderNotifyPayload.notification_type,
+          verbose: false,
+          userSessionRetrieved: true
         }
       })
     );

@@ -61,6 +61,7 @@ import { NotRejectedMessageStatusValueEnum } from "@pagopa/io-functions-commons/
 import { FeatureLevelTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/FeatureLevelType";
 import { PaymentData } from "@pagopa/io-functions-commons/dist/generated/definitions/PaymentData";
 import { pipe } from "fp-ts/lib/function";
+import { PushNotificationsContentTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/PushNotificationsContentType";
 
 export const aFiscalCode = "AAABBB01C02D345D" as FiscalCode;
 export const anotherFiscalCode = "AAABBB01C02D345W" as FiscalCode;
@@ -162,7 +163,8 @@ export const aRetrievedProfile: RetrievedProfile = {
   kind: "IRetrievedProfile",
   servicePreferencesSettings: legacyProfileServicePreferencesSettings,
   version: 0 as NonNegativeInteger,
-  lastAppVersion: "UNKNOWN"
+  lastAppVersion: "UNKNOWN",
+  pushNotificationsContentType: PushNotificationsContentTypeEnum.FULL
 };
 
 export const aRetrievedMessage: RetrievedMessageWithoutContent = {
