@@ -72,7 +72,7 @@ produces:
 definitions:
   NotificationType:
     type: string
-    x-extensible-enum:
+    enum:
      - MESSAGE
      - REMINDER_READ
      - REMINDER_PAYMENT
