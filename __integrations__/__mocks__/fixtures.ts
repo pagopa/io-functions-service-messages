@@ -8,6 +8,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as MessageCollection from "@pagopa/io-functions-commons/dist/src/models/message";
 import * as MessageViewCollection from "@pagopa/io-functions-commons/dist/src/models/message_view";
 import * as MessageStatusCollection from "@pagopa/io-functions-commons/dist/src/models/message_status";
+import * as ProfileCollection from "@pagopa/io-functions-commons/dist/src/models/profile";
 import * as ServiceModel from "@pagopa/io-functions-commons/dist/src/models/service";
 
 import { log } from "../utils/logger";
@@ -151,6 +152,12 @@ export const createAllCollections = (
         database,
         MessageStatusCollection.MESSAGE_STATUS_COLLECTION_NAME,
         MessageStatusCollection.MESSAGE_STATUS_MODEL_PK_FIELD
+      ),
+      // profiles
+      createCollection(
+        database,
+        ProfileCollection.PROFILE_COLLECTION_NAME,
+        ProfileCollection.PROFILE_MODEL_PK_FIELD
       )
     ],
     RA.sequence(TE.ApplicativePar)
@@ -333,6 +340,28 @@ export const fillServices = async (
       )
     ),
     TE.map(_ => log(`${_.length} Services created`)),
+    TE.mapLeft(_ => {
+      log("Error", _);
+    })
+  )();
+};
+
+export const fillProfiles = async (
+  db: Database,
+  profiles: ReadonlyArray<ProfileCollection.Profile>
+): Promise<void> => {
+  await pipe(
+    db.container(ProfileCollection.PROFILE_COLLECTION_NAME),
+    TE.of,
+    TE.map(p => new ProfileCollection.ProfileModel(p)),
+    TE.chain(model =>
+      pipe(
+        profiles,
+        RA.map(m => model.create(m as ProfileCollection.NewProfile)),
+        RA.sequence(TE.ApplicativePar)
+      )
+    ),
+    TE.map(_ => log(`${_.length} Profiles created`)),
     TE.mapLeft(_ => {
       log("Error", _);
     })

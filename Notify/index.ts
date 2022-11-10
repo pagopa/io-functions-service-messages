@@ -1,5 +1,5 @@
 import * as express from "express";
-
+import * as winston from "winston";
 import nodeFetch from "node-fetch";
 
 import { createBlobService } from "azure-storage";
@@ -18,6 +18,7 @@ import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
 import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { withAppInsightsContext } from "@pagopa/io-functions-commons/dist/src/utils/application_insights";
+import { AzureContextTransport } from "@pagopa/io-functions-commons/dist/src/utils/logging";
 import {
   MessageModel,
   MESSAGE_COLLECTION_NAME
@@ -26,6 +27,10 @@ import {
   ServiceModel,
   SERVICE_COLLECTION_NAME
 } from "@pagopa/io-functions-commons/dist/src/models/service";
+import {
+  ProfileModel,
+  PROFILE_COLLECTION_NAME
+} from "@pagopa/io-functions-commons/dist/src/models/profile";
 
 import { initTelemetryClient } from "../utils/appinsights";
 import { getConfigOrThrow } from "../utils/config";
@@ -38,6 +43,7 @@ import { sendNotification } from "./notification";
 import {
   getMessageWithContent,
   getService,
+  getUserProfileReader,
   getUserSessionStatusReader
 } from "./readers";
 
@@ -53,6 +59,13 @@ const httpOrHttpsApiFetch = pipe(
 
 // Get config
 const config = getConfigOrThrow();
+
+// eslint-disable-next-line functional/no-let
+let logger: Context["log"] | undefined;
+const contextTransport = new AzureContextTransport(() => logger, {
+  level: "debug"
+});
+winston.add(contextTransport);
 
 // Setup Express
 const app = express();
@@ -74,6 +87,10 @@ const serviceModel = new ServiceModel(
   cosmosdbInstance.container(SERVICE_COLLECTION_NAME)
 );
 
+const profileModel = new ProfileModel(
+  cosmosdbInstance.container(PROFILE_COLLECTION_NAME)
+);
+
 const sessionClient = createClient<"token">({
   baseUrl: config.BACKEND_BASE_URL,
   fetchApi: httpOrHttpsApiFetch,
@@ -86,6 +103,7 @@ app.post(
   "/api/v1/notify",
   Notify(
     getIsBetaTester(config.FF_BETA_TESTERS),
+    getUserProfileReader(profileModel),
     getUserSessionStatusReader(sessionClient),
     getMessageWithContent(messageModel, blobService),
     getService(serviceModel),
@@ -102,6 +120,8 @@ app.post(
 const azureFunctionHandler = createAzureFunctionHandler(app);
 
 const httpStart: AzureFunction = (context: Context): void => {
+  logger = context.log;
+
   setAppContext(app, context);
   withAppInsightsContext(context, () => azureFunctionHandler(context));
 };

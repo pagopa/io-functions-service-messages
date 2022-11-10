@@ -18,6 +18,11 @@ import {
 } from "@pagopa/io-functions-commons/dist/src/models/message";
 
 import {
+  ProfileModel,
+  RetrievedProfile
+} from "@pagopa/io-functions-commons/dist/src/models/profile";
+
+import {
   IResponseErrorInternal,
   IResponseErrorNotFound,
   ResponseErrorInternal,
@@ -155,5 +160,34 @@ export const getUserSessionStatusReader = (
         .otherwise(_ =>
           TE.left(ResponseErrorInternal("Error retrieving user session"))
         )
+    )
+  );
+
+// -----------------------------------------
+
+export type UserProfileReader = (
+  fiscalCode: FiscalCode
+) => TE.TaskEither<
+  IResponseErrorInternal | IResponseErrorNotFound,
+  RetrievedProfile
+>;
+
+export const getUserProfileReader = (
+  profileModel: ProfileModel
+): UserProfileReader => (fiscalCode): ReturnType<UserProfileReader> =>
+  pipe(
+    profileModel.findLastVersionByModelId([fiscalCode]),
+    TE.mapLeft(cosmosError =>
+      ResponseErrorInternal(
+        `Error while retrieving user profile from Cosmos DB - ${cosmosError.kind}`
+      )
+    ),
+    TE.chainW(
+      TE.fromOption(() =>
+        ResponseErrorNotFound(
+          "User profile not found",
+          `User profile was not found for the given Fiscal Code`
+        )
+      )
     )
   );

@@ -17,7 +17,7 @@ import {
   MessageStatus,
   NewMessageStatus
 } from "@pagopa/io-functions-commons/dist/src/models/message_status";
-import { MessageStatusValueEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/MessageStatusValue";
+import { NotRejectedMessageStatusValueEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/NotRejectedMessageStatusValue";
 import { FeatureLevelTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/FeatureLevelType";
 
 export const aFiscalCodeWithoutMessages = "FFLFRC74E04B157I" as FiscalCode;
@@ -63,7 +63,7 @@ export const messageStatusList = pipe(
       version: 0,
       isArchived: false,
       isRead: false,
-      status: MessageStatusValueEnum.ACCEPTED,
+      status: NotRejectedMessageStatusValueEnum.ACCEPTED,
       updatedAt: new Date(),
       kind: "INewMessageStatus"
     },
@@ -74,7 +74,7 @@ export const messageStatusList = pipe(
       version: 1,
       isArchived: false,
       isRead: false,
-      status: MessageStatusValueEnum.PROCESSED,
+      status: NotRejectedMessageStatusValueEnum.PROCESSED,
       updatedAt: new Date(),
       kind: "INewMessageStatus"
     }
@@ -106,7 +106,7 @@ export const mockEnrichMessage = (
 
 export const aMessageStatus: MessageStatus = {
   messageId: aMessage.id,
-  status: MessageStatusValueEnum.PROCESSED,
+  status: NotRejectedMessageStatusValueEnum.PROCESSED,
   updatedAt: new Date(),
   isArchived: false,
   isRead: false
