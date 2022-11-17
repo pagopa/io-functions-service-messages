@@ -24,7 +24,7 @@ import {
   ResponseErrorInternal,
   ResponseSuccessNoContent
 } from "@pagopa/ts-commons/lib/responses";
-import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
 import { ReminderStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ReminderStatus";
@@ -41,7 +41,6 @@ import {
   NotificationPrinter
 } from "../templates/printer";
 
-import { IsBetaTester } from "../utils/tests";
 import { createLogger, ILogger } from "../utils/logger";
 import { toHash } from "../utils/crypto";
 
@@ -82,14 +81,11 @@ const canSendReminderNotification = (
  * @returns a TaskEither of Error or boolean
  */
 const checkSendNotificationPermission = (
-  isBetaTester: IsBetaTester,
   retrievedUserProfile: RetrievedProfile
-) => (notificationType: NotificationType, fiscalCode: FiscalCode): boolean =>
+) => (notificationType: NotificationType): boolean =>
   match(notificationType)
     .when(isReminderNotification, _ =>
-      isBetaTester(fiscalCode)
-        ? canSendReminderNotification(retrievedUserProfile)
-        : false
+      canSendReminderNotification(retrievedUserProfile)
     )
     // Not implemented yet
     .otherwise(_ => false);
@@ -227,7 +223,6 @@ const ReminderNotificationInfo = t.interface({
 });
 
 export const NotifyHandler = (
-  isBetaTester: IsBetaTester,
   retrieveUserProfile: UserProfileReader,
   retrieveUserSession: SessionStatusReader,
   retrieveMessageWithContent: MessageWithContentReader,
@@ -250,10 +245,7 @@ export const NotifyHandler = (
     TE.bindTo("userProfile"),
     TE.bind("notificationPermission", ({ userProfile }) =>
       pipe(
-        checkSendNotificationPermission(isBetaTester, userProfile)(
-          notification_type,
-          fiscal_code
-        ),
+        checkSendNotificationPermission(userProfile)(notification_type),
         TE.of
       )
     ),
@@ -293,7 +285,6 @@ export const NotifyHandler = (
   )();
 
 export const Notify = (
-  isBetaTester: IsBetaTester,
   retrieveUserProfile: UserProfileReader,
   retrieveUserSession: SessionStatusReader,
   retrieveMessageWithContent: MessageWithContentReader,
@@ -303,7 +294,6 @@ export const Notify = (
   // eslint-disable-next-line max-params
 ): express.RequestHandler => {
   const handler = NotifyHandler(
-    isBetaTester,
     retrieveUserProfile,
     retrieveUserSession,
     retrieveMessageWithContent,
