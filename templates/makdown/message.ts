@@ -9,7 +9,7 @@ export const messagePrinter: IPrintersForTemplate = {
   }),
 
   verbosePushPrinter: ne => ({
-    title: `${ne.organizationName} - ${ne.serviceName}`,
+    title: `${ne.organizationName}`,
     body: ne.title
   })
 };
