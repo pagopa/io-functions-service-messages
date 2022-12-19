@@ -16,7 +16,7 @@ RUN yarn predeploy
 # dotnet core sdk tag list:
 # - https://hub.docker.com/_/microsoft-dotnet-sdk/
 # - https://mcr.microsoft.com/v2/dotnet/sdk/tags/list
-FROM mcr.microsoft.com/dotnet/sdk:3.1.422-alpine3.16@sha256:715916c8d1c479d3450fce05791fbfa4380116661222bfd187a83510254227c2 as dotnet-builder
+FROM mcr.microsoft.com/dotnet/sdk:6.0.404-alpine3.17@sha256:25f30fdf15dbde4c2671151944794d30948e378da8963f2e9c1dea4a6a694145 as dotnet-builder
 
 COPY . /home/node
 
@@ -31,7 +31,7 @@ RUN dotnet build -o bin
 # functions for node full tag list:
 # - https://hub.docker.com/_/microsoft-azure-functions-node
 # - https://mcr.microsoft.com/v2/azure-functions/node/tags/list
-FROM mcr.microsoft.com/azure-functions/node:4.9.1-node14-slim@sha256:b5bfb82aa0c3b1a81eca8a6899b463c2bd5fa24fb5557f332a5fea4a2687ffe9
+FROM mcr.microsoft.com/azure-functions/node:4.15.1-node14-slim@sha256:117c6d6127b492424158ee67429c0759b0b3283d3a8b7c574eb16b1168fb5796
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
