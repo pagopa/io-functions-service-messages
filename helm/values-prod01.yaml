@@ -74,7 +74,7 @@ microservice-chart:
     # io-backend endpoint token
     BACKEND_TOKEN: 'appbackendli-token'
     # fn-pushnotification queue conn string
-    NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: 'iopstnotifications-connection-string'
+    NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: 'iopweumessagesnotifst-connection-string'
     # beta testers
     FF_BETA_TESTERS: 'ff-beta-testers'
   keyvault:
