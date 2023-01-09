@@ -22,7 +22,7 @@ import {
 import { ErrorResponse } from "@azure/cosmos";
 import { BlobService } from "azure-storage";
 import { MessageModel } from "@pagopa/io-functions-commons/dist/src/models/message";
-import { createClient } from "../../generated/session/client";
+import { createClient } from "@pagopa/io-backend-session-sdk/client";
 
 const findOneByServiceIdMock = jest.fn(
   () =>
