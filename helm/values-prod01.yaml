@@ -20,11 +20,13 @@ microservice-chart:
     periodSeconds: 10
   service:
     create: true
-    port: 80
+    ports:
+      - 80
   ingress:
     create: true
     host: 'weuprod01.messages.internal.io.pagopa.it'
     path: '/service-messages/(.*)'
+    servicePort: 80
   resources:
     requests:
       memory: '512Mi'
