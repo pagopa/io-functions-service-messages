@@ -9,6 +9,7 @@ import {
 } from "@pagopa/ts-commons/lib/responses";
 import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
+import { CosmosClient } from "@azure/cosmos";
 import * as packageJson from "../package.json";
 import { checkApplicationHealth, HealthCheck } from "../utils/healthcheck";
 
@@ -40,8 +41,8 @@ export function InfoHandler(healthCheck: HealthCheck): InfoHandler {
 }
 
 // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
-export function Info(): express.RequestHandler {
-  const handler = InfoHandler(checkApplicationHealth());
+export function Info(cosmosClient: CosmosClient): express.RequestHandler {
+  const handler = InfoHandler(checkApplicationHealth(cosmosClient));
 
   return wrapRequestHandler(handler);
 }

@@ -11,7 +11,7 @@ import {
   checkUrlHealth
 } from "../healthcheck";
 
-import * as healthcheck from "../healthcheck";
+import * as cosmosUtils from "../cosmosdb";
 
 import { pipe } from "fp-ts/lib/function";
 
@@ -71,11 +71,9 @@ const mockGetDatabaseAccount = jest
   .fn()
   .mockImplementation(mockGetDatabaseAccountOk);
 
-function mockCosmosClient() {
-  jest.spyOn(healthcheck, "buildCosmosClient").mockReturnValue(({
-    getDatabaseAccount: mockGetDatabaseAccount
-  } as unknown) as CosmosClient);
-}
+const cosmosdbClient = {
+  getDatabaseAccount: mockGetDatabaseAccount
+} as any;
 
 // -------------
 // TESTS
@@ -144,14 +142,13 @@ describe("healthcheck - storage account", () => {
 describe("healthcheck - cosmos db", () => {
   beforeAll(() => {
     jest.clearAllMocks();
-    mockCosmosClient();
   });
 
   it("should return no error", async done => {
     expect.assertions(1);
 
     pipe(
-      checkAzureCosmosDbHealth("", ""),
+      checkAzureCosmosDbHealth(cosmosdbClient),
       TE.map(_ => {
         expect(true).toBeTruthy();
         done();
@@ -170,7 +167,7 @@ describe("healthcheck - cosmos db", () => {
     mockGetDatabaseAccount.mockImplementationOnce(mockGetDatabaseAccountKO);
 
     pipe(
-      checkAzureCosmosDbHealth("", ""),
+      checkAzureCosmosDbHealth(cosmosdbClient),
       TE.map(_ => {
         expect(false).toBeTruthy();
         done();
@@ -219,7 +216,6 @@ describe("checkApplicationHealth - multiple errors - ", () => {
       .spyOn(config, "getConfig")
       .mockReturnValue(right(envConfig as config.IConfig));
 
-    mockCosmosClient();
     mockAzureStorageFunctions();
   });
 
@@ -232,7 +228,7 @@ describe("checkApplicationHealth - multiple errors - ", () => {
     expect.assertions(3);
 
     pipe(
-      checkApplicationHealth(),
+      checkApplicationHealth(cosmosdbClient),
       TE.mapLeft(err => {
         expect(err.length).toBe(2);
         expect(err[0]).toBe(`AzureStorage|error - createBlobService`);
