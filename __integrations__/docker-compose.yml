@@ -6,7 +6,7 @@ services:
     image: functions-node-18
     build:
       context: ..
-      dockerfile: ./docker/functions-node-14/Dockerfile
+      dockerfile: ./docker/functions-node-18/Dockerfile
     command: /bin/true
 
   cosmosdb:
