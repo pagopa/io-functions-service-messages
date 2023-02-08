@@ -43,7 +43,7 @@ services:
       - cosmosdb
       - storage-account
     depends_on:
-      - functions-node-14
+      - functions-node-18
 
   testagent:
     image: node:16-alpine
