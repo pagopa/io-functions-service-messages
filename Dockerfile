@@ -1,5 +1,5 @@
 ### Build with node
-FROM node:18.13.0-slim@sha256:7ff9cf5e411481ee734479637265f063c5f356f496d0f9c47112312cb7b46d42 as node-builder
+FROM node:18.13.0-slim@sha256:4d3c393de4c2d05d461bcd6d304bccd1bac000cf0e5b293e13b520d2352d58c3 as node-builder
 
 COPY . /home/node
 
