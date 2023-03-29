@@ -2,6 +2,7 @@
 FROM node:18.13.0-slim@sha256:4d3c393de4c2d05d461bcd6d304bccd1bac000cf0e5b293e13b520d2352d58c3 as node-builder
 
 COPY . /home/node
+RUN chmod o+w -R /home/node/openapi
 
 WORKDIR /home/node
 
