@@ -32,8 +32,8 @@ import { ServiceId } from "@pagopa/io-functions-commons/dist/generated/definitio
 import { FiscalCode, NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { MessageContent } from "@pagopa/io-functions-commons/dist/generated/definitions/MessageContent";
 
-import { UserSessionInfo } from "../generated/session/UserSessionInfo";
-import { Client as SessionClient } from "../generated/session/client";
+import { UserSessionInfo } from "@pagopa/io-backend-session-sdk/UserSessionInfo";
+import { Client as SessionClient } from "@pagopa/io-backend-session-sdk/client";
 
 export type ServiceReader = (
   serviceId: ServiceId

@@ -30,6 +30,7 @@ import { initAppInsights } from "@pagopa/ts-commons/lib/appinsights";
 import { ReminderStatusEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/ReminderStatus";
 import { RetrievedProfile } from "@pagopa/io-functions-commons/dist/src/models/profile";
 import { PushNotificationsContentTypeEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/PushNotificationsContentType";
+import { UserSessionInfo } from "@pagopa/io-backend-session-sdk/UserSessionInfo";
 import { NotificationInfo } from "../generated/definitions/NotificationInfo";
 import {
   NotificationType,
@@ -44,7 +45,6 @@ import {
 import { createLogger, ILogger } from "../utils/logger";
 import { toHash } from "../utils/crypto";
 
-import { UserSessionInfo } from "../generated/session/UserSessionInfo";
 import { SendNotification } from "./notification";
 import {
   MessageWithContentReader,

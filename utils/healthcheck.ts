@@ -57,16 +57,6 @@ export const checkConfigHealth = (): HealthCheck<"Config", IConfig> =>
   );
 
 /**
- * Return a CosmosClient
- */
-// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-export const buildCosmosClient = (dbUri: string, dbKey?: string) =>
-  new CosmosClient({
-    endpoint: dbUri,
-    key: dbKey
-  });
-
-/**
  * Check the application can connect to an Azure CosmosDb instances
  *
  * @param dbUri uri of the database
@@ -75,14 +65,13 @@ export const buildCosmosClient = (dbUri: string, dbKey?: string) =>
  * @returns either true or an array of error messages
  */
 export const checkAzureCosmosDbHealth = (
-  dbUri: string,
-  dbKey?: string
+  cosmosDbClient: CosmosClient
 ): HealthCheck<"AzureCosmosDB", true> =>
   pipe(
-    TE.tryCatch(async () => {
-      const client = buildCosmosClient(dbUri, dbKey);
-      return client.getDatabaseAccount();
-    }, toHealthProblems("AzureCosmosDB")),
+    TE.tryCatch(
+      () => cosmosDbClient.getDatabaseAccount(),
+      toHealthProblems("AzureCosmosDB")
+    ),
     TE.map(_ => true)
   );
 
@@ -150,7 +139,9 @@ export const checkUrlHealth = (url: string): HealthCheck<"Url", true> =>
  *
  * @returns either true or an array of error messages
  */
-export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> => {
+export const checkApplicationHealth = (
+  cosmosDbClient: CosmosClient
+): HealthCheck<ProblemSource, true> => {
   const applicativeValidation = TE.getApplicativeTaskValidation(
     T.ApplicativePar,
     RA.getSemigroup<HealthProblem<ProblemSource>>()
@@ -163,7 +154,7 @@ export const checkApplicationHealth = (): HealthCheck<ProblemSource, true> => {
     TE.chain(config =>
       // run each taskEither and collect validation errors from each one of them, if any
       sequenceT(applicativeValidation)(
-        checkAzureCosmosDbHealth(config.COSMOSDB_URI, config.COSMOSDB_KEY),
+        checkAzureCosmosDbHealth(cosmosDbClient),
         checkAzureStorageHealth(config.QueueStorageConnection)
       )
     ),

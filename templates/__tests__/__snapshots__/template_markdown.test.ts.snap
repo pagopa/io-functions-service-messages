@@ -10,7 +10,7 @@ Object {
 exports[`Printer - Template - { test: 'MESSAGE', printer: [Object] } should print a verbose notification 1`] = `
 Object {
   "body": "TEST OBJECT",
-  "title": "TEST ORG - TEST SERVICE",
+  "title": "TEST ORG",
 }
 `;
 

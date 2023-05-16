@@ -32,10 +32,10 @@ import {
   PROFILE_COLLECTION_NAME
 } from "@pagopa/io-functions-commons/dist/src/models/profile";
 
+import { createClient } from "@pagopa/io-backend-session-sdk/client";
 import { initTelemetryClient } from "../utils/appinsights";
 import { getConfigOrThrow } from "../utils/config";
 import { cosmosdbInstance } from "../utils/cosmosdb";
-import { createClient } from "../generated/session/client";
 
 import { Notify } from "./handler";
 import { sendNotification } from "./notification";
