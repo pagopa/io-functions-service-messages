@@ -36,7 +36,6 @@ import { createClient } from "@pagopa/io-backend-session-sdk/client";
 import { initTelemetryClient } from "../utils/appinsights";
 import { getConfigOrThrow } from "../utils/config";
 import { cosmosdbInstance } from "../utils/cosmosdb";
-import { getIsBetaTester } from "../utils/tests";
 
 import { Notify } from "./handler";
 import { sendNotification } from "./notification";
@@ -102,7 +101,6 @@ const sessionClient = createClient<"token">({
 app.post(
   "/api/v1/notify",
   Notify(
-    getIsBetaTester(config.FF_BETA_TESTERS),
     getUserProfileReader(profileModel),
     getUserSessionStatusReader(sessionClient),
     getMessageWithContent(messageModel, blobService),
