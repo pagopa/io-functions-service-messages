@@ -44,9 +44,15 @@ COPY --from=dotnet-builder /home/node/bin /home/site/wwwroot/bin
 
 COPY --from=dotnet-builder /home/node/obj /home/site/wwwroot/obj
 
-RUN groupadd nonroot -g 2000 && \
-    useradd -r -M -s /sbin/nologin -g nonroot -c nonroot nonroot -u 1000 && \
-    chown -R nonroot:nonroot /azure-functions-host && \
-    chown -R nonroot:nonroot /home/site/wwwroot
+# RUN groupadd nonroot -g 2000 && \
+#     useradd -r -M -s /sbin/nologin -g nonroot -c nonroot nonroot -u 1000 && \
+#     chown -R nonroot:nonroot /azure-functions-host && \
+#     chown -R nonroot:nonroot /home/site/wwwroot
+# USER nonroot
 
-USER nonroot
+RUN addgroup --group app --gid 10001 && \
+    useradd --uid 10001 --gid 10001 "app" && \
+    chown -R app:app /azure-functions-host && \
+    chown -R app:app /home/site/wwwroot
+
+USER app:app
