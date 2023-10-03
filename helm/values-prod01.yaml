@@ -46,6 +46,7 @@ microservice-chart:
           type: Utilization
           value: '70'
   securityContext:
+    capabilities: {}
     readOnlyRootFilesystem: false
     allowPrivilegeEscalation: false
   envConfig:
