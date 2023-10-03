@@ -36,7 +36,8 @@ FROM mcr.microsoft.com/azure-functions/node:4.27.2.1-node18-slim@sha256:ae964a34
 
 RUN groupadd nonroot -g 2000 && \
     useradd -r -M -s /sbin/nologin -g nonroot -c nonroot nonroot -u 1000 && \
-    chown -R nonroot:nonroot /azure-functions-host
+    chown -R nonroot:nonroot /azure-functions-host && \
+    chown -R nonroot:nonroot /home/site/wwwroot
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
