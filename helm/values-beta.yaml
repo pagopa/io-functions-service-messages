@@ -49,10 +49,8 @@ microservice-chart:
     create: true
     mounts: [{ name: "tmp", mountPath: "/tmp" }]
   securityContext:
-    runAsUser: 10001
-    runAsGroup: 10001
-    runAsNonRoot: true
-    readOnlyRootFilesystem: true
+    capabilities: {}
+    readOnlyRootFilesystem: false
     allowPrivilegeEscalation: false
   envConfig:
     # required
