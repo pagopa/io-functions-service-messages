@@ -45,6 +45,9 @@ microservice-chart:
         metadata:
           type: Utilization
           value: '70'
+  tmpVolumeMount:
+    create: true
+    mounts: [{ name: "tmp", mountPath: "/tmp" }]
   envConfig:
     # required
     NODE_ENV: 'production'
