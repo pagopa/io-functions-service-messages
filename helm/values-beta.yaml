@@ -45,10 +45,6 @@ microservice-chart:
         metadata:
           type: Utilization
           value: '70'
-  securityContext:
-    capabilities: {}
-    readOnlyRootFilesystem: false
-    allowPrivilegeEscalation: false
   envConfig:
     # required
     NODE_ENV: 'production'
