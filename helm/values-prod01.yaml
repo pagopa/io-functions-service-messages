@@ -48,6 +48,10 @@ microservice-chart:
   tmpVolumeMount:
     create: true
     mounts: [{ name: "tmp", mountPath: "/tmp" }]
+  securityContext:
+    capabilities: {}
+    readOnlyRootFilesystem: false
+    allowPrivilegeEscalation: false
   envConfig:
     # required
     NODE_ENV: 'production'
