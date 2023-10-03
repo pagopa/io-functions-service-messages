@@ -50,9 +50,9 @@ COPY --from=dotnet-builder /home/node/obj /home/site/wwwroot/obj
 #     chown -R nonroot:nonroot /home/site/wwwroot
 # USER nonroot
 
-RUN addgroup --group app --gid 10001 && \
-    useradd --uid 10001 --gid 10001 "app" && \
-    chown -R app:app /azure-functions-host && \
-    chown -R app:app /home/site/wwwroot
+# RUN addgroup --group app --gid 10001 && \
+#     useradd --uid 10001 --gid 10001 "app" && \
+#     chown -R app:app /azure-functions-host && \
+#     chown -R app:app /home/site/wwwroot
 
-USER app:app
+# USER app:app
