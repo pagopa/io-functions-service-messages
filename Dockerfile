@@ -35,10 +35,24 @@ RUN dotnet build -o bin
 FROM mcr.microsoft.com/azure-functions/node:4.27.2.1-node18-slim@sha256:ae964a3404490704114aed0c30e731c3e61a741217caa034f33c46656545f980
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+    AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
+    COMPlus_EnableDiagnostics=0
 
 COPY --from=node-builder /home/node /home/site/wwwroot
 
 COPY --from=dotnet-builder /home/node/bin /home/site/wwwroot/bin
 
 COPY --from=dotnet-builder /home/node/obj /home/site/wwwroot/obj
+
+# RUN groupadd nonroot -g 2000 && \
+#     useradd -r -M -s /sbin/nologin -g nonroot -c nonroot nonroot -u 1000 && \
+#     chown -R nonroot:nonroot /azure-functions-host && \
+#     chown -R nonroot:nonroot /home/site/wwwroot
+# USER nonroot
+
+# RUN addgroup --group app --gid 10001 && \
+#     useradd --uid 10001 --gid 10001 "app" && \
+#     chown -R app:app /azure-functions-host && \
+#     chown -R app:app /home/site/wwwroot
+
+# USER app:app
