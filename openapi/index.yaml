@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 1.2.2
+  version: 1.2.3
   title: IO API for service Messages
   contact:
     name: PagoPA
