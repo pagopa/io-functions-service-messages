@@ -2,8 +2,8 @@ apiVersion: v2
 name: io-functions-service-messages
 description: io-functions-service-messages
 type: application
-version: 1.2.5
-appVersion: 1.2.5
+version: 1.2.6
+appVersion: 1.2.6
 dependencies:
   - name: microservice-chart
     version: 5.2.0
