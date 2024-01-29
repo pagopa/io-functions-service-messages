@@ -14,6 +14,7 @@
     "generate": "npm-run-all generate:*",
     "generate:definitions": "rimraf ./generated/definitions && shx mkdir -p ./generated/definitions && gen-api-models --api-spec ../openapi/index.yaml --no-strict --out-dir ./generated/definitions",
     "generate:env:cosmosdb": "dotenv -e environments/.env envsub environments/env.cosmosdb environments/generated/env.cosmosdb",
+    "generate:env:rccosmosdb": "dotenv -e environments/.env envsub environments/env.rc.cosmosdb environments/generated/env.rc.cosmosdb",
     "generate:env:function": "dotenv -e environments/.env envsub environments/env.function environments/generated/env.function",
     "generate:env:integration-tests": "dotenv -e environments/.env envsub environments/env.integration-tests environments/generated/env.integration-tests",
     "clean": "shx rm -rf environments/generated && shx mkdir environments/generated",

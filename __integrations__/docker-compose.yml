@@ -19,6 +19,17 @@ services:
     ports:
       - ${COSMOSDB_PORT}:3000
 
+  cosmosdbrc:
+    image: cosmosdb
+    container_name: cosmosdbrc
+    env_file:
+      - ./environments/generated/env.rc.cosmosdb
+    build:
+      context: ../docker/cosmosdb
+      dockerfile: ./Dockerfile
+    ports:
+      - 3001:${RC_COSMOSDB_PORT}
+
   storage-account:
     image: azurite
     build:
@@ -46,6 +57,7 @@ services:
       - ${FUNCTION_PORT}:7071
     links:
       - cosmosdb
+      - cosmosdbrc
       - storage-account
     depends_on:
       - functions-node-18
@@ -62,6 +74,8 @@ services:
       - "../openapi:/usr/src/openapi"
     depends_on:
       cosmosdb:
+        condition: service_started
+      cosmosdbrc:
         condition: service_started
       storage-account:
         condition: service_started
