@@ -34,6 +34,11 @@ services:
     image: fn
     env_file:
       - ./environments/generated/env.function
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://function:7071/api/live"]
+      interval: 12s
+      timeout: 10s
+      retries: 5
     build:
       context: ..
       dockerfile: ./docker/functions/Dockerfile
@@ -55,7 +60,12 @@ services:
       - "./:/usr/src/app"
       - "../openapi:/usr/src/openapi"
     depends_on:
-      - cosmosdb
-      - storage-account
+      cosmosdb:
+        condition: service_started
+      storage-account:
+        condition: service_started
+      function:
+        condition: service_healthy
+
     links:
       - function

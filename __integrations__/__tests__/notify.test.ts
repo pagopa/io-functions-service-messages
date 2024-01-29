@@ -23,7 +23,6 @@ import {
   NOTIFICATION_QUEUE_NAME
 } from "../env";
 import { getNodeFetch } from "../utils/fetch";
-import { waitFunctionToSetup } from "../utils/tasks";
 import {
   createCosmosDbAndCollections,
   fillMessages,
@@ -112,13 +111,6 @@ beforeAll(async () => {
 
   // Setup mock io-backend server
   ioBackendServer = await startServer(BACKEND_PORT, mockGetUserSession);
-
-  await waitFunctionToSetup(
-    MAX_ATTEMPT / 2,
-    WAIT_MS,
-    `${baseUrl}/api/ready`,
-    getNodeFetch()
-  );
 });
 
 beforeEach(async () => {
