@@ -19,7 +19,6 @@ services:
     ports:
       - ${COSMOSDB_PORT}:3000
 
-
   storage-account:
     image: azurite
     build:
@@ -31,6 +30,7 @@ services:
       - 10002:10002
 
   function:
+    container_name: fn-service-messages
     image: fn
     env_file:
       - ./environments/generated/env.function
@@ -51,6 +51,7 @@ services:
       - functions-node-18
 
   testagent:
+    container_name: fn-service-messages-testagent
     image: node:16-alpine
     working_dir: /usr/src/app
     command: tail -f /dev/null # to keep it   up&running
