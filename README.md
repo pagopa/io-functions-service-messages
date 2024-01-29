@@ -79,3 +79,35 @@ dependencies:
 ```sh
 helm dependency update helm/
 ```
+
+### Run integration tests locally
+
+Enter in the integration tests directory
+
+```bash
+cd __integrations__/
+```
+
+Install the dependencies
+
+```bash
+yarn install --frozen-lockfile
+```
+
+Start containers
+
+```bash
+yarn start
+```
+
+Execute tests inside the agent containers
+
+```
+docker exec fn-service-messages-testagent yarn test
+```
+
+Then you can stop all the containers running
+
+```
+yarn stop
+```
