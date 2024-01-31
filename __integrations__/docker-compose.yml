@@ -64,6 +64,7 @@ services:
 
   testagent:
     container_name: fn-service-messages-testagent
+    # FIX: use node 18 instead
     image: node:16-alpine
     working_dir: /usr/src/app
     command: tail -f /dev/null # to keep it   up&running
