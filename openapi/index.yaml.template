@@ -64,12 +64,69 @@ paths:
             There was an error in forwarding the notification.
           schema:
             $ref: '#/definitions/ProblemJson'
-consumes:
-  - application/json
-produces:
-  - application/json
+      consumes:
+        - application/json
+      produces:
+        - application/json
+
+  /remote-contents/configurations:
+    post:
+      operationId: createRCConfiguration
+      summary: Create a new remote-content configuration
+      description: Create a new remote-content configuration using the provided payload
+      security:
+        - SubscriptionKey: []
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/NewRCConfiguration'
+      responses:
+        '201':
+          schema:
+            $ref: '#/definitions/RCConfigurationId'
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '401':
+          description: Token null or invalid.
+        '403':
+          description: Request not authorized.
+        '500':
+          description: >-
+            There was an error creating the configuration.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
 
 definitions:
+  RCConfigurationId:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/Ulid"
+  NewRCConfiguration:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfiguration"
+  RCConfigurationBase:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationBase"
+  RCConfigurationEnvironment:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationEnvironment"
+  RCConfigurationWithTestEnvironment:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationWithTestEnvironment"
+  RCConfigurationWithProdEnvironment:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationWithProdEnvironment"
+  RCConfigurationWithProdAndTestEnvironment:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationWithProdAndTestEnvironment"
+  RCConfigurationProdEnvironment:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationProdEnvironment"
+  RCAuthenticationConfig:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCAuthenticationConfig"
+  RCClientCert:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCClientCert"
+  RCConfigurationTestEnvironment:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationTestEnvironment"
   NotificationType:
     type: string
     enum:
@@ -83,7 +140,7 @@ definitions:
       notification_type: 
         $ref: "#/definitions/NotificationType"
       fiscal_code:
-        $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/FiscalCode"
+        $ref: "#/definitions/FiscalCode"
       message_id:
         type: string
         minLength: 1
@@ -93,7 +150,8 @@ definitions:
       - message_id
   ProblemJson:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ProblemJson"
-
+  FiscalCode:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/FiscalCode"
 securityDefinitions:
   SubscriptionKey:
     type: apiKey

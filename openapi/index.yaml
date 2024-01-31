@@ -10,12 +10,12 @@ info:
   description: >
     # Warning
 
-    **This is an experimental API that is (most probably) going to change as we evolve the IO platform.**
+    **This is an experimental API that is (most probably) going to change as we
+    evolve the IO platform.**
 
     # Introduction
 
     This is the documentation of the IO API for App.
-
 host: api.cd.italia.it
 basePath: /api/v1
 schemes:
@@ -63,11 +63,188 @@ paths:
           description: There was an error in forwarding the notification.
           schema:
             $ref: '#/definitions/ProblemJson'
-consumes:
-  - application/json
-produces:
-  - application/json
+      consumes:
+        - application/json
+      produces:
+        - application/json
+  /remote-contents/configurations:
+    post:
+      operationId: createRCConfiguration
+      summary: Create a new remote-content configuration
+      description: Create a new remote-content configuration using the provided payload
+      security:
+        - SubscriptionKey: []
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/NewRCConfiguration'
+      responses:
+        '201':
+          schema:
+            $ref: '#/definitions/RCConfigurationId'
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '401':
+          description: Token null or invalid.
+        '403':
+          description: Request not authorized.
+        '500':
+          description: There was an error creating the configuration.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
 definitions:
+  RCConfigurationId:
+    type: string
+    description: Ulid string.
+    format: Ulid
+    x-import: '@pagopa/ts-commons/lib/strings'
+    example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+  NewRCConfiguration:
+    allOf:
+      - $ref: '#/definitions/RCConfigurationBase'
+      - $ref: '#/definitions/RCConfigurationEnvironment'
+  RCConfigurationBase:
+    type: object
+    properties:
+      userId:
+        type: string
+        minLength: 1
+        description: User id.
+      configurationId:
+        type: string
+        description: Ulid string.
+        format: Ulid
+        x-import: '@pagopa/ts-commons/lib/strings'
+        example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+      name:
+        type: string
+        minLength: 1
+        description: Configuration name.
+      description:
+        type: string
+        minLength: 1
+        description: Configuration description.
+      hasPrecondition:
+        type: string
+        x-extensible-enum:
+          - ALWAYS
+          - ONCE
+          - NEVER
+      disableLollipopFor:
+        type: array
+        items:
+          type: string
+          minLength: 1
+          description: User for which lollipop should be disabled
+      isLollipopEnabled:
+        type: boolean
+        description: Flag to check if lollipop is enabled
+    required:
+      - userId
+      - configurationId
+      - name
+      - description
+      - hasPrecondition
+      - disableLollipopFor
+      - isLollipopEnabled
+  RCConfigurationEnvironment:
+    x-one-of: true
+    allOf:
+      - $ref: '#/definitions/RCConfigurationWithTestEnvironment'
+      - $ref: '#/definitions/RCConfigurationWithProdEnvironment'
+      - $ref: '#/definitions/RCConfigurationWithProdAndTestEnvironment'
+  RCConfigurationWithTestEnvironment:
+    type: object
+    properties:
+      testEnvironment:
+        $ref: '#/definitions/RCConfigurationTestEnvironment'
+    required:
+      - testEnvironment
+  RCConfigurationWithProdEnvironment:
+    type: object
+    properties:
+      prodEnvironment:
+        $ref: '#/definitions/RCConfigurationProdEnvironment'
+    required:
+      - prodEnvironment
+  RCConfigurationWithProdAndTestEnvironment:
+    type: object
+    properties:
+      prodEnvironment:
+        $ref: '#/definitions/RCConfigurationProdEnvironment'
+      testEnvironment:
+        $ref: '#/definitions/RCConfigurationTestEnvironment'
+    required:
+      - prodEnvironment
+      - testEnvironment
+  RCConfigurationProdEnvironment:
+    type: object
+    properties:
+      baseUrl:
+        type: string
+        minLength: 1
+        description: Base url of the server.
+      detailsAuthentication:
+        $ref: '#/definitions/RCAuthenticationConfig'
+    required:
+      - baseUrl
+  RCAuthenticationConfig:
+    type: object
+    properties:
+      headerKeyName:
+        type: string
+        minLength: 1
+        description: header key name
+      key:
+        type: string
+        minLength: 1
+        description: authentication config key
+      type:
+        type: string
+        minLength: 1
+        description: authentication config type
+      cert:
+        $ref: '#/definitions/RCClientCert'
+    required:
+      - headerKeyName
+      - key
+      - type
+  RCClientCert:
+    type: object
+    properties:
+      clientCert:
+        type: string
+        minLength: 1
+        description: authentication config client cert
+      clientKey:
+        type: string
+        minLength: 1
+        description: authentication config client key
+      serverCa:
+        type: string
+        minLength: 1
+        description: authentication config server ca
+    required:
+      - clientCert
+      - clientKey
+      - serverCa
+  RCConfigurationTestEnvironment:
+    allOf:
+      - $ref: '#/definitions/RCConfigurationProdEnvironment'
+      - type: object
+        properties:
+          testUsers:
+            type: array
+            items:
+              $ref: '#/definitions/FiscalCode'
   NotificationType:
     type: string
     enum:
@@ -81,11 +258,7 @@ definitions:
       notification_type:
         $ref: '#/definitions/NotificationType'
       fiscal_code:
-        type: string
-        description: User's fiscal code.
-        format: FiscalCode
-        x-import: '@pagopa/ts-commons/lib/strings'
-        example: SPNDNL80R13C555X
+        $ref: '#/definitions/FiscalCode'
       message_id:
         type: string
         minLength: 1
@@ -115,7 +288,8 @@ definitions:
         type: integer
         format: int32
         description: >-
-          The HTTP status code generated by the origin server for this occurrence
+          The HTTP status code generated by the origin server for this
+          occurrence
 
           of the problem.
         minimum: 100
@@ -132,9 +306,16 @@ definitions:
         type: string
         format: uri
         description: >-
-          An absolute URI that identifies the specific occurrence of the problem.
+          An absolute URI that identifies the specific occurrence of the
+          problem.
 
           It may or may not yield further information if dereferenced.
+  FiscalCode:
+    type: string
+    description: User's fiscal code.
+    format: FiscalCode
+    x-import: '@pagopa/ts-commons/lib/strings'
+    example: SPNDNL80R13C555X
 securityDefinitions:
   SubscriptionKey:
     type: apiKey
