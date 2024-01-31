@@ -67,6 +67,10 @@ export const IConfig = t.intersection([
     COSMOSDB_NAME: NonEmptyString,
     COSMOSDB_URI: NonEmptyString,
 
+    REMOTE_CONTENT_COSMOSDB_KEY: NonEmptyString,
+    REMOTE_CONTENT_COSMOSDB_NAME: NonEmptyString,
+    REMOTE_CONTENT_COSMOSDB_URI: NonEmptyString,
+
     MESSAGE_CONTAINER_NAME: NonEmptyString,
 
     QueueStorageConnection: NonEmptyString,
