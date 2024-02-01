@@ -88,10 +88,6 @@ paths:
           description: Bad request
           schema:
             $ref: '#/definitions/ProblemJson'
-        '401':
-          description: Token null or invalid.
-        '403':
-          description: Request not authorized.
         '500':
           description: There was an error creating the configuration.
           schema:
@@ -109,21 +105,15 @@ definitions:
     example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
   NewRCConfiguration:
     allOf:
-      - $ref: '#/definitions/RCConfigurationBase'
+      - $ref: '#/definitions/NewRCConfigurationBase'
       - $ref: '#/definitions/RCConfigurationEnvironment'
-  RCConfigurationBase:
+  NewRCConfigurationBase:
     type: object
     properties:
       userId:
         type: string
         minLength: 1
         description: User id.
-      configurationId:
-        type: string
-        description: Ulid string.
-        format: Ulid
-        x-import: '@pagopa/ts-commons/lib/strings'
-        example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
       name:
         type: string
         minLength: 1
@@ -149,7 +139,6 @@ definitions:
         description: Flag to check if lollipop is enabled
     required:
       - userId
-      - configurationId
       - name
       - description
       - hasPrecondition

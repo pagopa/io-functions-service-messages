@@ -90,10 +90,6 @@ paths:
           description: Bad request
           schema:
             $ref: '#/definitions/ProblemJson'
-        '401':
-          description: Token null or invalid.
-        '403':
-          description: Request not authorized.
         '500':
           description: >-
             There was an error creating the configuration.
@@ -108,7 +104,9 @@ definitions:
   RCConfigurationId:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/Ulid"
   NewRCConfiguration:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfiguration"
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NewRCConfiguration"
+  NewRCConfigurationBase:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NewRCConfigurationBase"
   RCConfigurationBase:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationBase"
   RCConfigurationEnvironment:
