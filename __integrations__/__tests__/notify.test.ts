@@ -47,7 +47,6 @@ console.log("ENV: ", WAIT_MS, SHOW_LOGS, BACKEND_PORT);
 const MAX_ATTEMPT = 50;
 jest.setTimeout(WAIT_MS * MAX_ATTEMPT);
 
-// FIX: move this to a util file
 const baseUrl = "http://function:7071";
 
 const customHeaders = {

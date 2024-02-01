@@ -1,4 +1,5 @@
 import * as TE from "fp-ts/lib/TaskEither";
+import * as E from "fp-ts/lib/Either";
 
 import { CosmosClient, CosmosClientOptions, Database } from "@azure/cosmos";
 import { pipe } from "fp-ts/lib/function";
@@ -14,15 +15,28 @@ import {
 } from "../__mocks__/fixtures";
 import { RCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { HasPreconditionEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/HasPrecondition";
+import { NewRCConfiguration } from "@pagopa/io-functions-commons/dist/generated/definitions/NewRCConfiguration";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 
-// FIX: move this to a util file
 const baseUrl = "http://function:7071";
 
 const aDetailAuthentication = {
   headerKeyName: "a" as NonEmptyString,
   key: "key" as NonEmptyString,
   type: "type" as NonEmptyString
+};
+
+export const aNewRemoteContentConfiguration: NewRCConfiguration = {
+  hasPrecondition: HasPreconditionEnum.ALWAYS,
+  disableLollipopFor: [],
+  isLollipopEnabled: false,
+  userId: "aUserId" as NonEmptyString,
+  name: "aRemoteContentConfiguration" as NonEmptyString,
+  description: "a description" as NonEmptyString,
+  prodEnvironment: {
+    baseUrl: "aValidUrl" as NonEmptyString,
+    detailsAuthentication: aDetailAuthentication
+  }
 };
 
 export const aRemoteContentConfiguration: RCConfiguration = {
@@ -60,13 +74,24 @@ beforeAll(async () => {
 });
 
 describe("CreateRCConfiguration", () => {
-  test("should go fine", async () => {
+  test("should return a 400 error if the payload is not valid", async () => {
     const aFetch = getNodeFetch({});
     const body = {};
     const r = await postCreateRCConfiguration(aFetch)(body);
     const jsonResponse = await r.json();
-    console.log(r.status);
-    console.log(jsonResponse);
+
+    expect(r.status).toBe(400);
+    expect(jsonResponse.title).toBe("Invalid NewRCConfiguration");
+  });
+
+  test("should return a 201 if the payload is valid", async () => {
+    const aFetch = getNodeFetch({});
+    const body = aNewRemoteContentConfiguration;
+    const r = await postCreateRCConfiguration(aFetch)(body);
+    const jsonResponse = await r.json();
+
+    expect(r.status).toBe(201);
+    expect(E.isRight(Ulid.decode(jsonResponse.id))).toBeTruthy();
   });
 });
 
