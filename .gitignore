@@ -61,3 +61,5 @@ azure-functions-core-tools
 
 helm/charts**
 helm/charts/*
+
+docker-compose.override.yml

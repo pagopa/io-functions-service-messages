@@ -19,6 +19,16 @@ services:
     ports:
       - ${COSMOSDB_PORT}:3000
 
+  cosmosdbrc:
+    image: cosmosdb
+    container_name: cosmosdbrc
+    env_file:
+      - ./environments/generated/env.rc.cosmosdb
+    build:
+      context: ../docker/cosmosdb
+      dockerfile: ./Dockerfile
+    ports:
+      - 3001:${RC_COSMOSDB_PORT}
 
   storage-account:
     image: azurite
@@ -31,9 +41,15 @@ services:
       - 10002:10002
 
   function:
+    container_name: fn-service-messages
     image: fn
     env_file:
       - ./environments/generated/env.function
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://function:7071/api/live"]
+      interval: 12s
+      timeout: 10s
+      retries: 5
     build:
       context: ..
       dockerfile: ./docker/functions/Dockerfile
@@ -41,11 +57,13 @@ services:
       - ${FUNCTION_PORT}:7071
     links:
       - cosmosdb
+      - cosmosdbrc
       - storage-account
     depends_on:
       - functions-node-18
 
   testagent:
+    container_name: fn-service-messages-testagent
     image: node:16-alpine
     working_dir: /usr/src/app
     command: tail -f /dev/null # to keep it   up&running
@@ -55,7 +73,14 @@ services:
       - "./:/usr/src/app"
       - "../openapi:/usr/src/openapi"
     depends_on:
-      - cosmosdb
-      - storage-account
+      cosmosdb:
+        condition: service_started
+      cosmosdbrc:
+        condition: service_started
+      storage-account:
+        condition: service_started
+      function:
+        condition: service_healthy
+
     links:
       - function
