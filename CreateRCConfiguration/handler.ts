@@ -27,7 +27,6 @@ export const getNewRCConfigurationWithConfigurationId = (
   generateConfigurationId: ObjectIdGenerator
 ) => (newRCConfiguration: NewRCConfiguration): RCConfiguration => ({
   ...newRCConfiguration,
-  // TODO: fix this cast
   configurationId: (generateConfigurationId() as unknown) as Ulid
 });
 
@@ -55,11 +54,13 @@ type CreateRCConfigurationHandler = (
 export const createRCConfigurationHandler: CreateRCConfigurationHandler = ({
   rccModel,
   generateConfigurationId
-}) => async ({ newRCConfiguration }) =>
+}) => ({ newRCConfiguration }) =>
   pipe(
-    newRCConfiguration,
-    getNewRCConfigurationWithConfigurationId(generateConfigurationId),
-    rccModel.create,
+    rccModel.create(
+      getNewRCConfigurationWithConfigurationId(generateConfigurationId)(
+        newRCConfiguration
+      )
+    ),
     TE.map(configuration =>
       ResponseSuccessRedirectToResource(
         configuration,
@@ -101,9 +102,6 @@ export const getCreateRCConfigurationExpressHandler: GetCreateRCConfigurationHan
   );
 
   return wrapRequestHandler(
-    // TODO: use context to add logs
-    middlewaresWrap((context, newRCConfiguration) =>
-      handler({ newRCConfiguration })
-    )
+    middlewaresWrap((_, newRCConfiguration) => handler({ newRCConfiguration }))
   );
 };
