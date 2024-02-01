@@ -144,6 +144,19 @@ definitions:
       - hasPrecondition
       - disableLollipopFor
       - isLollipopEnabled
+  RCConfigurationBase:
+    allOf:
+      - $ref: '#/definitions/NewRCConfigurationBase'
+      - type: object
+        properties:
+          configurationId:
+            type: string
+            description: Ulid string.
+            format: Ulid
+            x-import: '@pagopa/ts-commons/lib/strings'
+            example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+        required:
+          - configurationId
   RCConfigurationEnvironment:
     x-one-of: true
     allOf:
