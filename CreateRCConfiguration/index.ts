@@ -1,8 +1,7 @@
 import * as express from "express";
 
 import { AzureFunction, Context } from "@azure/functions";
-import { getConfigOrThrow } from "../utils/config";
-
+import { ulidGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
 import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
 import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
@@ -12,7 +11,7 @@ import {
   RC_CONFIGURATION_COLLECTION_NAME
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { remoteContentCosmosDbInstance } from "../utils/cosmosdb";
-import { getCreateRCConfigurationHandler } from "./handler";
+import { getCreateRCConfigurationExpressHandler } from "./handler";
 
 const rccModel = new RCConfigurationModel(
   remoteContentCosmosDbInstance.container(RC_CONFIGURATION_COLLECTION_NAME)
@@ -25,7 +24,10 @@ secureExpressApp(app);
 // Add express route
 app.post(
   "/api/v1/remote-contents/configurations",
-  getCreateRCConfigurationHandler({ rccModel })
+  getCreateRCConfigurationExpressHandler({
+    rccModel,
+    generateConfigurationId: ulidGenerator
+  })
 );
 
 const azureFunctionHandler = createAzureFunctionHandler(app);

@@ -8,16 +8,28 @@ import {
   wrapRequestHandler
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
-  IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
   IResponseErrorValidation,
   IResponseSuccessRedirectToResource,
-  ResponseErrorValidation,
+  ResponseErrorInternal,
   ResponseSuccessRedirectToResource
 } from "@pagopa/ts-commons/lib/responses";
 import { NewRCConfiguration } from "../generated/definitions/NewRCConfiguration";
 import { pipe } from "fp-ts/lib/function";
-import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import {
+  RCConfiguration,
+  RCConfigurationModel
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import { Ulid } from "@pagopa/ts-commons/lib/strings";
+import { ObjectIdGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
+
+export const getNewRCConfigurationWithConfigurationId = (
+  generateConfigurationId: ObjectIdGenerator
+) => (newRCConfiguration: NewRCConfiguration): RCConfiguration => ({
+  ...newRCConfiguration,
+  // TODO: fix this cast
+  configurationId: (generateConfigurationId() as unknown) as Ulid
+});
 
 type HandlerParameter = {
   newRCConfiguration: NewRCConfiguration;
@@ -25,6 +37,7 @@ type HandlerParameter = {
 
 type CreateRCConfigurationHandlerParameter = {
   rccModel: RCConfigurationModel;
+  generateConfigurationId: ObjectIdGenerator;
 };
 
 type CreateRCConfigurationHandlerReturnType = (
@@ -32,7 +45,6 @@ type CreateRCConfigurationHandlerReturnType = (
 ) => Promise<
   | IResponseSuccessRedirectToResource<NewRCConfiguration, {}>
   | IResponseErrorValidation
-  | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorInternal
 >;
 
@@ -41,19 +53,31 @@ type CreateRCConfigurationHandler = (
 ) => CreateRCConfigurationHandlerReturnType;
 
 export const createRCConfigurationHandler: CreateRCConfigurationHandler = ({
-  rccModel
+  rccModel,
+  generateConfigurationId
 }) => async ({ newRCConfiguration }) =>
   pipe(
-    rccModel.create(newRCConfiguration),
+    newRCConfiguration,
+    getNewRCConfigurationWithConfigurationId(generateConfigurationId),
+    rccModel.create,
     TE.map(configuration =>
-      ResponseSuccessRedirectToResource(configuration, "", {})
+      ResponseSuccessRedirectToResource(
+        configuration,
+        `/api/v1/remote-contents/configurations/`,
+        {
+          id: configuration.configurationId
+        }
+      )
     ),
-    TE.mapLeft(e => ResponseErrorValidation(e.kind, "error")),
+    TE.mapLeft(e =>
+      ResponseErrorInternal(`Error creating the new configuration: ${e.kind}`)
+    ),
     TE.toUnion
   )();
 
 type GetCreateRCConfigurationHandlerParameter = {
   rccModel: RCConfigurationModel;
+  generateConfigurationId: ObjectIdGenerator;
 };
 
 type GetCreateRCConfigurationHandlerReturnType = express.RequestHandler;
@@ -62,10 +86,14 @@ type GetCreateRCConfigurationHandler = (
   parameter: GetCreateRCConfigurationHandlerParameter
 ) => GetCreateRCConfigurationHandlerReturnType;
 
-export const getCreateRCConfigurationHandler: GetCreateRCConfigurationHandler = ({
-  rccModel
+export const getCreateRCConfigurationExpressHandler: GetCreateRCConfigurationHandler = ({
+  rccModel,
+  generateConfigurationId
 }) => {
-  const handler = createRCConfigurationHandler({ rccModel });
+  const handler = createRCConfigurationHandler({
+    rccModel,
+    generateConfigurationId
+  });
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
@@ -73,6 +101,7 @@ export const getCreateRCConfigurationHandler: GetCreateRCConfigurationHandler = 
   );
 
   return wrapRequestHandler(
+    // TODO: use context to add logs
     middlewaresWrap((context, newRCConfiguration) =>
       handler({ newRCConfiguration })
     )
