@@ -30,5 +30,5 @@ export const remoteContentCosmosDbClient = new CosmosClient({
 });
 
 export const remoteContentCosmosDbInstance = remoteContentCosmosDbClient.database(
-  cosmosDbName
+  remoteContentCosmosDbName
 );
