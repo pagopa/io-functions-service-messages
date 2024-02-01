@@ -25,8 +25,8 @@ secureExpressApp(app);
 app.post(
   "/api/v1/remote-contents/configurations",
   getCreateRCConfigurationExpressHandler({
-    rccModel,
-    generateConfigurationId: ulidGenerator
+    generateConfigurationId: ulidGenerator,
+    rccModel
   })
 );
 

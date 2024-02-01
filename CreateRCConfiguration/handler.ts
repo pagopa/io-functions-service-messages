@@ -14,7 +14,6 @@ import {
   ResponseErrorInternal,
   ResponseSuccessRedirectToResource
 } from "@pagopa/ts-commons/lib/responses";
-import { NewRCConfiguration } from "../generated/definitions/NewRCConfiguration";
 import { pipe } from "fp-ts/lib/function";
 import {
   RCConfiguration,
@@ -22,38 +21,41 @@ import {
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { Ulid } from "@pagopa/ts-commons/lib/strings";
 import { ObjectIdGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
+import { NewRCConfiguration } from "../generated/definitions/NewRCConfiguration";
 
 export const getNewRCConfigurationWithConfigurationId = (
   generateConfigurationId: ObjectIdGenerator
 ) => (newRCConfiguration: NewRCConfiguration): RCConfiguration => ({
-  ...newRCConfiguration,
-  configurationId: (generateConfigurationId() as unknown) as Ulid
+  configurationId: (generateConfigurationId() as unknown) as Ulid,
+  ...newRCConfiguration
 });
 
-type HandlerParameter = {
-  newRCConfiguration: NewRCConfiguration;
-};
+interface IHandlerParameter {
+  readonly newRCConfiguration: NewRCConfiguration;
+}
 
-type CreateRCConfigurationHandlerParameter = {
-  rccModel: RCConfigurationModel;
-  generateConfigurationId: ObjectIdGenerator;
-};
+interface ICreateRCConfigurationHandlerParameter {
+  readonly rccModel: RCConfigurationModel;
+  readonly generateConfigurationId: ObjectIdGenerator;
+}
 
 type CreateRCConfigurationHandlerReturnType = (
-  parameter: HandlerParameter
+  parameter: IHandlerParameter
 ) => Promise<
+  // eslint-disable-next-line @typescript-eslint/ban-types
   | IResponseSuccessRedirectToResource<NewRCConfiguration, {}>
   | IResponseErrorValidation
   | IResponseErrorInternal
 >;
 
 type CreateRCConfigurationHandler = (
-  parameter: CreateRCConfigurationHandlerParameter
+  parameter: ICreateRCConfigurationHandlerParameter
 ) => CreateRCConfigurationHandlerReturnType;
 
 export const createRCConfigurationHandler: CreateRCConfigurationHandler = ({
   rccModel,
   generateConfigurationId
+  // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 }) => ({ newRCConfiguration }) =>
   pipe(
     rccModel.create(
@@ -76,15 +78,15 @@ export const createRCConfigurationHandler: CreateRCConfigurationHandler = ({
     TE.toUnion
   )();
 
-type GetCreateRCConfigurationHandlerParameter = {
-  rccModel: RCConfigurationModel;
-  generateConfigurationId: ObjectIdGenerator;
-};
+interface IGetCreateRCConfigurationHandlerParameter {
+  readonly rccModel: RCConfigurationModel;
+  readonly generateConfigurationId: ObjectIdGenerator;
+}
 
 type GetCreateRCConfigurationHandlerReturnType = express.RequestHandler;
 
 type GetCreateRCConfigurationHandler = (
-  parameter: GetCreateRCConfigurationHandlerParameter
+  parameter: IGetCreateRCConfigurationHandlerParameter
 ) => GetCreateRCConfigurationHandlerReturnType;
 
 export const getCreateRCConfigurationExpressHandler: GetCreateRCConfigurationHandler = ({
@@ -92,8 +94,8 @@ export const getCreateRCConfigurationExpressHandler: GetCreateRCConfigurationHan
   generateConfigurationId
 }) => {
   const handler = createRCConfigurationHandler({
-    rccModel,
-    generateConfigurationId
+    generateConfigurationId,
+    rccModel
   });
 
   const middlewaresWrap = withRequestMiddlewares(
