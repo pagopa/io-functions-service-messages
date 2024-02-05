@@ -100,6 +100,43 @@ paths:
       produces:
         - application/json
 
+  /remote-contents/configurations/{configurationId}:
+    put:
+      operationId: updateRCConfiguration
+      summary: Update an existing remote-content configuration
+      description: Update an existing remote-content configuration using the provided payload
+      security:
+        - SubscriptionKey: []
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/NewRCConfiguration'
+        - in: path
+          name: configurationId
+          required: true
+          schema:
+            $ref: '#/definitions/RCConfigurationId'
+      responses:
+        '204':
+          description: Configuration updated
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '404':
+          description: Resource not found.
+        '500':
+          description: >-
+            There was an error updating the configuration.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+
 definitions:
   RCConfigurationId:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/Ulid"
