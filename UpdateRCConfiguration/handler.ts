@@ -111,7 +111,7 @@ export const getUpdateRCConfigurationExpressHandler: GetUpdateRCConfigurationHan
   );
 
   return wrapRequestHandler(
-    middlewaresWrap((_, configurationId, userId, newRCConfiguration) =>
+    middlewaresWrap((_, userId, configurationId, newRCConfiguration) =>
       handler({ configurationId, newRCConfiguration, userId })
     )
   );
