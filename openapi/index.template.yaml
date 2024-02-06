@@ -104,8 +104,6 @@ paths:
       operationId: updateRCConfiguration
       summary: Update an existing remote-content configuration
       description: Update an existing remote-content configuration using the provided payload
-      security:
-        - SubscriptionKey: []
       parameters:
         - in: body
           name: body
