@@ -9,7 +9,6 @@ import {
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
   IResponseErrorInternal,
-  IResponseErrorValidation,
   IResponseSuccessRedirectToResource,
   ResponseErrorInternal,
   ResponseSuccessRedirectToResource
@@ -19,19 +18,23 @@ import {
   RCConfiguration,
   RCConfigurationModel
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
-import { Ulid } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { ObjectIdGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
 import { NewRCConfiguration } from "../generated/definitions/NewRCConfiguration";
+import { RequiredUserIdMiddleware } from "../utils/middlewares";
 
 export const getNewRCConfigurationWithConfigurationId = (
-  generateConfigurationId: ObjectIdGenerator
+  generateConfigurationId: ObjectIdGenerator,
+  userId: NonEmptyString
 ) => (newRCConfiguration: NewRCConfiguration): RCConfiguration => ({
   configurationId: (generateConfigurationId() as unknown) as Ulid,
-  ...newRCConfiguration
+  ...newRCConfiguration,
+  userId
 });
 
 interface IHandlerParameter {
   readonly newRCConfiguration: NewRCConfiguration;
+  readonly userId: NonEmptyString;
 }
 
 interface ICreateRCConfigurationHandlerParameter {
@@ -44,7 +47,6 @@ type CreateRCConfigurationHandlerReturnType = (
 ) => Promise<
   // eslint-disable-next-line @typescript-eslint/ban-types
   | IResponseSuccessRedirectToResource<NewRCConfiguration, {}>
-  | IResponseErrorValidation
   | IResponseErrorInternal
 >;
 
@@ -56,12 +58,13 @@ export const createRCConfigurationHandler: CreateRCConfigurationHandler = ({
   rccModel,
   generateConfigurationId
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-}) => ({ newRCConfiguration }) =>
+}) => ({ newRCConfiguration, userId }) =>
   pipe(
     rccModel.create(
-      getNewRCConfigurationWithConfigurationId(generateConfigurationId)(
-        newRCConfiguration
-      )
+      getNewRCConfigurationWithConfigurationId(
+        generateConfigurationId,
+        userId
+      )(newRCConfiguration)
     ),
     TE.map(configuration =>
       ResponseSuccessRedirectToResource(
@@ -100,10 +103,13 @@ export const getCreateRCConfigurationExpressHandler: GetCreateRCConfigurationHan
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
+    RequiredUserIdMiddleware(),
     RequiredBodyPayloadMiddleware(NewRCConfiguration)
   );
 
   return wrapRequestHandler(
-    middlewaresWrap((_, newRCConfiguration) => handler({ newRCConfiguration }))
+    middlewaresWrap((_, userId, newRCConfiguration) =>
+      handler({ newRCConfiguration, userId })
+    )
   );
 };

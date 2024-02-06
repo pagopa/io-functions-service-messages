@@ -4,6 +4,7 @@ import * as TE from "fp-ts/lib/TaskEither";
 import {
   aNewRemoteContentConfiguration,
   aRemoteContentConfiguration,
+  aUserId,
   createNewConfigurationMock,
   rccModelMock
 } from "../../__mocks__/remote-content";
@@ -18,9 +19,10 @@ import { Ulid } from "@pagopa/ts-commons/lib/strings";
 describe("getNewRCConfigurationWithConfigurationId", () => {
   test("should return a valid RCConfiguration", () => {
     const r = RCConfiguration.decode(
-      getNewRCConfigurationWithConfigurationId(ulidGenerator)(
-        aNewRemoteContentConfiguration
-      )
+      getNewRCConfigurationWithConfigurationId(
+        ulidGenerator,
+        aUserId
+      )(aNewRemoteContentConfiguration)
     );
     expect(E.isRight(r)).toBeTruthy();
     if (E.isRight(r))
@@ -34,7 +36,12 @@ describe("createRCConfigurationHandler", () => {
     const r = await createRCConfigurationHandler({
       rccModel: rccModelMock,
       generateConfigurationId: ulidGenerator
-    })({ newRCConfiguration: aNewRemoteContentConfiguration });
+    })({
+      newRCConfiguration: {
+        ...aNewRemoteContentConfiguration
+      },
+      userId: aUserId
+    });
 
     expect(r.kind).toBe("IResponseErrorInternal");
     expect(r.detail).toBe(
@@ -49,7 +56,7 @@ describe("createRCConfigurationHandler", () => {
     const r = await createRCConfigurationHandler({
       rccModel: rccModelMock,
       generateConfigurationId: ulidGenerator
-    })({ newRCConfiguration: aNewRemoteContentConfiguration });
+    })({ newRCConfiguration: aNewRemoteContentConfiguration, userId: aUserId });
 
     expect(r.kind).toBe("IResponseSuccessRedirectToResource");
     if (r.kind === "IResponseSuccessRedirectToResource")
