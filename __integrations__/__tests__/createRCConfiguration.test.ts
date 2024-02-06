@@ -30,7 +30,6 @@ export const aNewRemoteContentConfiguration: NewRCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
   isLollipopEnabled: false,
-  userId: "aUserId" as NonEmptyString,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
   prodEnvironment: {

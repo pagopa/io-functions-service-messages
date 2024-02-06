@@ -712,10 +712,10 @@
   resolved "https://registry.yarnpkg.com/@opentelemetry/api/-/api-1.4.0.tgz#2c91791a9ba6ca0a0f4aaac5e45d58df13639ac8"
   integrity sha512-IgMK9i3sFGNUqPMbjABm0G26g0QCKCUBfglhQ7rQq6WcxbKfEHRcmwsoER4hZcuYqJgkYn2OeuoJIv7Jsftp7g==
 
-"@pagopa/io-functions-commons@^28.17.1":
-  version "28.17.1"
-  resolved "https://registry.yarnpkg.com/@pagopa/io-functions-commons/-/io-functions-commons-28.17.1.tgz#0c56432bf089e3380ba3774e54be56eb5b3352de"
-  integrity sha512-zFTzx+jVlJFZPRAdbLNyuc0ER8FgDdWt7SoPmLVufQA5j/Uf6z1zTJSMQJIV/xq60Ld0IgxGKFLJtT91lbkqeQ==
+"@pagopa/io-functions-commons@^28.17.2":
+  version "28.17.2"
+  resolved "https://registry.yarnpkg.com/@pagopa/io-functions-commons/-/io-functions-commons-28.17.2.tgz#3889e346f41a00253b573e3e172f92e6b0989522"
+  integrity sha512-nTO1Qq+puLqOwuYgljQL1mhE1RGtHKdDpQ30B7Iezgb2CHaPX3P6163oJyGYIJDvvJko9rL5HNI80JzbKL6DRw==
   dependencies:
     "@azure/cosmos" "^3.17.1"
     "@azure/data-tables" "^13.2.2"

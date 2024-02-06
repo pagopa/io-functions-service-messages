@@ -29,7 +29,6 @@ export const aNewRemoteContentConfiguration: NewRCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
   isLollipopEnabled: false,
-  userId: "aUserId" as NonEmptyString,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
   prodEnvironment: {
@@ -78,7 +77,8 @@ describe("UpdateRCConfiguration", () => {
     const body = {};
     const r = await putCreateRCConfiguration(aFetch)(
       body,
-      aRemoteContentConfiguration.configurationId
+      aRemoteContentConfiguration.configurationId,
+      aRemoteContentConfiguration.userId
     );
     const jsonResponse = await r.json();
 
@@ -89,7 +89,11 @@ describe("UpdateRCConfiguration", () => {
   test("should return a 400 error if the payload is valid but the configurationId is not", async () => {
     const aFetch = getNodeFetch({});
     const body = aNewRemoteContentConfiguration;
-    const r = await putCreateRCConfiguration(aFetch)(body, "invalidUlid");
+    const r = await putCreateRCConfiguration(aFetch)(
+      body,
+      "invalidUlid",
+      aRemoteContentConfiguration.userId
+    );
     const jsonResponse = await r.json();
 
     expect(r.status).toBe(400);
@@ -98,13 +102,41 @@ describe("UpdateRCConfiguration", () => {
     );
   });
 
+  test("should return a 403 error if the header x-user-id is not defined", async () => {
+    const aFetch = getNodeFetch({});
+    const body = aNewRemoteContentConfiguration;
+    const r = await putCreateRCConfiguration(aFetch)(
+      body,
+      aRemoteContentConfiguration.configurationId
+    );
+    const jsonResponse = await r.json();
+
+    expect(r.status).toBe(403);
+    expect(jsonResponse.title).toBe("Anonymous user");
+  });
+
+  test("should return a 403 error if the header x-user-id is defined but is not equal to the one in the configuration", async () => {
+    const aFetch = getNodeFetch({});
+    const body = aNewRemoteContentConfiguration;
+    const r = await putCreateRCConfiguration(aFetch)(
+      body,
+      aRemoteContentConfiguration.configurationId,
+      "invalidUserId"
+    );
+    const jsonResponse = await r.json();
+
+    expect(r.status).toBe(403);
+    expect(jsonResponse.title).toBe("Anonymous user");
+  });
+
   test("should return a 404 error if the payload and the configurationId are valid but the configuration does not exist", async () => {
     const aFetch = getNodeFetch({});
     const body = aNewRemoteContentConfiguration;
     const nonExistingConfigurationId = "01HNX1RP85JYV9K96XK7GATWD1";
     const r = await putCreateRCConfiguration(aFetch)(
       body,
-      nonExistingConfigurationId
+      nonExistingConfigurationId,
+      aRemoteContentConfiguration.userId
     );
     const jsonResponse = await r.json();
 
@@ -120,7 +152,8 @@ describe("UpdateRCConfiguration", () => {
     const body = aNewRemoteContentConfiguration;
     const r = await putCreateRCConfiguration(aFetch)(
       body,
-      aRemoteContentConfiguration.configurationId
+      aRemoteContentConfiguration.configurationId,
+      aRemoteContentConfiguration.userId
     );
 
     expect(r.status).toBe(204);
@@ -130,15 +163,20 @@ describe("UpdateRCConfiguration", () => {
 
 const putCreateRCConfiguration = (nodeFetch: typeof fetch) => async (
   body: unknown,
-  configurationId: unknown
+  configurationId: unknown,
+  userId?: string
 ) => {
+  const baseHeaders = {
+    "Content-Type": "application/json"
+  };
+  const headers = userId
+    ? { ...baseHeaders, "x-user-id": userId }
+    : baseHeaders;
   return await nodeFetch(
     `${baseUrl}/api/v1/remote-contents/configurations/${configurationId}`,
     {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers,
       body: JSON.stringify(body)
     }
   );
