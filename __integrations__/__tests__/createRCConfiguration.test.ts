@@ -30,7 +30,6 @@ export const aNewRemoteContentConfiguration: NewRCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
   isLollipopEnabled: false,
-  userId: "aUserId" as NonEmptyString,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
   prodEnvironment: {
@@ -77,17 +76,33 @@ describe("CreateRCConfiguration", () => {
   test("should return a 400 error if the payload is not valid", async () => {
     const aFetch = getNodeFetch({});
     const body = {};
-    const r = await postCreateRCConfiguration(aFetch)(body);
+    const r = await postCreateRCConfiguration(aFetch)(
+      body,
+      aRemoteContentConfiguration.userId
+    );
     const jsonResponse = await r.json();
 
     expect(r.status).toBe(400);
     expect(jsonResponse.title).toBe("Invalid NewRCConfiguration");
   });
 
-  test("should return a 201 if the payload is valid", async () => {
+  test("should return a 403 error if the x-user-id header is not defined", async () => {
     const aFetch = getNodeFetch({});
     const body = aNewRemoteContentConfiguration;
     const r = await postCreateRCConfiguration(aFetch)(body);
+    const jsonResponse = await r.json();
+
+    expect(r.status).toBe(403);
+    expect(jsonResponse.title).toBe("Anonymous user");
+  });
+
+  test("should return a 201 if the payload is valid", async () => {
+    const aFetch = getNodeFetch({});
+    const body = aNewRemoteContentConfiguration;
+    const r = await postCreateRCConfiguration(aFetch)(
+      body,
+      aRemoteContentConfiguration.userId
+    );
     const jsonResponse = await r.json();
 
     expect(r.status).toBe(201);
@@ -96,13 +111,18 @@ describe("CreateRCConfiguration", () => {
 });
 
 const postCreateRCConfiguration = (nodeFetch: typeof fetch) => async (
-  body: unknown
+  body: unknown,
+  userId?: string
 ) => {
+  const baseHeaders = {
+    "Content-Type": "application/json"
+  };
+  const headers = userId
+    ? { ...baseHeaders, "x-user-id": userId }
+    : baseHeaders;
   return await nodeFetch(`${baseUrl}/api/v1/remote-contents/configurations`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
+    headers,
     body: JSON.stringify(body)
   });
 };
