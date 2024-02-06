@@ -74,8 +74,6 @@ paths:
       operationId: createRCConfiguration
       summary: Create a new remote-content configuration
       description: Create a new remote-content configuration using the provided payload
-      security:
-        - SubscriptionKey: []
       parameters:
         - in: body
           name: body

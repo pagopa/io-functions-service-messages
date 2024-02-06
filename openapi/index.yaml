@@ -72,8 +72,6 @@ paths:
       operationId: createRCConfiguration
       summary: Create a new remote-content configuration
       description: Create a new remote-content configuration using the provided payload
-      security:
-        - SubscriptionKey: []
       parameters:
         - in: body
           name: body
@@ -82,7 +80,6 @@ paths:
             $ref: '#/definitions/NewRCConfiguration'
       responses:
         '201':
-          description: Configuration created.
           schema:
             $ref: '#/definitions/RCConfigurationId'
         '400':
@@ -111,10 +108,6 @@ definitions:
   NewRCConfigurationBase:
     type: object
     properties:
-      userId:
-        type: string
-        minLength: 1
-        description: User id.
       name:
         type: string
         minLength: 1
@@ -139,7 +132,6 @@ definitions:
         type: boolean
         description: Flag to check if lollipop is enabled
     required:
-      - userId
       - name
       - description
       - hasPrecondition
@@ -156,8 +148,13 @@ definitions:
             format: Ulid
             x-import: '@pagopa/ts-commons/lib/strings'
             example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+          userId:
+            type: string
+            minLength: 1
+            description: User id.
         required:
           - configurationId
+          - userId
   RCConfigurationEnvironment:
     x-one-of: true
     allOf:
