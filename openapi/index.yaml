@@ -102,8 +102,6 @@ paths:
       description: >-
         Update an existing remote-content configuration using the provided
         payload
-      security:
-        - SubscriptionKey: []
       parameters:
         - in: body
           name: body
@@ -122,6 +120,8 @@ paths:
           description: Bad request
           schema:
             $ref: '#/definitions/ProblemJson'
+        '403':
+          description: Request not authorized.
         '404':
           description: Resource not found.
         '500':
