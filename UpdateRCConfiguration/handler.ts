@@ -1,5 +1,6 @@
 import * as express from "express";
 import * as TE from "fp-ts/lib/TaskEither";
+import * as O from "fp-ts/lib/Option";
 
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import { RequiredBodyPayloadMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_body_payload";
@@ -9,20 +10,82 @@ import {
   wrapRequestHandler
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
-  IResponseErrorForbiddenAnonymousUser,
+  IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
   IResponseErrorNotFound,
   IResponseSuccessNoContent,
-  ResponseErrorForbiddenAnonymousUser,
+  ResponseErrorForbiddenNotAuthorized,
   ResponseErrorInternal,
   ResponseErrorNotFound,
   ResponseSuccessNoContent
 } from "@pagopa/ts-commons/lib/responses";
 import { pipe } from "fp-ts/lib/function";
-import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import {
+  RCConfiguration,
+  RCConfigurationModel
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { NewRCConfiguration } from "../generated/definitions/NewRCConfiguration";
 import { RequiredUserIdMiddleware } from "../utils/middlewares";
+
+export const isUserAllowedToUpdateConfiguration = (
+  userId: NonEmptyString
+): ((
+  configuration: RCConfiguration
+) => TE.TaskEither<IResponseErrorForbiddenNotAuthorized, RCConfiguration>) =>
+  TE.fromPredicate(
+    configuration => configuration.userId === userId,
+    () => ResponseErrorForbiddenNotAuthorized
+  );
+
+export const handleUpsert = (rccModel: RCConfigurationModel) => (
+  newRCConfiguration: RCConfiguration
+): TE.TaskEither<IResponseErrorInternal, IResponseSuccessNoContent> =>
+  pipe(
+    rccModel.upsert(newRCConfiguration),
+    TE.mapLeft(e =>
+      ResponseErrorInternal(
+        `Something went wrong trying to upsert the configuration: ${e}`
+      )
+    ),
+    TE.map(ResponseSuccessNoContent)
+  );
+
+export const getNewRCConfiguration = (
+  newRCConfiguration: NewRCConfiguration,
+  configurationId: Ulid,
+  userId: NonEmptyString
+): RCConfiguration => ({
+  ...newRCConfiguration,
+  configurationId,
+  userId
+});
+
+export const handleEmptyConfiguration = (
+  maybeConfiguration: O.Option<RCConfiguration>
+): TE.TaskEither<IResponseErrorNotFound, RCConfiguration> =>
+  pipe(
+    maybeConfiguration,
+    TE.fromOption(() =>
+      ResponseErrorNotFound(
+        `Configuration not found`,
+        `Cannot find any remote-content configuration`
+      )
+    )
+  );
+
+export const handleGetLastRCConfigurationVersion = (
+  rccModel: RCConfigurationModel,
+  configurationId: Ulid
+): TE.TaskEither<IResponseErrorInternal, O.Option<RCConfiguration>> =>
+  pipe(
+    rccModel.findLastVersionByModelId([configurationId]),
+    TE.mapLeft(e =>
+      ResponseErrorInternal(
+        `Something went wrong trying to retrieve the configuration: ${e}`
+      )
+    )
+  );
 
 interface IHandlerParameter {
   readonly configurationId: Ulid;
@@ -40,7 +103,7 @@ type UpdateRCConfigurationHandlerReturnType = (
   | IResponseSuccessNoContent
   | IResponseErrorNotFound
   | IResponseErrorInternal
-  | IResponseErrorForbiddenAnonymousUser
+  | IResponseErrorForbiddenNotAuthorized
 >;
 
 type UpdateRCConfigurationHandler = (
@@ -52,37 +115,13 @@ export const updateRCConfigurationHandler: UpdateRCConfigurationHandler = ({
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 }) => ({ newRCConfiguration, configurationId, userId }) =>
   pipe(
-    rccModel.findLastVersionByModelId([configurationId]),
-    TE.mapLeft(e =>
-      ResponseErrorInternal(
-        `Something went wrong trying to retrieve the configuration: ${e}`
-      )
+    handleGetLastRCConfigurationVersion(rccModel, configurationId),
+    TE.chainW(handleEmptyConfiguration),
+    TE.chainW(isUserAllowedToUpdateConfiguration(userId)),
+    TE.map(() =>
+      getNewRCConfiguration(newRCConfiguration, configurationId, userId)
     ),
-    TE.chainW(
-      TE.fromOption(() =>
-        ResponseErrorNotFound(
-          `Configuration not found`,
-          `Cannot find any remote-content configuration with id: ${configurationId}`
-        )
-      )
-    ),
-    TE.chainW(
-      TE.fromPredicate(
-        configuration => configuration.userId === userId,
-        () => ResponseErrorForbiddenAnonymousUser
-      )
-    ),
-    TE.chainW(() =>
-      pipe(
-        rccModel.upsert({ ...newRCConfiguration, configurationId, userId }),
-        TE.mapLeft(e =>
-          ResponseErrorInternal(
-            `Something went wrong trying to upsert the configuration: ${e}`
-          )
-        ),
-        TE.map(ResponseSuccessNoContent)
-      )
-    ),
+    TE.chainW(handleUpsert(rccModel)),
     TE.toUnion
   )();
 
