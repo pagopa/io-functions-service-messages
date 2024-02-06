@@ -12,12 +12,14 @@ const aDetailAuthentication = {
   type: "type" as NonEmptyString
 };
 
+export const aUserId = "aUserId" as NonEmptyString;
+
 export const aRemoteContentConfiguration: RCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
   isLollipopEnabled: false,
   configurationId: "aValidUlid" as Ulid,
-  userId: "aUserId" as NonEmptyString,
+  userId: aUserId,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
   prodEnvironment: {
@@ -30,7 +32,6 @@ export const aNewRemoteContentConfiguration: NewRCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
   isLollipopEnabled: false,
-  userId: "aUserId" as NonEmptyString,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
   prodEnvironment: {
