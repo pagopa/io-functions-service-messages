@@ -82,6 +82,7 @@ paths:
             $ref: '#/definitions/NewRCConfiguration'
       responses:
         '201':
+          description: Configuration created
           schema:
             $ref: '#/definitions/RCConfigurationId'
         '400':
