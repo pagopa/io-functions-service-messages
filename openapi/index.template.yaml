@@ -113,8 +113,10 @@ paths:
         - in: path
           name: configurationId
           required: true
-          schema:
-            $ref: '#/definitions/RCConfigurationId'
+          type: string
+          description: Ulid string.
+          format: Ulid
+          x-import: '@pagopa/ts-commons/lib/strings'
       responses:
         '204':
           description: Configuration updated
