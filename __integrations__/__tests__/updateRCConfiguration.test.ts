@@ -126,7 +126,7 @@ describe("UpdateRCConfiguration", () => {
     const jsonResponse = await r.json();
 
     expect(r.status).toBe(403);
-    expect(jsonResponse.title).toBe("Anonymous user");
+    expect(jsonResponse.title).toBe("You are not allowed here");
   });
 
   test("should return a 404 error if the payload and the configurationId are valid but the configuration does not exist", async () => {
@@ -143,7 +143,7 @@ describe("UpdateRCConfiguration", () => {
     expect(r.status).toBe(404);
     expect(jsonResponse.title).toBe("Configuration not found");
     expect(jsonResponse.detail).toBe(
-      `Cannot find any remote-content configuration with id: ${nonExistingConfigurationId}`
+      `Cannot find any remote-content configuration`
     );
   });
 
