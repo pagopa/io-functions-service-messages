@@ -23,7 +23,7 @@ import { ObjectIdGenerator } from "@pagopa/io-functions-commons/dist/src/utils/s
 import { NewRCConfiguration } from "../generated/definitions/NewRCConfiguration";
 import { RequiredUserIdMiddleware } from "../utils/middlewares";
 
-export const getNewRCConfigurationWithConfigurationId = (
+export const makeNewRCConfigurationWithConfigurationId = (
   generateConfigurationId: ObjectIdGenerator,
   userId: NonEmptyString
 ) => (newRCConfiguration: NewRCConfiguration): RCConfiguration => ({
@@ -61,7 +61,7 @@ export const createRCConfigurationHandler: CreateRCConfigurationHandler = ({
 }) => ({ newRCConfiguration, userId }) =>
   pipe(
     rccModel.create(
-      getNewRCConfigurationWithConfigurationId(
+      makeNewRCConfigurationWithConfigurationId(
         generateConfigurationId,
         userId
       )(newRCConfiguration)
