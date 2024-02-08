@@ -21,7 +21,7 @@ import {
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { ObjectIdGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
 import { NewRCConfiguration } from "../generated/definitions/NewRCConfiguration";
-import { RequiredUserIdMiddleware } from "../utils/middlewares";
+import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
 
 export const makeNewRCConfigurationWithConfigurationId = (
   generateConfigurationId: ObjectIdGenerator,

@@ -1,6 +1,6 @@
 import * as E from "fp-ts/lib/Either";
 
-import { RequiredUserIdMiddleware } from "../middlewares";
+import { RequiredUserIdMiddleware } from "../required_headers_middleware";
 import { mockReq } from "../../__mocks__/express-types";
 
 describe("RequiredUserIdMiddleware", () => {
