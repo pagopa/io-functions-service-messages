@@ -15,10 +15,16 @@ import {
 } from "../__mocks__/fixtures";
 import { RCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { HasPreconditionEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/HasPrecondition";
-import { NewRCConfiguration } from "@pagopa/io-functions-commons/dist/generated/definitions/NewRCConfiguration";
+import { NewRCConfigurationPublic } from "@pagopa/io-functions-commons/dist/generated/definitions/NewRCConfigurationPublic";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 
 const baseUrl = "http://function:7071";
+
+const aPublicDetailAuthentication = {
+  header_key_name: "a" as NonEmptyString,
+  key: "key" as NonEmptyString,
+  type: "type" as NonEmptyString
+};
 
 const aDetailAuthentication = {
   headerKeyName: "a" as NonEmptyString,
@@ -26,15 +32,15 @@ const aDetailAuthentication = {
   type: "type" as NonEmptyString
 };
 
-export const aNewRemoteContentConfiguration: NewRCConfiguration = {
-  hasPrecondition: HasPreconditionEnum.ALWAYS,
-  disableLollipopFor: [],
-  isLollipopEnabled: false,
+export const aNewRemoteContentConfiguration: NewRCConfigurationPublic = {
+  has_precondition: HasPreconditionEnum.ALWAYS,
+  disable_lollipop_for: [],
+  is_lollipop_enabled: false,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
-  prodEnvironment: {
-    baseUrl: "aValidUrl" as NonEmptyString,
-    detailsAuthentication: aDetailAuthentication
+  prod_environment: {
+    base_url: "aValidUrl" as NonEmptyString,
+    details_authentication: aPublicDetailAuthentication
   }
 };
 
@@ -83,7 +89,7 @@ describe("CreateRCConfiguration", () => {
     const jsonResponse = await r.json();
 
     expect(r.status).toBe(400);
-    expect(jsonResponse.title).toBe("Invalid NewRCConfiguration");
+    expect(jsonResponse.title).toBe("Invalid NewRCConfigurationPublic");
   });
 
   test("should return a 403 error if the x-user-id header is not defined", async () => {
@@ -106,7 +112,7 @@ describe("CreateRCConfiguration", () => {
     const jsonResponse = await r.json();
 
     expect(r.status).toBe(201);
-    expect(E.isRight(Ulid.decode(jsonResponse.id))).toBeTruthy();
+    expect(E.isRight(Ulid.decode(jsonResponse.configuration_id))).toBeTruthy();
   });
 });
 
