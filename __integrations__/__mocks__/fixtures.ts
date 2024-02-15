@@ -6,6 +6,7 @@ import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
 
 import * as MessageCollection from "@pagopa/io-functions-commons/dist/src/models/message";
+import * as RCConfiguration from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import * as MessageViewCollection from "@pagopa/io-functions-commons/dist/src/models/message_view";
 import * as MessageStatusCollection from "@pagopa/io-functions-commons/dist/src/models/message_status";
 import * as ProfileCollection from "@pagopa/io-functions-commons/dist/src/models/profile";
@@ -163,6 +164,43 @@ export const createAllCollections = (
     RA.sequence(TE.ApplicativePar)
   );
 
+export const createRCCollection = (
+  database: Database
+): TE.TaskEither<CosmosErrors, Container> =>
+  pipe(
+    createCollection(
+      database,
+      RCConfiguration.RC_CONFIGURATION_COLLECTION_NAME,
+      "configurationId",
+      {
+        indexingMode: "consistent",
+        automatic: true,
+        includedPaths: [
+          {
+            path: "/*"
+          }
+        ],
+        excludedPaths: [
+          {
+            path: '/"_etag"/?'
+          }
+        ],
+        compositeIndexes: [
+          [
+            {
+              path: "/fiscalCode",
+              order: "ascending"
+            },
+            {
+              path: "/id",
+              order: "descending"
+            }
+          ]
+        ]
+      } as any
+    )
+  );
+
 /**
  * Create DB
  */
@@ -221,6 +259,23 @@ export const createCosmosDbAndCollections = (
     })
   );
 
+/**
+ * Create DB and collections for remote content
+ */
+export const createRCCosmosDbAndCollections = (
+  client: CosmosClient,
+  cosmosDbName: string
+): TE.TaskEither<CosmosErrors, Database> =>
+  pipe(
+    createDatabase(client, cosmosDbName),
+    TE.chainFirst(deleteAllCollections),
+    TE.chainFirst(createRCCollection),
+    TE.mapLeft(err => {
+      log("Error", err);
+      return err;
+    })
+  );
+
 // ------------------
 // Fil data
 // ------------------
@@ -255,6 +310,28 @@ export const fillMessages = async (
         messages,
         RA.filter(m => m.isPending === false),
         RA.map(m => model.storeContentAsBlob(blobService, m.id, m.content)),
+        RA.sequence(TE.ApplicativePar)
+      )
+    ),
+    TE.map(_ => log(`${_.length} Messages created`)),
+    TE.mapLeft(_ => {
+      log("Error", _);
+    })
+  )();
+};
+
+export const fillRCConfiguration = async (
+  db: Database,
+  configurations: ReadonlyArray<RCConfiguration.RCConfiguration>
+): Promise<void> => {
+  await pipe(
+    db.container(RCConfiguration.RC_CONFIGURATION_COLLECTION_NAME),
+    TE.of,
+    TE.map(c => new RCConfiguration.RCConfigurationModel(c)),
+    TE.chain(model =>
+      pipe(
+        configurations,
+        RA.map(m => model.create(m)),
         RA.sequence(TE.ApplicativePar)
       )
     ),

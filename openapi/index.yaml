@@ -10,12 +10,12 @@ info:
   description: >
     # Warning
 
-    **This is an experimental API that is (most probably) going to change as we evolve the IO platform.**
+    **This is an experimental API that is (most probably) going to change as we
+    evolve the IO platform.**
 
     # Introduction
 
     This is the documentation of the IO API for App.
-
 host: api.cd.italia.it
 basePath: /api/v1
 schemes:
@@ -63,11 +63,168 @@ paths:
           description: There was an error in forwarding the notification.
           schema:
             $ref: '#/definitions/ProblemJson'
-consumes:
-  - application/json
-produces:
-  - application/json
+      consumes:
+        - application/json
+      produces:
+        - application/json
+  /remote-contents/configurations:
+    post:
+      operationId: createRCConfiguration
+      summary: Create a new remote-content configuration
+      description: Create a new remote-content configuration using the provided payload
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/RCConfigurationPublic'
+      responses:
+        '201':
+          description: Configuration created
+          schema:
+            $ref: '#/definitions/RCConfigurationId'
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '500':
+          description: There was an error creating the configuration.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
 definitions:
+  RCConfigurationId:
+    type: string
+    description: Ulid string.
+    format: Ulid
+    x-import: '@pagopa/ts-commons/lib/strings'
+    example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+  RCConfigurationPublic:
+    allOf:
+      - $ref: '#/definitions/RCConfigurationBase'
+      - $ref: '#/definitions/RCConfigurationEnvironment'
+  NewRCConfigurationBase:
+    type: object
+    properties:
+      name:
+        type: string
+        minLength: 1
+        description: Configuration name.
+      description:
+        type: string
+        minLength: 1
+        description: Configuration description.
+      has_precondition:
+        $ref: '#/definitions/HasPrecondition'
+      disable_lollipop_for:
+        type: array
+        items:
+          $ref: '#/definitions/FiscalCode'
+      is_lollipop_enabled:
+        type: boolean
+        description: Flag to check if lollipop is enabled
+    required:
+      - name
+      - description
+      - has_precondition
+      - disable_lollipop_for
+      - is_lollipop_enabled
+  NewRCConfigurationPublic:
+    allOf:
+      - $ref: '#/definitions/NewRCConfigurationBase'
+      - $ref: '#/definitions/RCConfigurationEnvironment'
+  RCConfigurationBase:
+    allOf:
+      - $ref: '#/definitions/NewRCConfigurationBase'
+      - type: object
+        properties:
+          configuration_id:
+            type: string
+            description: Ulid string.
+            format: Ulid
+            x-import: '@pagopa/ts-commons/lib/strings'
+            example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+        required:
+          - configuration_id
+  RCConfigurationEnvironment:
+    type: object
+    properties:
+      test_environment:
+        $ref: '#/definitions/RCConfigurationTestEnvironment'
+      prod_environment:
+        $ref: '#/definitions/RCConfigurationProdEnvironment'
+  RCConfigurationProdEnvironment:
+    type: object
+    properties:
+      base_url:
+        type: string
+        minLength: 1
+        description: Base url of the server.
+      details_authentication:
+        $ref: '#/definitions/RCAuthenticationConfig'
+    required:
+      - base_url
+      - details_authentication
+  RCAuthenticationConfig:
+    type: object
+    properties:
+      header_key_name:
+        type: string
+        minLength: 1
+        description: header key name
+      key:
+        type: string
+        minLength: 1
+        description: authentication config key
+      type:
+        type: string
+        minLength: 1
+        description: authentication config type
+      cert:
+        $ref: '#/definitions/RCClientCert'
+    required:
+      - header_key_name
+      - key
+      - type
+  RCClientCert:
+    type: object
+    properties:
+      client_cert:
+        type: string
+        minLength: 1
+        description: authentication config client cert
+      client_key:
+        type: string
+        minLength: 1
+        description: authentication config client key
+      server_ca:
+        type: string
+        minLength: 1
+        description: authentication config server ca
+    required:
+      - client_cert
+      - client_key
+      - server_ca
+  RCConfigurationTestEnvironment:
+    allOf:
+      - $ref: '#/definitions/RCConfigurationProdEnvironment'
+      - type: object
+        properties:
+          test_users:
+            type: array
+            items:
+              $ref: '#/definitions/FiscalCode'
+        required:
+          - test_users
+  HasPrecondition:
+    type: string
+    x-extensible-enum:
+      - ALWAYS
+      - ONCE
+      - NEVER
   NotificationType:
     type: string
     enum:
@@ -81,11 +238,7 @@ definitions:
       notification_type:
         $ref: '#/definitions/NotificationType'
       fiscal_code:
-        type: string
-        description: User's fiscal code.
-        format: FiscalCode
-        x-import: '@pagopa/ts-commons/lib/strings'
-        example: SPNDNL80R13C555X
+        $ref: '#/definitions/FiscalCode'
       message_id:
         type: string
         minLength: 1
@@ -115,9 +268,8 @@ definitions:
         type: integer
         format: int32
         description: >-
-          The HTTP status code generated by the origin server for this occurrence
-
-          of the problem.
+          The HTTP status code generated by the origin server for this
+          occurrence of the problem.
         minimum: 100
         maximum: 600
         exclusiveMaximum: true
@@ -132,9 +284,16 @@ definitions:
         type: string
         format: uri
         description: >-
-          An absolute URI that identifies the specific occurrence of the problem.
+          An absolute URI that identifies the specific occurrence of the
+          problem.
 
           It may or may not yield further information if dereferenced.
+  FiscalCode:
+    type: string
+    description: User's fiscal code.
+    format: FiscalCode
+    x-import: '@pagopa/ts-commons/lib/strings'
+    example: SPNDNL80R13C555X
 securityDefinitions:
   SubscriptionKey:
     type: apiKey
