@@ -13,7 +13,7 @@ import { pipe } from "fp-ts/lib/function";
  ** "/subscriptions/subid/resourceGroups/{resourceGroup}/providers/Microsoft.ApiManagement/service/{apimService}/users/5931a75ae4bbd512a88c680b",
  ** resouce link: https://docs.microsoft.com/en-us/rest/api/apimanagement/current-ga/subscription/get
  */
- export const parseOwnerIdFullPath = (
+export const parseOwnerIdFullPath = (
   fullPath: NonEmptyString
 ): NonEmptyString =>
   pipe(
