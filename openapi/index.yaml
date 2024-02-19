@@ -77,12 +77,12 @@ paths:
           name: body
           required: true
           schema:
-            $ref: '#/definitions/RCConfigurationPublic'
+            $ref: '#/definitions/NewRCConfigurationPublic'
       responses:
         '201':
           description: Configuration created
           schema:
-            $ref: '#/definitions/RCConfigurationId'
+            $ref: '#/definitions/RCConfigurationPublic'
         '400':
           description: Bad request
           schema:
