@@ -1,7 +1,7 @@
 import * as express from "express";
 
 import { AzureFunction, Context } from "@azure/functions";
-import { ulidGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
+import { ulidGeneratorAsUlid } from "@pagopa/io-functions-commons/dist/src/utils/strings";
 import { secureExpressApp } from "@pagopa/io-functions-commons/dist/src/utils/express";
 import createAzureFunctionHandler from "@pagopa/express-azure-functions/dist/src/createAzureFunctionsHandler";
 import { setAppContext } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
@@ -25,7 +25,7 @@ secureExpressApp(app);
 app.post(
   "/api/v1/remote-contents/configurations",
   getCreateRCConfigurationExpressHandler({
-    generateConfigurationId: ulidGenerator,
+    generateConfigurationId: ulidGeneratorAsUlid,
     rccModel
   })
 );

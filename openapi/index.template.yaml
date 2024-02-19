@@ -79,12 +79,12 @@ paths:
           name: body
           required: true
           schema:
-            $ref: '#/definitions/NewRCConfiguration'
+            $ref: '#/definitions/NewRCConfigurationPublic'
       responses:
         '201':
           description: Configuration created
           schema:
-            $ref: '#/definitions/RCConfigurationId'
+            $ref: '#/definitions/RCConfigurationPublic'
         '400':
           description: Bad request
           schema:
@@ -109,7 +109,7 @@ paths:
           name: body
           required: true
           schema:
-            $ref: '#/definitions/NewRCConfiguration'
+            $ref: '#/definitions/NewRCConfigurationPublic'
         - in: path
           name: configurationId
           required: true
@@ -141,20 +141,16 @@ paths:
 definitions:
   RCConfigurationId:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/Ulid"
-  NewRCConfiguration:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NewRCConfiguration"
+  RCConfigurationPublic:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationPublic"
   NewRCConfigurationBase:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NewRCConfigurationBase"
+  NewRCConfigurationPublic:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NewRCConfigurationPublic"
   RCConfigurationBase:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationBase"
   RCConfigurationEnvironment:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationEnvironment"
-  RCConfigurationWithTestEnvironment:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationWithTestEnvironment"
-  RCConfigurationWithProdEnvironment:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationWithProdEnvironment"
-  RCConfigurationWithProdAndTestEnvironment:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationWithProdAndTestEnvironment"
   RCConfigurationProdEnvironment:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationProdEnvironment"
   RCAuthenticationConfig:
@@ -163,6 +159,8 @@ definitions:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCClientCert"
   RCConfigurationTestEnvironment:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationTestEnvironment"
+  HasPrecondition:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/HasPrecondition"
   NotificationType:
     type: string
     enum:

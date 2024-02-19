@@ -2,27 +2,26 @@ import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 
 import {
-  aNewRemoteContentConfiguration,
+  aPublicRemoteContentConfiguration,
   aRemoteContentConfiguration,
   aUserId,
   createNewConfigurationMock,
   rccModelMock
 } from "../../__mocks__/remote-content";
-import { ulidGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
-import {
-  createRCConfigurationHandler,
-  getNewRCConfigurationWithConfigurationId
-} from "../handler";
+import { ulidGeneratorAsUlid } from "@pagopa/io-functions-commons/dist/src/utils/strings";
+import { createRCConfigurationHandler } from "../handler";
 import { RCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { Ulid } from "@pagopa/ts-commons/lib/strings";
+import { makeNewRCConfigurationWithConfigurationId } from "../../utils/mappers";
 
-describe("getNewRCConfigurationWithConfigurationId", () => {
+describe("makeNewRCConfigurationWithConfigurationId", () => {
   test("should return a valid RCConfiguration", () => {
     const r = RCConfiguration.decode(
-      getNewRCConfigurationWithConfigurationId(
-        ulidGenerator,
-        aUserId
-      )(aNewRemoteContentConfiguration)
+      makeNewRCConfigurationWithConfigurationId(
+        ulidGeneratorAsUlid,
+        aUserId,
+        aPublicRemoteContentConfiguration
+      )
     );
     expect(E.isRight(r)).toBeTruthy();
     if (E.isRight(r))
@@ -35,10 +34,10 @@ describe("createRCConfigurationHandler", () => {
     createNewConfigurationMock.mockReturnValueOnce(TE.left({}));
     const r = await createRCConfigurationHandler({
       rccModel: rccModelMock,
-      generateConfigurationId: ulidGenerator
+      generateConfigurationId: ulidGeneratorAsUlid
     })({
       newRCConfiguration: {
-        ...aNewRemoteContentConfiguration
+        ...aPublicRemoteContentConfiguration
       },
       userId: aUserId
     });
@@ -55,13 +54,16 @@ describe("createRCConfigurationHandler", () => {
     );
     const r = await createRCConfigurationHandler({
       rccModel: rccModelMock,
-      generateConfigurationId: ulidGenerator
-    })({ newRCConfiguration: aNewRemoteContentConfiguration, userId: aUserId });
+      generateConfigurationId: ulidGeneratorAsUlid
+    })({
+      newRCConfiguration: aPublicRemoteContentConfiguration,
+      userId: aUserId
+    });
 
     expect(r.kind).toBe("IResponseSuccessRedirectToResource");
     if (r.kind === "IResponseSuccessRedirectToResource")
       expect(r.payload).toMatchObject({
-        id: aRemoteContentConfiguration.configurationId
+        ...aPublicRemoteContentConfiguration
       });
   });
 });

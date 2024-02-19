@@ -1,10 +1,16 @@
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
-import { NewRCConfiguration } from "@pagopa/io-functions-commons/dist/generated/definitions/NewRCConfiguration";
 import { HasPreconditionEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/HasPrecondition";
 import {
   RCConfiguration,
   RCConfigurationModel
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
+
+const aPublicDetailAuthentication = {
+  header_key_name: "a" as NonEmptyString,
+  key: "key" as NonEmptyString,
+  type: "type" as NonEmptyString
+};
 
 const aDetailAuthentication = {
   headerKeyName: "a" as NonEmptyString,
@@ -28,15 +34,15 @@ export const aRemoteContentConfiguration: RCConfiguration = {
   }
 };
 
-export const aNewRemoteContentConfiguration: NewRCConfiguration = {
-  hasPrecondition: HasPreconditionEnum.ALWAYS,
-  disableLollipopFor: [],
-  isLollipopEnabled: false,
+export const aPublicRemoteContentConfiguration: NewRCConfigurationPublic = {
+  has_precondition: HasPreconditionEnum.ALWAYS,
+  disable_lollipop_for: [],
+  is_lollipop_enabled: false,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
-  prodEnvironment: {
-    baseUrl: "aValidUrl" as NonEmptyString,
-    detailsAuthentication: aDetailAuthentication
+  prod_environment: {
+    base_url: "aValidUrl" as NonEmptyString,
+    details_authentication: aPublicDetailAuthentication
   }
 };
 

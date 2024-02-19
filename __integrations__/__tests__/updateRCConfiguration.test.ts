@@ -12,44 +12,12 @@ import {
   createRCCosmosDbAndCollections,
   fillRCConfiguration
 } from "../__mocks__/fixtures";
-import { RCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
-import { HasPreconditionEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/HasPrecondition";
-import { NewRCConfiguration } from "@pagopa/io-functions-commons/dist/generated/definitions/NewRCConfiguration";
-import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
+import {
+  aNewRemoteContentConfiguration,
+  aRemoteContentConfiguration
+} from "../__mocks__/mock.remote_content";
 
 const baseUrl = "http://function:7071";
-
-const aDetailAuthentication = {
-  headerKeyName: "a" as NonEmptyString,
-  key: "key" as NonEmptyString,
-  type: "type" as NonEmptyString
-};
-
-export const aNewRemoteContentConfiguration: NewRCConfiguration = {
-  hasPrecondition: HasPreconditionEnum.ALWAYS,
-  disableLollipopFor: [],
-  isLollipopEnabled: false,
-  name: "aRemoteContentConfiguration" as NonEmptyString,
-  description: "a description" as NonEmptyString,
-  prodEnvironment: {
-    baseUrl: "aValidUrl" as NonEmptyString,
-    detailsAuthentication: aDetailAuthentication
-  }
-};
-
-export const aRemoteContentConfiguration: RCConfiguration = {
-  hasPrecondition: HasPreconditionEnum.ALWAYS,
-  disableLollipopFor: [],
-  isLollipopEnabled: false,
-  userId: "aUserId" as NonEmptyString,
-  name: "aRemoteContentConfiguration" as NonEmptyString,
-  description: "a description" as NonEmptyString,
-  configurationId: "01HNG1XBMT8V6HWGF5T053K9RJ" as Ulid,
-  prodEnvironment: {
-    baseUrl: "aValidUrl" as NonEmptyString,
-    detailsAuthentication: aDetailAuthentication
-  }
-};
 
 export const aRemoteContentConfigurationList = [aRemoteContentConfiguration];
 
@@ -83,7 +51,7 @@ describe("UpdateRCConfiguration", () => {
     const jsonResponse = await r.json();
 
     expect(r.status).toBe(400);
-    expect(jsonResponse.title).toBe("Invalid NewRCConfiguration");
+    expect(jsonResponse.title).toBe("Invalid NewRCConfigurationPublic");
   });
 
   test("should return a 400 error if the payload is valid but the configurationId is not", async () => {

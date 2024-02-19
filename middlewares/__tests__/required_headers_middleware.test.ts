@@ -1,6 +1,6 @@
 import * as E from "fp-ts/lib/Either";
 
-import { RequiredUserIdMiddleware } from "../middlewares";
+import { RequiredUserIdMiddleware } from "../required_headers_middleware";
 import { mockReq } from "../../__mocks__/express-types";
 
 describe("RequiredUserIdMiddleware", () => {
@@ -24,7 +24,15 @@ describe("RequiredUserIdMiddleware", () => {
       );
   });
 
-  test("Should return a right in case the x-user-id is a valid string", async () => {
+  test("Should return a right in case the x-user-id is a valid full path string", async () => {
+    const req = mockReq({});
+    req.header.mockReturnValueOnce("/subscriptions/anyid/resourceGroups/resource-group/providers/Microsoft.ApiManagement/service/resource/users/aUserId");
+    const r = await RequiredUserIdMiddleware()(req);
+    expect(E.isRight(r)).toBeTruthy();
+    if (E.isRight(r)) expect(r.right).toBe("aUserId");
+  });
+
+  test("Should return a right in case the x-user-id is a valid non full path string", async () => {
     const req = mockReq({});
     req.header.mockReturnValueOnce("aUserId");
     const r = await RequiredUserIdMiddleware()(req);

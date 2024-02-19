@@ -13,40 +13,30 @@ import {
   ResponseErrorInternal,
   ResponseSuccessRedirectToResource
 } from "@pagopa/ts-commons/lib/responses";
-import { pipe } from "fp-ts/lib/function";
-import {
-  RCConfiguration,
-  RCConfigurationModel
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import { flow, pipe } from "fp-ts/lib/function";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
-import { ObjectIdGenerator } from "@pagopa/io-functions-commons/dist/src/utils/strings";
-import { NewRCConfiguration } from "../generated/definitions/NewRCConfiguration";
-import { RequiredUserIdMiddleware } from "../utils/middlewares";
-
-export const getNewRCConfigurationWithConfigurationId = (
-  generateConfigurationId: ObjectIdGenerator,
-  userId: NonEmptyString
-) => (newRCConfiguration: NewRCConfiguration): RCConfiguration => ({
-  configurationId: (generateConfigurationId() as unknown) as Ulid,
-  ...newRCConfiguration,
-  userId
-});
+import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/dist/src/utils/rc_configuration";
+import { RCConfigurationPublic } from "../generated/definitions/RCConfigurationPublic";
+import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
+import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
+import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import { makeNewRCConfigurationWithConfigurationId } from "../utils/mappers";
 
 interface IHandlerParameter {
-  readonly newRCConfiguration: NewRCConfiguration;
+  readonly newRCConfiguration: NewRCConfigurationPublic;
   readonly userId: NonEmptyString;
 }
 
 interface ICreateRCConfigurationHandlerParameter {
   readonly rccModel: RCConfigurationModel;
-  readonly generateConfigurationId: ObjectIdGenerator;
+  readonly generateConfigurationId: () => Ulid;
 }
 
 type CreateRCConfigurationHandlerReturnType = (
   parameter: IHandlerParameter
 ) => Promise<
   // eslint-disable-next-line @typescript-eslint/ban-types
-  | IResponseSuccessRedirectToResource<NewRCConfiguration, {}>
+  | IResponseSuccessRedirectToResource<RCConfigurationPublic, {}>
   | IResponseErrorInternal
 >;
 
@@ -61,18 +51,19 @@ export const createRCConfigurationHandler: CreateRCConfigurationHandler = ({
 }) => ({ newRCConfiguration, userId }) =>
   pipe(
     rccModel.create(
-      getNewRCConfigurationWithConfigurationId(
+      makeNewRCConfigurationWithConfigurationId(
         generateConfigurationId,
-        userId
-      )(newRCConfiguration)
+        userId,
+        newRCConfiguration
+      )
     ),
-    TE.map(configuration =>
-      ResponseSuccessRedirectToResource(
-        configuration,
-        `/api/v1/remote-contents/configurations/`,
-        {
-          id: configuration.configurationId
-        }
+    TE.map(
+      flow(retrievedRCConfigurationToPublic, publicConfiguration =>
+        ResponseSuccessRedirectToResource(
+          publicConfiguration,
+          `/api/v1/remote-contents/configurations/`,
+          publicConfiguration
+        )
       )
     ),
     TE.mapLeft(e =>
@@ -83,7 +74,7 @@ export const createRCConfigurationHandler: CreateRCConfigurationHandler = ({
 
 interface IGetCreateRCConfigurationHandlerParameter {
   readonly rccModel: RCConfigurationModel;
-  readonly generateConfigurationId: ObjectIdGenerator;
+  readonly generateConfigurationId: () => Ulid;
 }
 
 type GetCreateRCConfigurationHandlerReturnType = express.RequestHandler;
@@ -104,7 +95,7 @@ export const getCreateRCConfigurationExpressHandler: GetCreateRCConfigurationHan
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     RequiredUserIdMiddleware(),
-    RequiredBodyPayloadMiddleware(NewRCConfiguration)
+    RequiredBodyPayloadMiddleware(NewRCConfigurationPublic)
   );
 
   return wrapRequestHandler(

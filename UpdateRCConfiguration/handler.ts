@@ -25,8 +25,9 @@ import {
   RCConfigurationModel
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
-import { NewRCConfiguration } from "../generated/definitions/NewRCConfiguration";
-import { RequiredUserIdMiddleware } from "../utils/middlewares";
+import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
+import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
+import { makeNewRCConfigurationWithConfigurationId } from "../utils/mappers";
 
 export const isUserAllowedToUpdateConfiguration = (
   userId: NonEmptyString
@@ -50,16 +51,6 @@ export const handleUpsert = (rccModel: RCConfigurationModel) => (
     ),
     TE.map(ResponseSuccessNoContent)
   );
-
-export const getNewRCConfiguration = (
-  newRCConfiguration: NewRCConfiguration,
-  configurationId: Ulid,
-  userId: NonEmptyString
-): RCConfiguration => ({
-  ...newRCConfiguration,
-  configurationId,
-  userId
-});
 
 export const handleEmptyConfiguration = (
   maybeConfiguration: O.Option<RCConfiguration>
@@ -89,7 +80,7 @@ export const handleGetLastRCConfigurationVersion = (
 
 interface IHandlerParameter {
   readonly configurationId: Ulid;
-  readonly newRCConfiguration: NewRCConfiguration;
+  readonly newRCConfiguration: NewRCConfigurationPublic;
   readonly userId: NonEmptyString;
 }
 
@@ -119,7 +110,11 @@ export const updateRCConfigurationHandler: UpdateRCConfigurationHandler = ({
     TE.chainW(handleEmptyConfiguration),
     TE.chainW(isUserAllowedToUpdateConfiguration(userId)),
     TE.map(() =>
-      getNewRCConfiguration(newRCConfiguration, configurationId, userId)
+      makeNewRCConfigurationWithConfigurationId(
+        () => configurationId,
+        userId,
+        newRCConfiguration
+      )
     ),
     TE.chainW(handleUpsert(rccModel)),
     TE.toUnion
@@ -146,7 +141,7 @@ export const getUpdateRCConfigurationExpressHandler: GetUpdateRCConfigurationHan
     ContextMiddleware(),
     RequiredUserIdMiddleware(),
     RequiredParamMiddleware("configurationId", Ulid),
-    RequiredBodyPayloadMiddleware(NewRCConfiguration)
+    RequiredBodyPayloadMiddleware(NewRCConfigurationPublic)
   );
 
   return wrapRequestHandler(
