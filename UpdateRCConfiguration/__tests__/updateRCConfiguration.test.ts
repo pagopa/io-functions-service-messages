@@ -28,7 +28,7 @@ describe("isUserAllowedToUpdateConfiguration", () => {
     const r = await isUserAllowedToUpdateConfiguration(
       aRemoteContentConfiguration.userId
     )(aRemoteContentConfiguration)();
-    expect(E.isRight(r)).toBeTruthy();
+    expect(E.isRight(r)).toBe(true);
   });
 });
 
@@ -64,13 +64,16 @@ describe("handleGetLastRCConfigurationVersion", () => {
   });
 
   test("should return a right if the find return a right", async () => {
-    findLastVersionMock.mockReturnValueOnce(TE.right(O.some({})));
+    findLastVersionMock.mockReturnValueOnce(
+      TE.right(O.some(aRemoteContentConfiguration))
+    );
     const r = await handleGetLastRCConfigurationVersion(
       rccModelMock,
       aRemoteContentConfiguration.configurationId
     )();
-    expect(E.isRight(r)).toBeTruthy();
-    expect(E.isRight(r)).toBeTruthy();
+    expect(E.isRight(r)).toBe(true);
+    if (E.isRight(r))
+      expect(r.right).toMatchObject(O.some(aRemoteContentConfiguration));
   });
 });
 
