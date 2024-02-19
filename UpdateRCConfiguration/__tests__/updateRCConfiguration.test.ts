@@ -21,7 +21,7 @@ describe("isUserAllowedToUpdateConfiguration", () => {
     const r = await isUserAllowedToUpdateConfiguration(
       "aDifferentUserId" as NonEmptyString
     )(aRemoteContentConfiguration)();
-    expect(E.isLeft(r)).toBeTruthy();
+    expect(E.isLeft(r)).toBe(true);
   });
 
   test("should return a right if the userId is equal to the userId of the configuration", async () => {
