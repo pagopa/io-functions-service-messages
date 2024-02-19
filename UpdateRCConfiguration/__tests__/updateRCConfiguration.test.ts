@@ -55,10 +55,12 @@ describe("handleGetLastRCConfigurationVersion", () => {
       aRemoteContentConfiguration.configurationId
     )();
     expect(E.isLeft(r)).toBeTruthy();
-    if (E.isLeft(r))
+    if (E.isLeft(r)) {
       expect(r.left.detail).toContain(
         "Something went wrong trying to retrieve the configuration: "
       );
+      expect(r.left.kind).toBe("IResponseErrorInternal");
+    }
   });
 
   test("shoult return a right if the find return a right", async () => {
