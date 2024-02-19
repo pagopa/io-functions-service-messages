@@ -13,7 +13,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage",
     "lint": "eslint . -c .eslintrc.js --ext .ts,.tsx",
-    "openapi:bundle": "bundle-api-spec -i openapi/index.template.yaml -o openapi/index.yaml -V $npm_package_version",
+    "openapi:bundle": "bundle-api-spec -i openapi/index.yaml.template -o openapi/index.yaml -V $npm_package_version",
     "pregenerate": "npm run openapi:bundle",
     "generate": "npm-run-all generate:*",
     "generate:definitions": "rimraf ./generated/definitions && shx mkdir -p ./generated/definitions && gen-api-models --api-spec ./openapi/index.yaml --no-strict --out-dir ./generated/definitions",
