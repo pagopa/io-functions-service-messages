@@ -16,10 +16,10 @@ import {
 import { flow, pipe } from "fp-ts/lib/function";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/dist/src/utils/rc_configuration";
+import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { RCConfigurationPublic } from "../generated/definitions/RCConfigurationPublic";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
-import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { makeNewRCConfigurationWithConfigurationId } from "../utils/mappers";
 
 interface IHandlerParameter {

@@ -7,11 +7,11 @@ import {
   RCClientCert as RCClientCertModel,
   RCAuthenticationConfig as RCAuthenticationConfigModel
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { RCClientCert } from "../generated/definitions/RCClientCert";
 import { RCAuthenticationConfig } from "../generated/definitions/RCAuthenticationConfig";
 import { RCConfigurationProdEnvironment } from "../generated/definitions/RCConfigurationProdEnvironment";
 import { RCConfigurationTestEnvironment } from "../generated/definitions/RCConfigurationTestEnvironment";
-import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
 
 const getModelCertFromPublic = (cert: RCClientCert): RCClientCertModel => ({
