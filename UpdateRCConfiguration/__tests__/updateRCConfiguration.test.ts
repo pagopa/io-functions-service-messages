@@ -33,11 +33,11 @@ describe("isUserAllowedToUpdateConfiguration", () => {
 });
 
 describe("handleEmptyConfiguration", () => {
-  test("shoult return a left if the configuration was not found", async () => {
+  test("should return a left if the configuration was not found", async () => {
     expect(E.isLeft(await handleEmptyConfiguration(O.none)())).toBeTruthy();
   });
 
-  test("shoult return a right if the configuration was found", async () => {
+  test("should return a right if the configuration was found", async () => {
     expect(
       E.isRight(
         await handleEmptyConfiguration(O.some(aRemoteContentConfiguration))()
@@ -47,7 +47,7 @@ describe("handleEmptyConfiguration", () => {
 });
 
 describe("handleGetLastRCConfigurationVersion", () => {
-  test("shoult return a left if the find return an error", async () => {
+  test("should return a left if the find return an error", async () => {
     findLastVersionMock.mockReturnValueOnce(TE.left({}));
     const rccModel = rccModelMock;
     const r = await handleGetLastRCConfigurationVersion(
@@ -63,7 +63,7 @@ describe("handleGetLastRCConfigurationVersion", () => {
     }
   });
 
-  test("shoult return a right if the find return a right", async () => {
+  test("should return a right if the find return a right", async () => {
     findLastVersionMock.mockReturnValueOnce(TE.right(O.some({})));
     const r = await handleGetLastRCConfigurationVersion(
       rccModelMock,
@@ -75,7 +75,7 @@ describe("handleGetLastRCConfigurationVersion", () => {
 });
 
 describe("handleUpsert", () => {
-  test("shoult return a left if the upsert method fail", async () => {
+  test("should return a left if the upsert method fail", async () => {
     upsertConfigurationMock.mockReturnValueOnce(TE.left({}));
     const r = await handleUpsert(rccModelMock)(aRemoteContentConfiguration)();
     expect(E.isLeft(r)).toBeTruthy();
@@ -85,7 +85,7 @@ describe("handleUpsert", () => {
       );
   });
 
-  test("shoult return a right if the upsert method goes well", async () => {
+  test("should return a right if the upsert method goes well", async () => {
     upsertConfigurationMock.mockReturnValueOnce(TE.right({}));
     const r = await handleUpsert(rccModelMock)(aRemoteContentConfiguration)();
     expect(E.isRight(r)).toBeTruthy();
