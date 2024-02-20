@@ -22,7 +22,8 @@ describe("isUserAllowedToUpdateConfiguration", () => {
       "aDifferentUserId" as NonEmptyString
     )(aRemoteContentConfiguration)();
     expect(E.isLeft(r)).toBe(true);
-    if (E.isLeft(r)) expect(r.left.kind).toBe("IResponseErrorNotAuthorized");
+    if (E.isLeft(r))
+      expect(r.left.kind).toBe("IResponseErrorForbiddenNotAuthorized");
   });
 
   test("should return a right if the userId is equal to the userId of the configuration", async () => {
