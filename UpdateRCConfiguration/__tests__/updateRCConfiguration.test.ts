@@ -22,6 +22,7 @@ describe("isUserAllowedToUpdateConfiguration", () => {
       "aDifferentUserId" as NonEmptyString
     )(aRemoteContentConfiguration)();
     expect(E.isLeft(r)).toBe(true);
+    if (E.isLeft(r)) expect(r.left.kind).toBe("IResponseErrorNotAuthorized");
   });
 
   test("should return a right if the userId is equal to the userId of the configuration", async () => {
@@ -29,20 +30,24 @@ describe("isUserAllowedToUpdateConfiguration", () => {
       aRemoteContentConfiguration.userId
     )(aRemoteContentConfiguration)();
     expect(E.isRight(r)).toBe(true);
+    if (E.isRight(r)) expect(r.right).toBe(aRemoteContentConfiguration);
   });
 });
 
 describe("handleEmptyConfiguration", () => {
   test("should return a left if the configuration was not found", async () => {
-    expect(E.isLeft(await handleEmptyConfiguration(O.none)())).toBeTruthy();
+    const r = await handleEmptyConfiguration(O.none)();
+    expect(E.isLeft(r)).toBe(true);
+    if (E.isLeft(r)) expect(r.left.kind).toBe("IResponseErrorNotFound");
   });
 
   test("should return a right if the configuration was found", async () => {
-    expect(
-      E.isRight(
-        await handleEmptyConfiguration(O.some(aRemoteContentConfiguration))()
-      )
-    ).toBe(true);
+    const r = await handleEmptyConfiguration(
+      O.some(aRemoteContentConfiguration)
+    )();
+    expect(E.isRight(r)).toBe(true);
+    console.log(r);
+    if (E.isRight(r)) expect(r.right).toBe(aRemoteContentConfiguration);
   });
 });
 
