@@ -42,7 +42,7 @@ describe("handleEmptyConfiguration", () => {
       E.isRight(
         await handleEmptyConfiguration(O.some(aRemoteContentConfiguration))()
       )
-    ).toBeTruthy();
+    ).toBe(true);
   });
 });
 
@@ -54,7 +54,7 @@ describe("handleGetLastRCConfigurationVersion", () => {
       rccModel,
       aRemoteContentConfiguration.configurationId
     )();
-    expect(E.isLeft(r)).toBeTruthy();
+    expect(E.isLeft(r)).toBe(true);
     if (E.isLeft(r)) {
       expect(r.left.detail).toContain(
         "Something went wrong trying to retrieve the configuration: "
@@ -81,7 +81,7 @@ describe("handleUpsert", () => {
   test("should return a left if the upsert method fail", async () => {
     upsertConfigurationMock.mockReturnValueOnce(TE.left({}));
     const r = await handleUpsert(rccModelMock)(aRemoteContentConfiguration)();
-    expect(E.isLeft(r)).toBeTruthy();
+    expect(E.isLeft(r)).toBe(true);
     if (E.isLeft(r))
       expect(r.left.detail).toContain(
         `Something went wrong trying to upsert the configuration: `
@@ -91,7 +91,7 @@ describe("handleUpsert", () => {
   test("should return a right if the upsert method goes well", async () => {
     upsertConfigurationMock.mockReturnValueOnce(TE.right({}));
     const r = await handleUpsert(rccModelMock)(aRemoteContentConfiguration)();
-    expect(E.isRight(r)).toBeTruthy();
+    expect(E.isRight(r)).toBe(true);
     if (E.isRight(r)) expect(r.right.kind).toBe("IResponseSuccessNoContent");
   });
 });
