@@ -47,7 +47,11 @@ export const aPublicRemoteContentConfiguration: NewRCConfigurationPublic = {
 };
 
 export const createNewConfigurationMock = jest.fn();
+export const upsertConfigurationMock = jest.fn();
+export const findLastVersionMock = jest.fn();
 
 export const rccModelMock = ({
-  create: createNewConfigurationMock
+  create: createNewConfigurationMock,
+  upsert: upsertConfigurationMock,
+  findLastVersionByModelId: findLastVersionMock
 } as unknown) as RCConfigurationModel;

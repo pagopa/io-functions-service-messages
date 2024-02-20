@@ -79,12 +79,12 @@ paths:
           name: body
           required: true
           schema:
-            $ref: '#/definitions/RCConfigurationPublic'
+            $ref: '#/definitions/NewRCConfigurationPublic'
       responses:
         '201':
           description: Configuration created
           schema:
-            $ref: '#/definitions/RCConfigurationId'
+            $ref: '#/definitions/RCConfigurationPublic'
         '400':
           description: Bad request
           schema:
@@ -92,6 +92,45 @@ paths:
         '500':
           description: >-
             There was an error creating the configuration.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+
+  /remote-contents/configurations/{configurationId}:
+    put:
+      operationId: updateRCConfiguration
+      summary: Update an existing remote-content configuration
+      description: Update an existing remote-content configuration using the provided payload
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/NewRCConfigurationPublic'
+        - in: path
+          name: configurationId
+          required: true
+          type: string
+          description: Ulid string.
+          format: Ulid
+          x-import: '@pagopa/ts-commons/lib/strings'
+      responses:
+        '204':
+          description: Configuration updated
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '403':
+          description: Request not authorized.
+        '404':
+          description: Resource not found.
+        '500':
+          description: >-
+            There was an error updating the configuration.
           schema:
             $ref: '#/definitions/ProblemJson'
       consumes:

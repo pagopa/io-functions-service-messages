@@ -13,50 +13,13 @@ import {
   createRCCosmosDbAndCollections,
   fillRCConfiguration
 } from "../__mocks__/fixtures";
-import { RCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
-import { HasPreconditionEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/HasPrecondition";
-import { NewRCConfigurationPublic } from "@pagopa/io-functions-commons/dist/generated/definitions/NewRCConfigurationPublic";
-import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
+import { Ulid } from "@pagopa/ts-commons/lib/strings";
+import {
+  aNewRemoteContentConfiguration,
+  aRemoteContentConfiguration
+} from "../__mocks__/mock.remote_content";
 
 const baseUrl = "http://function:7071";
-
-const aPublicDetailAuthentication = {
-  header_key_name: "a" as NonEmptyString,
-  key: "key" as NonEmptyString,
-  type: "type" as NonEmptyString
-};
-
-const aDetailAuthentication = {
-  headerKeyName: "a" as NonEmptyString,
-  key: "key" as NonEmptyString,
-  type: "type" as NonEmptyString
-};
-
-export const aNewRemoteContentConfiguration: NewRCConfigurationPublic = {
-  has_precondition: HasPreconditionEnum.ALWAYS,
-  disable_lollipop_for: [],
-  is_lollipop_enabled: false,
-  name: "aRemoteContentConfiguration" as NonEmptyString,
-  description: "a description" as NonEmptyString,
-  prod_environment: {
-    base_url: "aValidUrl" as NonEmptyString,
-    details_authentication: aPublicDetailAuthentication
-  }
-};
-
-export const aRemoteContentConfiguration: RCConfiguration = {
-  hasPrecondition: HasPreconditionEnum.ALWAYS,
-  disableLollipopFor: [],
-  isLollipopEnabled: false,
-  userId: "aUserId" as NonEmptyString,
-  name: "aRemoteContentConfiguration" as NonEmptyString,
-  description: "a description" as NonEmptyString,
-  configurationId: "01HNG1XBMT8V6HWGF5T053K9RJ" as Ulid,
-  prodEnvironment: {
-    baseUrl: "aValidUrl" as NonEmptyString,
-    detailsAuthentication: aDetailAuthentication
-  }
-};
 
 export const aRemoteContentConfigurationList = [aRemoteContentConfiguration];
 
