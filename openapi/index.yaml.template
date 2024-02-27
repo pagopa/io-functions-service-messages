@@ -100,6 +100,40 @@ paths:
         - application/json
 
   /remote-contents/configurations/{configurationId}:
+    get:
+      operationId: getRCConfiguration
+      summary: Get the remote-content configuration identified by the configurationId
+      description: Get the remote-content configuration using the provided configurationId passed as path param
+      parameters:
+        - in: path
+          name: configurationId
+          required: true
+          type: string
+          description: Ulid string.
+          format: Ulid
+          x-import: '@pagopa/ts-commons/lib/strings'
+      responses:
+        '200':
+          description: Configuration updated
+          schema:
+            $ref: '#definitions/RCConfigurationPublic'
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '403':
+          description: Request not authorized.
+        '404':
+          description: Resource not found.
+        '500':
+          description: >-
+            There was an error trying to get the configuration.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
     put:
       operationId: updateRCConfiguration
       summary: Update an existing remote-content configuration
