@@ -22,7 +22,7 @@ secureExpressApp(app);
 
 // Add express route
 app.get(
-  "/api/v1/remote-contents/configurations/:configurationId ",
+  "/api/v1/remote-contents/configurations/:configurationId",
   getGetRCConfigurationExpressHandler({
     rccModel
   })
