@@ -92,8 +92,6 @@ describe("GetRCConfiguration", () => {
 
     const response = await r.json();
 
-    console.log(response);
-
     expect(r.status).toBe(200);
     expect(response).toMatchObject(aPublicRemoteContentConfiguration);
   });
