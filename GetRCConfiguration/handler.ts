@@ -63,15 +63,14 @@ export const getRCConfigurationHandler = ({
   | IResponseSuccessJson<RCConfigurationPublic>
   | IResponseErrorNotFound
   | IResponseErrorInternal
-> => {
-  return pipe(
+> =>
+  pipe(
     rccModel.findLastVersionByModelId([configurationId]),
     TE.mapLeft(handleCosmosErrorResponse),
     TE.chainW(handleEmptyErrorResponse(configurationId)),
     TE.map(flow(retrievedRCConfigurationToPublic, ResponseSuccessJson)),
     TE.toUnion
   )();
-};
 
 interface IGetGetRCConfigurationHandlerParameter {
   readonly rccModel: RCConfigurationModel;
