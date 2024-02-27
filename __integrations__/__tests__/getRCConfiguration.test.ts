@@ -12,7 +12,10 @@ import {
   createRCCosmosDbAndCollections,
   fillRCConfiguration
 } from "../__mocks__/fixtures";
-import { aRemoteContentConfiguration } from "../__mocks__/mock.remote_content";
+import {
+  aPublicRemoteContentConfiguration,
+  aRemoteContentConfiguration
+} from "../__mocks__/mock.remote_content";
 
 const baseUrl = "http://function:7071";
 
@@ -22,6 +25,7 @@ const cosmosClient = new CosmosClient({
   endpoint: REMOTE_CONTENT_COSMOSDB_URI,
   key: REMOTE_CONTENT_COSMOSDB_KEY
 } as CosmosClientOptions);
+const nonExistingConfigurationId = "01HQND1DH4EPPSAPNR3SNFAXWE";
 
 // eslint-disable-next-line functional/no-let
 let database: Database;
@@ -37,28 +41,79 @@ beforeAll(async () => {
 });
 
 describe("GetRCConfiguration", () => {
-  test("should return 404 if no configuration is found", async () => {
-    const nonExistingConfigurationId = "01HQND1DH4EPPSAPNR3SNFAXWE";
+  test("should return 400 if the configurationId is not a valid Ulid", async () => {
+    const aFetch = getNodeFetch({});
+    const r = await getRCConfiguration(aFetch)(
+      "invalidConfigId",
+      aRemoteContentConfiguration.userId
+    );
+
+    const response = await r.json();
+
+    expect(r.status).toBe(400);
+    expect(response.title).toContain("Invalid string that matches the pattern");
+  });
+
+  test("should return 403 if the configurationId is a valid Ulid but the userId is not provided in header", async () => {
     const aFetch = getNodeFetch({});
     const r = await getRCConfiguration(aFetch)(nonExistingConfigurationId);
 
-    const response = await r.text();
-    console.log(response);
+    const response = await r.json();
+
+    expect(r.status).toBe(403);
+    expect(response.title).toContain("Anonymous user");
+    expect(response.detail).toContain(
+      "The request could not be associated to a user, missing userId or subscriptionId."
+    );
+  });
+
+  test("should return 404 if no configuration is found", async () => {
+    const aFetch = getNodeFetch({});
+    const r = await getRCConfiguration(aFetch)(
+      nonExistingConfigurationId,
+      aRemoteContentConfiguration.userId
+    );
+
+    const response = await r.json();
     expect(r.status).toBe(404);
 
-    // expect(jsonResponse.title).toBe("Configuration not found");
-    // expect(jsonResponse.detail).toBe(
-    //   `Cannot find any configuration with configurationId: ${nonExistingConfigurationId}`
-    // );
+    expect(response.title).toBe("Configuration not found");
+    expect(response.detail).toBe(
+      `Cannot find any configuration with configurationId: ${nonExistingConfigurationId}`
+    );
+  });
+
+  test("should return 200 if the configurationId if the request match an existing configuration", async () => {
+    const aFetch = getNodeFetch({});
+    const r = await getRCConfiguration(aFetch)(
+      aRemoteContentConfiguration.configurationId,
+      aRemoteContentConfiguration.userId
+    );
+
+    const response = await r.json();
+
+    console.log(response);
+
+    expect(r.status).toBe(200);
+    expect(response).toMatchObject(aPublicRemoteContentConfiguration);
   });
 });
 
 const getRCConfiguration = (nodeFetch: typeof fetch) => async (
-  configurationId: unknown
-) =>
-  await nodeFetch(
+  configurationId: unknown,
+  userId?: string
+) => {
+  const baseHeaders = {
+    "Content-Type": "application/json"
+  };
+  const headers = userId
+    ? { ...baseHeaders, "x-user-id": userId }
+    : baseHeaders;
+  return await nodeFetch(
     `${baseUrl}/api/v1/remote-contents/configurations/${configurationId}`,
     {
-      method: "GET"
+      method: "GET",
+      headers
     }
   );
+};

@@ -40,3 +40,20 @@ export const aRemoteContentConfiguration: RCConfiguration = {
     detailsAuthentication: aModelDetailAuthentication
   }
 };
+
+export const aPublicRemoteContentConfiguration = {
+  configuration_id: "01HNG1XBMT8V6HWGF5T053K9RJ",
+  description: "a description",
+  disable_lollipop_for: [],
+  has_precondition: "ALWAYS",
+  is_lollipop_enabled: false,
+  name: "aRemoteContentConfiguration",
+  prod_environment: {
+    base_url: "aValidUrl",
+    details_authentication: {
+      header_key_name: "a",
+      key: "key",
+      type: "type"
+    }
+  }
+};
