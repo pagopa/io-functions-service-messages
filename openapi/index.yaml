@@ -112,7 +112,7 @@ paths:
           x-import: '@pagopa/ts-commons/lib/strings'
       responses:
         '200':
-          description: Configuration updated
+          description: Return the configuration
           schema:
             $ref: '#definitions/RCConfigurationPublic'
         '400':
