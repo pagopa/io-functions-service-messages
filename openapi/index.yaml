@@ -114,7 +114,7 @@ paths:
         '200':
           description: Return the configuration
           schema:
-            $ref: '#definitions/RCConfigurationPublic'
+            $ref: '#/definitions/RCConfigurationPublic'
         '400':
           description: Bad request
           schema:
