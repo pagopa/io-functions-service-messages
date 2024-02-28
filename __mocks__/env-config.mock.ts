@@ -1,5 +1,6 @@
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { IConfig } from "../utils/config";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 
 export const envConfig: IConfig = {
   isProduction: false,
@@ -26,6 +27,8 @@ export const envConfig: IConfig = {
   REQ_SERVICE_ID: undefined,
 
   MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: "aConnString" as NonEmptyString,
+
+  MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME: 0 as NonNegativeInteger,
 
   NOTIFICATION_QUEUE_NAME: "aQueueName" as NonEmptyString,
   NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: "aQueueName" as NonEmptyString,
