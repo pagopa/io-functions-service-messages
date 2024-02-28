@@ -2,9 +2,12 @@ import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { HasPreconditionEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/HasPrecondition";
 import {
   RCConfiguration,
-  RCConfigurationModel
+  RCConfigurationModel,
+  RetrievedRCConfiguration
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
+import { aCosmosResourceMetadata } from "./models.mock";
+import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 
 const aPublicDetailAuthentication = {
   header_key_name: "a" as NonEmptyString,
@@ -24,7 +27,7 @@ export const aRemoteContentConfiguration: RCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
   isLollipopEnabled: false,
-  configurationId: "aValidUlid" as Ulid,
+  configurationId: "01HQRD0YCVDXF1XDW634N87XCG" as Ulid,
   userId: aUserId,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
@@ -32,6 +35,13 @@ export const aRemoteContentConfiguration: RCConfiguration = {
     baseUrl: "aValidUrl" as NonEmptyString,
     detailsAuthentication: aDetailAuthentication
   }
+};
+
+export const aRetrievedRemoteContentConfiguration: RetrievedRCConfiguration = {
+  ...aRemoteContentConfiguration,
+  ...aCosmosResourceMetadata,
+  id: `${aRemoteContentConfiguration.configurationId}-00000001` as NonEmptyString,
+  version: 1 as NonNegativeInteger
 };
 
 export const aPublicRemoteContentConfiguration: NewRCConfigurationPublic = {

@@ -12,7 +12,11 @@ import { pipe } from "fp-ts/lib/function";
 
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { IntegerFromString } from "@pagopa/ts-commons/lib/numbers";
+import {
+  IntegerFromString,
+  NonNegativeInteger,
+  NonNegativeIntegerFromString
+} from "@pagopa/ts-commons/lib/numbers";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { BooleanFromString } from "@pagopa/ts-commons/lib/booleans";
 import { CommaSeparatedListOf } from "./types";
@@ -88,6 +92,8 @@ export const IConfig = t.intersection([
     NOTIFICATION_QUEUE_NAME: NonEmptyString,
     NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: NonEmptyString,
 
+    MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME: NonNegativeInteger,
+
     isProduction: t.boolean
     /* eslint-enable sort-keys */
   }),
@@ -97,6 +103,11 @@ export const IConfig = t.intersection([
 // No need to re-evaluate this object for each call
 const errorOrConfig: t.Validation<IConfig> = IConfig.decode({
   ...process.env,
+  MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME: pipe(
+    process.env.MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME,
+    NonNegativeIntegerFromString.decode,
+    E.getOrElse(() => 0 as NonNegativeInteger)
+  ),
   SERVICE_CACHE_TTL_DURATION: pipe(
     process.env.SERVICE_CACHE_TTL_DURATION,
     IntegerFromString.decode,
