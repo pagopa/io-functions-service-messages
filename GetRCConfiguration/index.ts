@@ -10,11 +10,14 @@ import {
   RC_CONFIGURATION_COLLECTION_NAME
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { remoteContentCosmosDbInstance } from "../utils/cosmosdb";
+import { getConfigOrThrow } from "../utils/config";
 import { getGetRCConfigurationExpressHandler } from "./handler";
 
 const rccModel = new RCConfigurationModel(
   remoteContentCosmosDbInstance.container(RC_CONFIGURATION_COLLECTION_NAME)
 );
+
+const config = getConfigOrThrow();
 
 // Setup Express
 const app = express();
@@ -24,6 +27,7 @@ secureExpressApp(app);
 app.get(
   "/api/v1/remote-contents/configurations/:configurationId",
   getGetRCConfigurationExpressHandler({
+    config,
     rccModel
   })
 );

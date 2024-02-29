@@ -21,6 +21,8 @@ const baseUrl = "http://function:7071";
 
 export const aRemoteContentConfigurationList = [aRemoteContentConfiguration];
 
+const internalUserId = "internal";
+
 const cosmosClient = new CosmosClient({
   endpoint: REMOTE_CONTENT_COSMOSDB_URI,
   key: REMOTE_CONTENT_COSMOSDB_KEY
@@ -98,6 +100,19 @@ describe("GetRCConfiguration", () => {
     const r = await getRCConfiguration(aFetch)(
       aRemoteContentConfiguration.configurationId,
       aRemoteContentConfiguration.userId
+    );
+
+    const response = await r.json();
+
+    expect(r.status).toBe(200);
+    expect(response).toMatchObject(aPublicRemoteContentConfiguration);
+  });
+
+  test("should return 200 if the userId does not match the one in the configuration but is internal", async () => {
+    const aFetch = getNodeFetch({});
+    const r = await getRCConfiguration(aFetch)(
+      aRemoteContentConfiguration.configurationId,
+      internalUserId
     );
 
     const response = await r.json();

@@ -28,6 +28,7 @@ import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/u
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
 import { RCConfigurationResponse } from "../generated/definitions/RCConfigurationResponse";
+import { IConfig } from "../utils/config";
 
 interface IHandlerParameter {
   readonly configurationId: Ulid;
@@ -35,6 +36,7 @@ interface IHandlerParameter {
 }
 
 interface IGetRCConfigurationHandlerParameter {
+  readonly config: IConfig;
   readonly rccModel: RCConfigurationModel;
 }
 
@@ -59,7 +61,8 @@ export const handleEmptyErrorResponse = (configurationId: Ulid) => (
   );
 
 export const getRCConfigurationHandler = ({
-  rccModel
+  rccModel,
+  config
 }: IGetRCConfigurationHandlerParameter) => ({
   configurationId,
   userId
@@ -75,7 +78,9 @@ export const getRCConfigurationHandler = ({
     TE.chainW(handleEmptyErrorResponse(configurationId)),
     TE.chainW(
       TE.fromPredicate(
-        retrievedConfiguration => retrievedConfiguration.userId === userId,
+        retrievedConfiguration =>
+          config.INTERNAL_USER_ID === userId ||
+          retrievedConfiguration.userId === userId,
         () => ResponseErrorForbiddenNotAuthorized
       )
     ),
@@ -90,6 +95,7 @@ export const getRCConfigurationHandler = ({
   )();
 
 interface IGetGetRCConfigurationHandlerParameter {
+  readonly config: IConfig;
   readonly rccModel: RCConfigurationModel;
 }
 
@@ -100,9 +106,11 @@ type GetGetRCConfigurationHandler = (
 ) => GetGetRCConfigurationHandlerReturnType;
 
 export const getGetRCConfigurationExpressHandler: GetGetRCConfigurationHandler = ({
-  rccModel
+  rccModel,
+  config
 }) => {
   const handler = getRCConfigurationHandler({
+    config,
     rccModel
   });
 
