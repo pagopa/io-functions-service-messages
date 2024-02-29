@@ -84,10 +84,14 @@ export const getRCConfigurationHandler = ({
         () => ResponseErrorForbiddenNotAuthorized
       )
     ),
-    TE.map(
-      flow(
+    TE.map(retrievedConfiguration =>
+      pipe(
+        retrievedConfiguration,
         retrievedRCConfigurationToPublic,
-        publicConfiguration => ({ ...publicConfiguration, user_id: userId }),
+        publicConfiguration => ({
+          ...publicConfiguration,
+          user_id: retrievedConfiguration.userId
+        }),
         ResponseSuccessJson
       )
     ),
