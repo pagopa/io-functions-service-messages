@@ -82,7 +82,7 @@ microservice-chart:
     COSMOSDB_KEY: 'io-p-cosmos-api-master-key'
     REMOTE_CONTENT_COSMOSDB_KEY: 'io-p-messages-remote-content-master-key'
     QueueStorageConnection: 'iopmessagesweuprod01svst-connection-string'
-    INTERNAL_USER_ID: 'internal-service-key'
+    INTERNAL_USER_ID: 'internal-user-id-to-skip'
     # message content storage conn string
     MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: 'iopstapi-connection-string'
     # io-backend endpoint token
