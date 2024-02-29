@@ -14,6 +14,8 @@ export const envConfig: IConfig = {
   REMOTE_CONTENT_COSMOSDB_NAME: "aName" as NonEmptyString,
   REMOTE_CONTENT_COSMOSDB_URI: "aUri" as NonEmptyString,
 
+  INTERNAL_USER_ID: "internalUserId" as NonEmptyString,
+
   MESSAGE_CONTAINER_NAME: "aaa" as NonEmptyString,
   QueueStorageConnection: "aaa" as NonEmptyString,
 

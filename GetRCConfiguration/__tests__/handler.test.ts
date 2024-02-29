@@ -13,8 +13,10 @@ import {
   getRCConfigurationHandler,
   handleEmptyErrorResponse
 } from "../handler";
+import { IConfig } from "../../utils/config";
 
 const aUserId = "aUserId" as NonEmptyString;
+const aConfig = { INTERNAL_USER_ID: "internalUserId" } as IConfig;
 
 describe("handleEmptyErrorResponse ", () => {
   test("should return a left with detail if the Option is none", async () => {
@@ -29,20 +31,54 @@ describe("handleEmptyErrorResponse ", () => {
 });
 
 describe("getRCConfigurationHandler", () => {
-  test("should return an IResponseSuccessJson if the model return a valid configuration", async () => {
+  test("should return an IResponseSuccessJson if the model return a valid configuration and the userId match", async () => {
     findLastVersionMock.mockReturnValueOnce(
       TE.right(O.some(aRemoteContentConfiguration))
     );
-    const r = await getRCConfigurationHandler({ rccModel: rccModelMock })({
+    const r = await getRCConfigurationHandler({
+      rccModel: rccModelMock,
+      config: aConfig
+    })({
       configurationId: aRemoteContentConfiguration.configurationId,
       userId: aUserId
     });
     expect(r.kind).toBe("IResponseSuccessJson");
   });
 
+  test("should return an IResponseSuccessJson if the model return a valid configuration and the user-id is internal", async () => {
+    findLastVersionMock.mockReturnValueOnce(
+      TE.right(O.some(aRemoteContentConfiguration))
+    );
+    const r = await getRCConfigurationHandler({
+      rccModel: rccModelMock,
+      config: aConfig
+    })({
+      configurationId: aRemoteContentConfiguration.configurationId,
+      userId: aUserId
+    });
+    expect(r.kind).toBe("IResponseSuccessJson");
+  });
+
+  test("should return an IResponseErrorForbiddenNotAuthorized if the model return a valid configuration but the userId is not internal or does not match", async () => {
+    findLastVersionMock.mockReturnValueOnce(
+      TE.right(O.some(aRemoteContentConfiguration))
+    );
+    const r = await getRCConfigurationHandler({
+      rccModel: rccModelMock,
+      config: aConfig
+    })({
+      configurationId: aRemoteContentConfiguration.configurationId,
+      userId: "invalid" as NonEmptyString
+    });
+    expect(r.kind).toBe("IResponseErrorForbiddenNotAuthorized");
+  });
+
   test("should return an IResponseErrorNotFound if the model return an empty Option", async () => {
     findLastVersionMock.mockReturnValueOnce(TE.right(O.none));
-    const r = await getRCConfigurationHandler({ rccModel: rccModelMock })({
+    const r = await getRCConfigurationHandler({
+      rccModel: rccModelMock,
+      config: aConfig
+    })({
       configurationId: aRemoteContentConfiguration.configurationId,
       userId: aUserId
     });
@@ -54,7 +90,10 @@ describe("getRCConfigurationHandler", () => {
 
   test("should return an IResponseErrorInternal if cosmos return an error", async () => {
     findLastVersionMock.mockReturnValueOnce(TE.left(O.none));
-    const r = await getRCConfigurationHandler({ rccModel: rccModelMock })({
+    const r = await getRCConfigurationHandler({
+      rccModel: rccModelMock,
+      config: aConfig
+    })({
       configurationId: aRemoteContentConfiguration.configurationId,
       userId: aUserId
     });
