@@ -110,8 +110,8 @@ export const getGetRCConfigurationExpressHandler: GetGetRCConfigurationHandler =
   config
 }) => {
   const handler = getRCConfigurationHandler({
-    rccModel,
-    config
+    config,
+    rccModel
   });
 
   const middlewaresWrap = withRequestMiddlewares(
