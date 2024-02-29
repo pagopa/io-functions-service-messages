@@ -116,7 +116,7 @@ paths:
         '200':
           description: Return the configuration
           schema:
-            $ref: '#/definitions/RCConfigurationPublic'
+            $ref: '#/definitions/RCConfigurationResponse'
         '400':
           description: Bad request
           schema:
@@ -195,6 +195,16 @@ definitions:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationTestEnvironment"
   HasPrecondition:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/HasPrecondition"
+  RCConfigurationResponse:
+    allOf:
+      - $ref: "#/definitions/RCConfigurationPublic"
+      - type: object
+        properties:
+          user_id:
+            type: string
+            minLength: 1
+        required:
+          - user_id
   NotificationType:
     type: string
     enum:
