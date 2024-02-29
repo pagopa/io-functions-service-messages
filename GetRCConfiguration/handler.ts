@@ -17,7 +17,7 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
-import { flow, pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/dist/src/utils/rc_configuration";
 import {
@@ -84,10 +84,14 @@ export const getRCConfigurationHandler = ({
         () => ResponseErrorForbiddenNotAuthorized
       )
     ),
-    TE.map(
-      flow(
+    TE.map(retrievedConfiguration =>
+      pipe(
+        retrievedConfiguration,
         retrievedRCConfigurationToPublic,
-        publicConfiguration => ({ ...publicConfiguration, user_id: userId }),
+        publicConfiguration => ({
+          ...publicConfiguration,
+          user_id: retrievedConfiguration.userId
+        }),
         ResponseSuccessJson
       )
     ),
