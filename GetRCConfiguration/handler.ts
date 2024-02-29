@@ -8,15 +8,17 @@ import {
   wrapRequestHandler
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
+  IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
   IResponseErrorNotFound,
   IResponseSuccessJson,
+  ResponseErrorForbiddenNotAuthorized,
   ResponseErrorInternal,
   ResponseErrorNotFound,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
 import { flow, pipe } from "fp-ts/lib/function";
-import { Ulid } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/dist/src/utils/rc_configuration";
 import {
   RCConfigurationModel,
@@ -24,11 +26,12 @@ import {
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
-import { RCConfigurationPublic } from "../generated/definitions/RCConfigurationPublic";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
+import { RCConfigurationResponse } from "../generated/definitions/RCConfigurationResponse";
 
 interface IHandlerParameter {
   readonly configurationId: Ulid;
+  readonly userId: NonEmptyString;
 }
 
 interface IGetRCConfigurationHandlerParameter {
@@ -58,17 +61,31 @@ export const handleEmptyErrorResponse = (configurationId: Ulid) => (
 export const getRCConfigurationHandler = ({
   rccModel
 }: IGetRCConfigurationHandlerParameter) => ({
-  configurationId
+  configurationId,
+  userId
 }: IHandlerParameter): Promise<
-  | IResponseSuccessJson<RCConfigurationPublic>
+  | IResponseSuccessJson<RCConfigurationResponse>
   | IResponseErrorNotFound
+  | IResponseErrorForbiddenNotAuthorized
   | IResponseErrorInternal
 > =>
   pipe(
     rccModel.findLastVersionByModelId([configurationId]),
     TE.mapLeft(handleCosmosErrorResponse),
     TE.chainW(handleEmptyErrorResponse(configurationId)),
-    TE.map(flow(retrievedRCConfigurationToPublic, ResponseSuccessJson)),
+    TE.chainW(
+      TE.fromPredicate(
+        retrievedConfiguration => retrievedConfiguration.userId === userId,
+        () => ResponseErrorForbiddenNotAuthorized
+      )
+    ),
+    TE.map(
+      flow(
+        retrievedRCConfigurationToPublic,
+        publicConfiguration => ({ ...publicConfiguration, user_id: userId }),
+        ResponseSuccessJson
+      )
+    ),
     TE.toUnion
   )();
 
@@ -96,6 +113,8 @@ export const getGetRCConfigurationExpressHandler: GetGetRCConfigurationHandler =
   );
 
   return wrapRequestHandler(
-    middlewaresWrap((_, __, configurationId) => handler({ configurationId }))
+    middlewaresWrap((_, userId, configurationId) =>
+      handler({ configurationId, userId })
+    )
   );
 };

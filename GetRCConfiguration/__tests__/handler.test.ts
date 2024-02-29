@@ -1,4 +1,4 @@
-import { Ulid } from "@pagopa/ts-commons/lib/strings";
+import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import * as O from "fp-ts/lib/Option";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
@@ -13,6 +13,8 @@ import {
   getRCConfigurationHandler,
   handleEmptyErrorResponse
 } from "../handler";
+
+const aUserId = "aUserId" as NonEmptyString;
 
 describe("handleEmptyErrorResponse ", () => {
   test("should return a left with detail if the Option is none", async () => {
@@ -32,7 +34,8 @@ describe("getRCConfigurationHandler", () => {
       TE.right(O.some(aRemoteContentConfiguration))
     );
     const r = await getRCConfigurationHandler({ rccModel: rccModelMock })({
-      configurationId: aRemoteContentConfiguration.configurationId
+      configurationId: aRemoteContentConfiguration.configurationId,
+      userId: aUserId
     });
     expect(r.kind).toBe("IResponseSuccessJson");
   });
@@ -40,7 +43,8 @@ describe("getRCConfigurationHandler", () => {
   test("should return an IResponseErrorNotFound if the model return an empty Option", async () => {
     findLastVersionMock.mockReturnValueOnce(TE.right(O.none));
     const r = await getRCConfigurationHandler({ rccModel: rccModelMock })({
-      configurationId: aRemoteContentConfiguration.configurationId
+      configurationId: aRemoteContentConfiguration.configurationId,
+      userId: aUserId
     });
     expect(r.kind).toBe("IResponseErrorNotFound");
     expect(r.detail).toBe(
@@ -51,7 +55,8 @@ describe("getRCConfigurationHandler", () => {
   test("should return an IResponseErrorInternal if cosmos return an error", async () => {
     findLastVersionMock.mockReturnValueOnce(TE.left(O.none));
     const r = await getRCConfigurationHandler({ rccModel: rccModelMock })({
-      configurationId: aRemoteContentConfiguration.configurationId
+      configurationId: aRemoteContentConfiguration.configurationId,
+      userId: aUserId
     });
     expect(r.kind).toBe("IResponseErrorInternal");
     expect(r.detail).toContain(
