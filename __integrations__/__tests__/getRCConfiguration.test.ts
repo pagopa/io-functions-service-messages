@@ -83,7 +83,17 @@ describe("GetRCConfiguration", () => {
     );
   });
 
-  test("should return 200 if the configurationId if the request match an existing configuration", async () => {
+  test("should return 403 if the userId in header is not the same in configuration", async () => {
+    const aFetch = getNodeFetch({});
+    const r = await getRCConfiguration(aFetch)(
+      aRemoteContentConfiguration.configurationId,
+      "aDifferentUserId"
+    );
+
+    expect(r.status).toBe(403);
+  });
+
+  test("should return 200 if the request match an existing configuration", async () => {
     const aFetch = getNodeFetch({});
     const r = await getRCConfiguration(aFetch)(
       aRemoteContentConfiguration.configurationId,
