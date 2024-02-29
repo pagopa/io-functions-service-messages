@@ -40,7 +40,7 @@ describe("getRCConfigurationHandler", () => {
       config: aConfig
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
-      userId: aUserId
+      userId: aRemoteContentConfiguration.userId
     });
     expect(r.kind).toBe("IResponseSuccessJson");
   });
