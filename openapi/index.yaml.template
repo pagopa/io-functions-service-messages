@@ -233,6 +233,6 @@ definitions:
 securityDefinitions:
   SubscriptionKey:
     type: apiKey
-    name: X-Functions-Key
+    name: Ocp-Apim-Subscription-Key
     in: header
     description: The API key obtained through the developer portal.
