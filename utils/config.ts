@@ -8,6 +8,7 @@
 import * as t from "io-ts";
 
 import * as E from "fp-ts/lib/Either";
+import * as O from "fp-ts/lib/Option";
 import { pipe } from "fp-ts/lib/function";
 
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
@@ -47,6 +48,19 @@ export const ReqServiceIdConfig = t.union([
     REQ_SERVICE_ID: NonEmptyString
   })
 ]);
+
+export const RedisParams = t.intersection([
+  t.interface({
+    REDIS_URL: NonEmptyString
+  }),
+  t.partial({
+    REDIS_CLUSTER_ENABLED: t.boolean,
+    REDIS_PASSWORD: NonEmptyString,
+    REDIS_PORT: NonEmptyString,
+    REDIS_TLS_ENABLED: t.boolean
+  })
+]);
+export type RedisParams = t.TypeOf<typeof RedisParams>;
 
 export const FeatureFlagType = t.union([
   t.literal("none"),
@@ -93,12 +107,23 @@ export const IConfig = t.intersection([
     isProduction: t.boolean
     /* eslint-enable sort-keys */
   }),
-  ReqServiceIdConfig
+  ReqServiceIdConfig,
+  RedisParams
 ]);
 
 // No need to re-evaluate this object for each call
 const errorOrConfig: t.Validation<IConfig> = IConfig.decode({
   ...process.env,
+  REDIS_CLUSTER_ENABLED: pipe(
+    O.fromNullable(process.env.REDIS_CLUSTER_ENABLED),
+    O.map(_ => _.toLowerCase() === "true"),
+    O.toUndefined
+  ),
+  REDIS_TLS_ENABLED: pipe(
+    O.fromNullable(process.env.REDIS_TLS_ENABLED),
+    O.map(_ => _.toLowerCase() === "true"),
+    O.toUndefined
+  ),
   SERVICE_CACHE_TTL_DURATION: pipe(
     process.env.SERVICE_CACHE_TTL_DURATION,
     IntegerFromString.decode,

@@ -75,6 +75,9 @@ microservice-chart:
     BACKEND_BASE_URL: 'https://io-p-app-appbackendli.azurewebsites.net'
     # fn-pushnotification queue
     NOTIFICATION_QUEUE_NAME: 'push-notifications'
+    # Redis
+    REDIS_URL: 'io-p-redis-app-messages-std-v6.redis.cache.windows.net'
+    REDIS_PORT: '6380'
   envSecret:
     # required
     APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentation-key'
@@ -91,6 +94,8 @@ microservice-chart:
     NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: 'iopweumessagesnotifst-connection-string'
     # beta testers
     FF_BETA_TESTERS: 'ff-beta-testers'
+    # Redis secrets
+    REDIS_PASSWORD: 'io-p-redis-messages-password'
   keyvault:
     name: 'io-p-messages-kv'
     tenantId: '7788edaf-0346-4068-9d79-c868aed15b3d'
