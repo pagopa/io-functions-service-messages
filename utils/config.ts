@@ -13,7 +13,10 @@ import { pipe } from "fp-ts/lib/function";
 
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
-import { IntegerFromString } from "@pagopa/ts-commons/lib/numbers";
+import {
+  IntegerFromString,
+  NonNegativeIntegerFromString
+} from "@pagopa/ts-commons/lib/numbers";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
 import { BooleanFromString } from "@pagopa/ts-commons/lib/booleans";
 import { CommaSeparatedListOf } from "./types";
@@ -103,6 +106,8 @@ export const IConfig = t.intersection([
     MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: NonEmptyString,
     NOTIFICATION_QUEUE_NAME: NonEmptyString,
     NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: NonEmptyString,
+
+    RC_CONFIGURATION_CACHE_TTL: NonNegativeIntegerFromString,
 
     isProduction: t.boolean
     /* eslint-enable sort-keys */
