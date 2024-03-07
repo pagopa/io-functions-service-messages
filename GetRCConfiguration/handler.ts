@@ -1,5 +1,6 @@
 import * as express from "express";
 import * as TE from "fp-ts/lib/TaskEither";
+import * as E from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
@@ -17,7 +18,7 @@ import {
   ResponseErrorNotFound,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
-import { pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/dist/src/utils/rc_configuration";
 import {
@@ -25,10 +26,14 @@ import {
   RetrievedRCConfiguration
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
-import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
+import { parse } from "fp-ts/lib/Json";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
 import { RCConfigurationResponse } from "../generated/definitions/RCConfigurationResponse";
 import { IConfig } from "../utils/config";
+import { getTask, setWithExpirationTask } from "../utils/redis_storage";
+import { RedisClientFactory } from "../utils/redis";
+
+const RC_CONFIGURATION_REDIS_PREFIX = "RC-CONFIGURATION";
 
 interface IHandlerParameter {
   readonly configurationId: Ulid;
@@ -38,11 +43,10 @@ interface IHandlerParameter {
 interface IGetRCConfigurationHandlerParameter {
   readonly config: IConfig;
   readonly rccModel: RCConfigurationModel;
+  readonly redisClient: RedisClientFactory;
 }
 
-export const handleCosmosErrorResponse = (
-  error: CosmosErrors
-): IResponseErrorInternal =>
+export const handleErrorResponse = (error: Error): IResponseErrorInternal =>
   ResponseErrorInternal(
     `Something went wrong trying to retrieve the configuration: ${error}`
   );
@@ -60,9 +64,69 @@ export const handleEmptyErrorResponse = (configurationId: Ulid) => (
     )
   );
 
+/**
+ * This method is used to get a configuration, if it exists, by configuratin id.
+ * If the configuration is cached it retrieves it from cache, or else it retrieves
+ * it from cosmosdb and provides to cache it.
+ *
+ * @param configurationId
+ * @returns
+ */
+const getOrCacheMaybeRCConfigurationById = (
+  configurationId: Ulid,
+  redisClient: RedisClientFactory,
+  rccModel: RCConfigurationModel,
+  config: IConfig
+): TE.TaskEither<Error, O.Option<RetrievedRCConfiguration>> =>
+  pipe(
+    getTask(redisClient, `${RC_CONFIGURATION_REDIS_PREFIX}-${configurationId}`),
+    TE.chain(
+      TE.fromOption(() => new Error("Cannot Get RCConfiguration from Redis"))
+    ),
+    TE.chainEitherK(
+      flow(
+        parse,
+        E.mapLeft(
+          () => new Error("Cannot parse RCConfiguration Json from Redis")
+        ),
+        E.chain(
+          flow(
+            RetrievedRCConfiguration.decode,
+            E.mapLeft(
+              () => new Error("Cannot decode RCConfiguration Json from Redis")
+            )
+          )
+        )
+      )
+    ),
+    TE.fold(
+      () =>
+        pipe(
+          rccModel.findLastVersionByModelId([configurationId]),
+          TE.mapLeft(
+            e => new Error(`${e.kind}, RCConfiguration Id=${configurationId}`)
+          ),
+          TE.chain(rCConfiguration =>
+            pipe(
+              setWithExpirationTask(
+                redisClient,
+                `${RC_CONFIGURATION_REDIS_PREFIX}-${configurationId}`,
+                JSON.stringify(rCConfiguration),
+                config.RC_CONFIGURATION_CACHE_TTL
+              ),
+              TE.map(() => rCConfiguration),
+              TE.orElse(() => TE.of(rCConfiguration))
+            )
+          )
+        ),
+      rCConfiguration => TE.right(O.some(rCConfiguration))
+    )
+  );
+
 export const getRCConfigurationHandler = ({
   rccModel,
-  config
+  config,
+  redisClient
 }: IGetRCConfigurationHandlerParameter) => ({
   configurationId,
   userId
@@ -73,8 +137,13 @@ export const getRCConfigurationHandler = ({
   | IResponseErrorInternal
 > =>
   pipe(
-    rccModel.findLastVersionByModelId([configurationId]),
-    TE.mapLeft(handleCosmosErrorResponse),
+    getOrCacheMaybeRCConfigurationById(
+      configurationId,
+      redisClient,
+      rccModel,
+      config
+    ),
+    TE.mapLeft(handleErrorResponse),
     TE.chainW(handleEmptyErrorResponse(configurationId)),
     TE.chainW(
       TE.fromPredicate(
@@ -101,6 +170,7 @@ export const getRCConfigurationHandler = ({
 interface IGetGetRCConfigurationHandlerParameter {
   readonly config: IConfig;
   readonly rccModel: RCConfigurationModel;
+  readonly redisClient: RedisClientFactory;
 }
 
 type GetGetRCConfigurationHandlerReturnType = express.RequestHandler;
@@ -111,11 +181,13 @@ type GetGetRCConfigurationHandler = (
 
 export const getGetRCConfigurationExpressHandler: GetGetRCConfigurationHandler = ({
   rccModel,
-  config
+  config,
+  redisClient
 }) => {
   const handler = getRCConfigurationHandler({
     config,
-    rccModel
+    rccModel,
+    redisClient
   });
 
   const middlewaresWrap = withRequestMiddlewares(

@@ -2,9 +2,11 @@ import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import * as O from "fp-ts/lib/Option";
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
+import * as redis_storage from "../../utils/redis_storage";
 
 import {
   aRemoteContentConfiguration,
+  aRetrievedRCConfiguration,
   findLastVersionMock,
   rccModelMock
 } from "../../__mocks__/remote-content";
@@ -14,9 +16,17 @@ import {
   handleEmptyErrorResponse
 } from "../handler";
 import { IConfig } from "../../utils/config";
+import { redisClientMock } from "../../__mocks__/redis.mock";
 
 const aUserId = "aUserId" as NonEmptyString;
 const aConfig = { INTERNAL_USER_ID: "internalUserId" } as IConfig;
+
+const getTaskMock = jest.fn();
+jest.spyOn(redis_storage, "getTask").mockImplementation(getTaskMock);
+
+beforeEach(() => {
+  jest.clearAllMocks();
+});
 
 describe("handleEmptyErrorResponse ", () => {
   test("should return a left with detail if the Option is none", async () => {
@@ -31,27 +41,50 @@ describe("handleEmptyErrorResponse ", () => {
 });
 
 describe("getRCConfigurationHandler", () => {
-  test("should return an IResponseSuccessJson if the model return a valid configuration and the userId match", async () => {
+  test("should return an IResponseSuccessJson calling the model if redis does not return a valid configuration and the userId match", async () => {
+    getTaskMock.mockReturnValueOnce(TE.right(O.none));
     findLastVersionMock.mockReturnValueOnce(
       TE.right(O.some(aRemoteContentConfiguration))
     );
     const r = await getRCConfigurationHandler({
       rccModel: rccModelMock,
-      config: aConfig
+      config: aConfig,
+      redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
       userId: aRemoteContentConfiguration.userId
     });
     expect(r.kind).toBe("IResponseSuccessJson");
+    expect(getTaskMock).toHaveBeenCalled();
+    expect(findLastVersionMock).toHaveBeenCalled();
+  });
+
+  test("should return an IResponseSuccessJson without calling the model if redis return a valid configuration and the userId match", async () => {
+    getTaskMock.mockReturnValueOnce(
+      TE.right(O.some(JSON.stringify(aRetrievedRCConfiguration)))
+    );
+    const r = await getRCConfigurationHandler({
+      rccModel: rccModelMock,
+      config: aConfig,
+      redisClient: redisClientMock
+    })({
+      configurationId: aRemoteContentConfiguration.configurationId,
+      userId: aRemoteContentConfiguration.userId
+    });
+    expect(r.kind).toBe("IResponseSuccessJson");
+    expect(getTaskMock).toHaveBeenCalled();
+    expect(findLastVersionMock).not.toHaveBeenCalled();
   });
 
   test("should return an IResponseSuccessJson if the model return a valid configuration and the user-id is internal", async () => {
+    getTaskMock.mockReturnValueOnce(TE.right(O.none));
     findLastVersionMock.mockReturnValueOnce(
       TE.right(O.some(aRemoteContentConfiguration))
     );
     const r = await getRCConfigurationHandler({
       rccModel: rccModelMock,
-      config: aConfig
+      config: aConfig,
+      redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
       userId: aUserId
@@ -60,12 +93,14 @@ describe("getRCConfigurationHandler", () => {
   });
 
   test("should return an IResponseErrorForbiddenNotAuthorized if the model return a valid configuration but the userId is not internal or does not match", async () => {
+    getTaskMock.mockReturnValueOnce(TE.right(O.none));
     findLastVersionMock.mockReturnValueOnce(
       TE.right(O.some(aRemoteContentConfiguration))
     );
     const r = await getRCConfigurationHandler({
       rccModel: rccModelMock,
-      config: aConfig
+      config: aConfig,
+      redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
       userId: "invalid" as NonEmptyString
@@ -74,10 +109,12 @@ describe("getRCConfigurationHandler", () => {
   });
 
   test("should return an IResponseErrorNotFound if the model return an empty Option", async () => {
+    getTaskMock.mockReturnValueOnce(TE.right(O.none));
     findLastVersionMock.mockReturnValueOnce(TE.right(O.none));
     const r = await getRCConfigurationHandler({
       rccModel: rccModelMock,
-      config: aConfig
+      config: aConfig,
+      redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
       userId: aUserId
@@ -89,10 +126,12 @@ describe("getRCConfigurationHandler", () => {
   });
 
   test("should return an IResponseErrorInternal if cosmos return an error", async () => {
+    getTaskMock.mockReturnValueOnce(TE.right(O.none));
     findLastVersionMock.mockReturnValueOnce(TE.left(O.none));
     const r = await getRCConfigurationHandler({
       rccModel: rccModelMock,
-      config: aConfig
+      config: aConfig,
+      redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
       userId: aUserId
