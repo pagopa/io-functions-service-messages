@@ -12,13 +12,17 @@ import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { ILogger } from "../utils/logger";
 import { errorsToError } from "../utils/conversions";
 
-export const handler = (
+const logAndReturnError = (logger: ILogger) => (error: Error): Error => {
+  logger.error(error.message);
+  return error;
+};
+
+const bindRecords = (
   userRCConfigurationModel: UserRCConfigurationModel,
+  documents: ReadonlyArray<unknown>,
   logger: ILogger,
   startTimeFilter: NonNegativeInteger
-) => (
-  documents: ReadonlyArray<unknown>
-): Promise<Error | ReadonlyArray<RetrievedUserRCConfiguration>> =>
+) =>
   pipe(
     documents,
     RA.map(RetrievedRCConfiguration.decode),
@@ -36,18 +40,37 @@ export const handler = (
         E.map(newUserRCConfiguration =>
           pipe(
             userRCConfigurationModel.upsert(newUserRCConfiguration),
-            TE.mapLeft(error => {
-              const errorMessage = `${error.kind} | Cannot upsert the new UserRCConfiguration for configuration ${rcConfiguration.configurationId}`;
-              logger.error(errorMessage);
-              return new Error(errorMessage);
-            })
+            TE.mapLeft(
+              ce =>
+                new Error(
+                  `${ce.kind} | Cannot upsert the new UserRCConfiguration for configuration ${rcConfiguration.configurationId}`
+                )
+            )
           )
         ),
         E.mapLeft(errorsToError),
+        E.mapLeft(logAndReturnError(logger)),
         TE.fromEither,
         TE.chainW(identity)
       )
     ),
-    TE.sequenceArray,
-    TE.toUnion
+    TE.sequenceArray
   )();
+
+export const handler = (
+  userRCConfigurationModel: UserRCConfigurationModel,
+  logger: ILogger,
+  startTimeFilter: NonNegativeInteger
+) => async (documents: ReadonlyArray<unknown>): Promise<void> => {
+  const processingResult = await bindRecords(
+    userRCConfigurationModel,
+    documents,
+    logger,
+    startTimeFilter
+  );
+  // we have to throws here to ensure that "retry" mechanism of Azure
+  // can be executed
+  if (processingResult instanceof Error) {
+    throw processingResult;
+  }
+};

@@ -25,13 +25,13 @@ const telemetryClient = initTelemetryClient();
 const run = async (
   context: Context,
   documents: ReadonlyArray<unknown>
-): Promise<Error | ReadonlyArray<RetrievedUserRCConfiguration>> => {
+): Promise<void> => {
   const logger = createLogger(
     context,
     telemetryClient,
     "CosmosRemoteContentMessageConfigurationChangeFeed"
   );
-  return handler(
+  handler(
     userRCConfigurationModel,
     logger,
     config.MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME
