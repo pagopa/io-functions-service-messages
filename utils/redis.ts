@@ -60,7 +60,8 @@ export class RedisClientFactory {
       password,
       socket: {
         port: redisPort,
-        tls: useTls
+        tls: useTls,
+        connectTimeout: 500
       },
       url: `redis://${redisUrl}`
     });
@@ -81,7 +82,10 @@ export class RedisClientFactory {
     >({
       defaults: {
         legacyMode: true,
-        password
+        password,
+        socket: {
+          connectTimeout: 500
+        }
       },
       rootNodes: [
         {
