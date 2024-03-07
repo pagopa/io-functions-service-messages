@@ -1,7 +1,7 @@
 microservice-chart:
   image:
     repository: 'iopcommonacr.azurecr.io/io-functions-service-messages'
-    tag: '1.4.0'
+    tag: '1.5.3'
     pullPolicy: Always
   namespace: 'messages'
   livenessProbe:
@@ -82,6 +82,7 @@ microservice-chart:
     COSMOSDB_KEY: 'io-p-cosmos-api-master-key'
     REMOTE_CONTENT_COSMOSDB_KEY: 'io-p-messages-remote-content-master-key'
     QueueStorageConnection: 'iopmessagesweubetasvst-connection-string'
+    INTERNAL_USER_ID: 'internal-user-id-to-skip'
     # message content storage conn string
     MESSAGE_CONTENT_STORAGE_CONNECTION_STRING: 'iopstapi-connection-string'
     # io-backend endpoint token
