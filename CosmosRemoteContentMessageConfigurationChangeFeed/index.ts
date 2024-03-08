@@ -2,8 +2,7 @@ import { Context } from "@azure/functions";
 
 import {
   UserRCConfigurationModel,
-  USER_RC_CONFIGURATIONS_COLLECTION_NAME,
-  RetrievedUserRCConfiguration
+  USER_RC_CONFIGURATIONS_COLLECTION_NAME
 } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
 import { remoteContentCosmosDbInstance } from "../utils/cosmosdb";
 import { getConfigOrThrow } from "../utils/config";
@@ -31,7 +30,7 @@ const run = async (
     telemetryClient,
     "CosmosRemoteContentMessageConfigurationChangeFeed"
   );
-  handler(
+  await handler(
     userRCConfigurationModel,
     logger,
     config.MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME

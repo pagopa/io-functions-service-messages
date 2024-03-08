@@ -1,76 +1,86 @@
 import * as E from "fp-ts/lib/Either";
-import { identity, pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/lib/function";
 import * as TE from "fp-ts/lib/TaskEither";
-import * as RA from "fp-ts/ReadonlyArray";
 import { RetrievedRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import {
   UserRCConfiguration,
-  UserRCConfigurationModel,
-  RetrievedUserRCConfiguration
+  UserRCConfigurationModel
 } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { ILogger } from "../utils/logger";
 import { errorsToError } from "../utils/conversions";
 
-const logAndReturnError = (logger: ILogger) => (error: Error): Error => {
-  logger.error(error.message);
-  return error;
-};
-
-const bindRecords = (
+/**
+ * This function cycles over the RetrievedRCConfiguration records sent by change feed processor
+ * try to decode them and make a UserRCConfiguration to upsert.
+ *
+ * Any error is returned to be thrown in the handler to allow the functions retry mechanism to trigger.
+ *
+ * @param userRCConfigurationModel
+ * @param documents
+ * @param logger
+ * @param startTimeFilter
+ */
+const processRecords = async (
   userRCConfigurationModel: UserRCConfigurationModel,
   documents: ReadonlyArray<unknown>,
-  logger: ILogger,
   startTimeFilter: NonNegativeInteger
-) =>
-  pipe(
-    documents,
-    RA.map(RetrievedRCConfiguration.decode),
-    RA.filter(E.isRight),
-    RA.map(rcConfigurationEither => rcConfigurationEither.right),
+): Promise<Error | void> => {
+  for (const doc of documents) {
+    // check if docs sent by change feed are valid RetrievedRCConfiguration
+    const retrievedRCConfigurationOrError = RetrievedRCConfiguration.decode(
+      doc
+    );
+    if (E.isLeft(retrievedRCConfigurationOrError)) {
+      return errorsToError(retrievedRCConfigurationOrError.left);
+    }
+
+    // skip older docs
+    const retrievedRCConfiguration = retrievedRCConfigurationOrError.right;
     // eslint-disable-next-line no-underscore-dangle
-    RA.filter(rcConfiguration => rcConfiguration._ts >= startTimeFilter),
-    RA.map(rcConfiguration =>
-      pipe(
-        {
-          id: rcConfiguration.configurationId,
-          userId: rcConfiguration.userId
-        },
-        UserRCConfiguration.decode,
-        E.map(newUserRCConfiguration =>
-          pipe(
-            userRCConfigurationModel.upsert(newUserRCConfiguration),
-            TE.mapLeft(
-              ce =>
-                new Error(
-                  `${ce.kind} | Cannot upsert the new UserRCConfiguration for configuration ${rcConfiguration.configurationId}`
-                )
-            )
+    if (retrievedRCConfiguration._ts < startTimeFilter) {
+      continue;
+    }
+
+    // make a new UserRCConfiguration and check it's valid
+    const userRCConfigurationOrError = UserRCConfiguration.decode({
+      id: retrievedRCConfiguration.configurationId,
+      userId: retrievedRCConfiguration.userId
+    });
+    if (E.isLeft(userRCConfigurationOrError)) {
+      return errorsToError(userRCConfigurationOrError.left);
+    }
+
+    // upsert UserRCConfiguration and return any error
+    const userRCConfiguration = userRCConfigurationOrError.right;
+    const upsertResult = await pipe(
+      userRCConfigurationModel.upsert(userRCConfiguration),
+      TE.mapLeft(
+        ce =>
+          new Error(
+            `${ce.kind} | Cannot upsert the new UserRCConfiguration for configuration ${userRCConfiguration}`
           )
-        ),
-        E.mapLeft(errorsToError),
-        E.mapLeft(logAndReturnError(logger)),
-        TE.fromEither,
-        TE.chainW(identity)
       )
-    ),
-    TE.sequenceArray
-  )();
+    )();
+    if (E.isLeft(upsertResult)) {
+      return upsertResult.left;
+    }
+  }
+};
 
 export const handler = (
   userRCConfigurationModel: UserRCConfigurationModel,
   logger: ILogger,
   startTimeFilter: NonNegativeInteger
 ) => async (documents: ReadonlyArray<unknown>): Promise<void> => {
-  const processingResult = await bindRecords(
+  const result = await processRecords(
     userRCConfigurationModel,
     documents,
-    logger,
     startTimeFilter
   );
-  // we have to throws here to ensure that "retry" mechanism of Azure
-  // can be executed
-  if (processingResult instanceof Error) {
-    throw processingResult;
+  // throw error to ensure retry mechanism will work
+  if (result instanceof Error) {
+    logger.error(result.message);
+    throw result;
   }
 };
