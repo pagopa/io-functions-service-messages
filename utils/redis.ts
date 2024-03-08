@@ -59,9 +59,9 @@ export class RedisClientFactory {
     >({
       password,
       socket: {
-        connectTimeout: 500,
         port: redisPort,
-        tls: useTls
+        tls: useTls,
+        connectTimeout: 500
       },
       url: `redis://${redisUrl}`
     });
