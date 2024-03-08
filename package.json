@@ -37,7 +37,6 @@
     "@types/jest": "^24.0.15",
     "@types/lolex": "^3.1.1",
     "@types/nodemailer": "^4.6.8",
-    "@types/redis": "^2.8.28",
     "auto-changelog": "^2.2.1",
     "danger": "^4.0.2",
     "danger-plugin-digitalcitizenship": "^0.3.1",
