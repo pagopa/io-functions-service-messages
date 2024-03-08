@@ -3,6 +3,8 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as E from "fp-ts/lib/Either";
 import * as O from "fp-ts/lib/Option";
 
+import { Json } from "fp-ts/lib/Json";
+
 import { ContextMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/context_middleware";
 import {
   withRequestMiddlewares,
@@ -64,6 +66,31 @@ export const handleEmptyErrorResponse = (configurationId: Ulid) => (
     )
   );
 
+const parseRedisValue: (redisValue: string) => E.Either<Error, Json> = flow(
+  parse,
+  E.mapLeft(() => new Error("Cannot parse RCConfiguration Json from Redis"))
+);
+
+const validateRedisValue: (
+  redisValue: string
+) => E.Either<Error, RetrievedRCConfiguration> = flow(
+  RetrievedRCConfiguration.decode,
+  E.mapLeft(() => new Error("Cannot decode RCConfiguration Json from Redis"))
+);
+
+const parseAndValidateRedisValue: (
+  redisValue: string
+) => E.Either<Error, RetrievedRCConfiguration> = flow(
+  parseRedisValue,
+  E.chain(validateRedisValue)
+);
+
+const handleRedisEmptyResponse: (
+  maybeRedisResponse: O.Option<string>
+) => TE.TaskEither<Error, string> = TE.fromOption(
+  () => new Error("Cannot Get RCConfiguration from Redis")
+);
+
 /**
  * This method is used to get a configuration, if it exists, by configuratin id.
  * If the configuration is cached it retrieves it from cache, or else it retrieves
@@ -80,25 +107,8 @@ const getOrCacheMaybeRCConfigurationById = (
 ): TE.TaskEither<Error, O.Option<RetrievedRCConfiguration>> =>
   pipe(
     getTask(redisClient, `${RC_CONFIGURATION_REDIS_PREFIX}-${configurationId}`),
-    TE.chain(
-      TE.fromOption(() => new Error("Cannot Get RCConfiguration from Redis"))
-    ),
-    TE.chainEitherK(
-      flow(
-        parse,
-        E.mapLeft(
-          () => new Error("Cannot parse RCConfiguration Json from Redis")
-        ),
-        E.chain(
-          flow(
-            RetrievedRCConfiguration.decode,
-            E.mapLeft(
-              () => new Error("Cannot decode RCConfiguration Json from Redis")
-            )
-          )
-        )
-      )
-    ),
+    TE.chain(handleRedisEmptyResponse),
+    TE.chainEitherK(parseAndValidateRedisValue),
     TE.fold(
       () =>
         pipe(
