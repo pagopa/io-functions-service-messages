@@ -33,7 +33,7 @@ import { IConfig } from "../utils/config";
 import { getTask, setWithExpirationTask } from "../utils/redis_storage";
 import { RedisClientFactory } from "../utils/redis";
 
-const RC_CONFIGURATION_REDIS_PREFIX = "RC-CONFIGURATION";
+export const RC_CONFIGURATION_REDIS_PREFIX = "RC-CONFIGURATION";
 
 interface IHandlerParameter {
   readonly configurationId: Ulid;
@@ -106,16 +106,22 @@ const getOrCacheMaybeRCConfigurationById = (
           TE.mapLeft(
             e => new Error(`${e.kind}, RCConfiguration Id=${configurationId}`)
           ),
-          TE.chain(rCConfiguration =>
+          TE.chain(maybeRCConfiguration =>
             pipe(
-              setWithExpirationTask(
-                redisClient,
-                `${RC_CONFIGURATION_REDIS_PREFIX}-${configurationId}`,
-                JSON.stringify(rCConfiguration),
-                config.RC_CONFIGURATION_CACHE_TTL
-              ),
-              TE.map(() => rCConfiguration),
-              TE.orElse(() => TE.of(rCConfiguration))
+              maybeRCConfiguration,
+              O.fold(
+                () => TE.right(maybeRCConfiguration),
+                rCConfiguration =>
+                  pipe(
+                    setWithExpirationTask(
+                      redisClient,
+                      `${RC_CONFIGURATION_REDIS_PREFIX}-${configurationId}`,
+                      JSON.stringify(rCConfiguration),
+                      config.RC_CONFIGURATION_CACHE_TTL
+                    ),
+                    TE.map(() => maybeRCConfiguration)
+                  )
+              )
             )
           )
         ),
