@@ -65,6 +65,7 @@ microservice-chart:
     FETCH_KEEPALIVE_MAX_SOCKETS: '40'
     FETCH_KEEPALIVE_SOCKET_ACTIVE_TTL: '110000'
     FETCH_KEEPALIVE_TIMEOUT: '60000'
+    RC_CONFIGURATION_CACHE_TTL: "28800"
     # app specific
     COSMOSDB_URI: 'https://io-p-cosmos-api.documents.azure.com:443/'
     COSMOSDB_NAME: 'db'
