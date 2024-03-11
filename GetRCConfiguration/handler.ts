@@ -116,23 +116,24 @@ const getOrCacheMaybeRCConfigurationById = (
           TE.mapLeft(
             e => new Error(`${e.kind}, RCConfiguration Id=${configurationId}`)
           ),
-          TE.chain(maybeRCConfiguration =>
+          TE.chainFirst(maybeRCConfiguration =>
             pipe(
               maybeRCConfiguration,
-              O.fold(
-                () => TE.right(maybeRCConfiguration),
-                rCConfiguration =>
-                  pipe(
-                    setWithExpirationTask(
-                      redisClient,
-                      `${RC_CONFIGURATION_REDIS_PREFIX}-${configurationId}`,
-                      JSON.stringify(rCConfiguration),
-                      config.RC_CONFIGURATION_CACHE_TTL
-                    ),
-                    TE.map(() => maybeRCConfiguration),
-                    TE.orElse(() => TE.of(maybeRCConfiguration))
+              TE.fromOption(
+                () =>
+                  new Error(
+                    `Cannot find any configuration with id: ${configurationId}`
                   )
-              )
+              ),
+              TE.chain(rCConfiguration =>
+                setWithExpirationTask(
+                  redisClient,
+                  `${RC_CONFIGURATION_REDIS_PREFIX}-${configurationId}`,
+                  JSON.stringify(rCConfiguration),
+                  config.RC_CONFIGURATION_CACHE_TTL
+                )
+              ),
+              TE.orElseW(() => TE.of(maybeRCConfiguration))
             )
           )
         ),
