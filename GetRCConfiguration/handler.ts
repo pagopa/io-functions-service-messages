@@ -129,7 +129,8 @@ const getOrCacheMaybeRCConfigurationById = (
                       JSON.stringify(rCConfiguration),
                       config.RC_CONFIGURATION_CACHE_TTL
                     ),
-                    TE.map(() => maybeRCConfiguration)
+                    TE.map(() => maybeRCConfiguration),
+                    TE.orElse(() => TE.of(maybeRCConfiguration))
                   )
               )
             )
