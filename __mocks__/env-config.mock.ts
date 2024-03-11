@@ -25,6 +25,9 @@ export const envConfig: IConfig = {
   FF_BETA_TESTERS: [],
   FF_CANARY_USERS_REGEX: "XYZ" as NonEmptyString,
 
+  REDIS_URL: "aRedisUrl" as NonEmptyString,
+  RC_CONFIGURATION_CACHE_TTL: 1000 as NonNegativeInteger,
+
   NODE_ENV: "production",
   REQ_SERVICE_ID: undefined,
 

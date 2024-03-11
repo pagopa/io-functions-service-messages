@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/io-functions-service-messages",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "license": "MIT",
   "scripts": {
     "prebuild": "yarn generate",
@@ -75,6 +75,7 @@
     "node-fetch": "^2.6.7",
     "nodemailer": "^6.4.16",
     "nodemailer-sendgrid": "^1.0.3",
+    "redis": "^4.6.13",
     "ts-pattern": "^4.0.5",
     "winston": "^3.2.1"
   }
