@@ -75,6 +75,9 @@ microservice-chart:
     BACKEND_BASE_URL: 'https://io-p-app-appbackendli.azurewebsites.net'
     # fn-pushnotification queue
     NOTIFICATION_QUEUE_NAME: 'push-notifications'
+    # message configuration change feed properties
+    MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME: '0'
+    MESSAGE_CONFIGURATION_CHANGE_FEED_LEASE_PREFIX: 'RemoteContentMessageConfigurationChangeFeed-00'
   envSecret:
     # required
     APPINSIGHTS_INSTRUMENTATIONKEY: 'appinsights-instrumentation-key'
@@ -91,6 +94,8 @@ microservice-chart:
     NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: 'iopweumessagesnotifst-connection-string'
     # beta testers
     FF_BETA_TESTERS: 'ff-beta-testers'
+    # remote content cosmos connection string
+    REMOTE_CONTENT_COSMOSDB_CONNECTION_STRING: 'io-p-messages-remote-content-connection-string'
   keyvault:
     name: 'io-p-messages-kv'
     tenantId: '7788edaf-0346-4068-9d79-c868aed15b3d'
