@@ -65,6 +65,7 @@ microservice-chart:
     FETCH_KEEPALIVE_MAX_SOCKETS: '40'
     FETCH_KEEPALIVE_SOCKET_ACTIVE_TTL: '110000'
     FETCH_KEEPALIVE_TIMEOUT: '60000'
+    RC_CONFIGURATION_CACHE_TTL: "28800"
     # app specific
     COSMOSDB_URI: 'https://io-p-cosmos-api.documents.azure.com:443/'
     COSMOSDB_NAME: 'db'
@@ -75,6 +76,9 @@ microservice-chart:
     BACKEND_BASE_URL: 'https://io-p-app-appbackendli.azurewebsites.net'
     # fn-pushnotification queue
     NOTIFICATION_QUEUE_NAME: 'push-notifications'
+    # Redis
+    REDIS_URL: 'io-p-redis-app-messages-std-v6.redis.cache.windows.net'
+    REDIS_PORT: '6380'
     # message configuration change feed properties
     MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME: '0'
     MESSAGE_CONFIGURATION_CHANGE_FEED_LEASE_PREFIX: 'RemoteContentMessageConfigurationChangeFeed-00'
@@ -94,6 +98,8 @@ microservice-chart:
     NOTIFICATION_QUEUE_STORAGE_CONNECTION_STRING: 'iopweumessagesnotifst-connection-string'
     # beta testers
     FF_BETA_TESTERS: 'ff-beta-testers'
+    # Redis secrets
+    REDIS_PASSWORD: 'io-p-redis-messages-password'
     # remote content cosmos connection string
     REMOTE_CONTENT_COSMOSDB_CONNECTION_STRING: 'io-p-messages-remote-content-connection-string'
   keyvault:
