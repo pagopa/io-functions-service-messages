@@ -153,7 +153,7 @@ describe("getRCConfigurationHandler", () => {
     });
     expect(r.kind).toBe("IResponseErrorNotFound");
     expect(r.detail).toBe(
-      "Configuration not found: Cannot find any configuration with configurationId: aValidUlid"
+      "Configuration not found: Cannot find any configuration with configurationId: 01HQRD0YCVDXF1XDW634N87XCG"
     );
     expect(getTaskMock).toHaveBeenCalled();
     expect(findLastVersionMock).toHaveBeenCalled();

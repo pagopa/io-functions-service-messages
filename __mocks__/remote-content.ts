@@ -6,9 +6,9 @@ import {
   RetrievedRCConfiguration
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
-import { CosmosResource } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { FiscalCode } from "../generated/definitions/FiscalCode";
+import { aCosmosResourceMetadata } from "./models.mock";
 
 const aPublicDetailAuthentication = {
   header_key_name: "a" as NonEmptyString,
@@ -28,7 +28,7 @@ export const aRemoteContentConfiguration: RCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
   isLollipopEnabled: false,
-  configurationId: "aValidUlid" as Ulid,
+  configurationId: "01HQRD0YCVDXF1XDW634N87XCG" as Ulid,
   userId: aUserId,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
@@ -36,6 +36,13 @@ export const aRemoteContentConfiguration: RCConfiguration = {
     baseUrl: "aValidUrl" as NonEmptyString,
     detailsAuthentication: aDetailAuthentication
   }
+};
+
+export const aRetrievedRemoteContentConfiguration: RetrievedRCConfiguration = {
+  ...aRemoteContentConfiguration,
+  ...aCosmosResourceMetadata,
+  id: `${aRemoteContentConfiguration.configurationId}-00000001` as NonEmptyString,
+  version: 1 as NonNegativeInteger
 };
 
 export const aPublicRemoteContentConfiguration: NewRCConfigurationPublic = {
@@ -48,13 +55,6 @@ export const aPublicRemoteContentConfiguration: NewRCConfigurationPublic = {
     base_url: "aValidUrl" as NonEmptyString,
     details_authentication: aPublicDetailAuthentication
   }
-};
-
-export const aCosmosResourceMetadata: Omit<CosmosResource, "id"> = {
-  _etag: "_etag",
-  _rid: "_rid",
-  _self: "_self",
-  _ts: 1
 };
 
 const aFiscalCode = "FRLFRC74E04B157I" as FiscalCode;

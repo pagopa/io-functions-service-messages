@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/io-functions-service-messages",
-  "version": "1.5.3",
+  "version": "1.6.0",
   "license": "MIT",
   "scripts": {
     "prebuild": "yarn generate",
@@ -59,7 +59,7 @@
     "@azure/storage-queue": "^12.4.0",
     "@pagopa/express-azure-functions": "^2.1.1",
     "@pagopa/io-backend-session-sdk": "^9.7.0",
-    "@pagopa/io-functions-commons": "^28.18.3",
+    "@pagopa/io-functions-commons": "^28.19.0",
     "@pagopa/ts-commons": "^12.5.0",
     "abort-controller": "^3.0.0",
     "applicationinsights": "^1.8.10",

@@ -15,6 +15,7 @@ import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import {
   IntegerFromString,
+  NonNegativeInteger,
   NonNegativeIntegerFromString
 } from "@pagopa/ts-commons/lib/numbers";
 import { withDefault } from "@pagopa/ts-commons/lib/types";
@@ -109,6 +110,8 @@ export const IConfig = t.intersection([
 
     RC_CONFIGURATION_CACHE_TTL: NonNegativeIntegerFromString,
 
+    MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME: NonNegativeInteger,
+
     isProduction: t.boolean
     /* eslint-enable sort-keys */
   }),
@@ -119,6 +122,13 @@ export const IConfig = t.intersection([
 // No need to re-evaluate this object for each call
 const errorOrConfig: t.Validation<IConfig> = IConfig.decode({
   ...process.env,
+
+  MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME: pipe(
+    process.env.MESSAGE_CONFIGURATION_CHANGE_FEED_START_TIME,
+    NonNegativeIntegerFromString.decode,
+    E.getOrElse(() => 0 as NonNegativeInteger)
+  ),
+
   REDIS_CLUSTER_ENABLED: pipe(
     O.fromNullable(process.env.REDIS_CLUSTER_ENABLED),
     O.map(_ => _.toLowerCase() === "true"),
@@ -129,6 +139,7 @@ const errorOrConfig: t.Validation<IConfig> = IConfig.decode({
     O.map(_ => _.toLowerCase() === "true"),
     O.toUndefined
   ),
+
   SERVICE_CACHE_TTL_DURATION: pipe(
     process.env.SERVICE_CACHE_TTL_DURATION,
     IntegerFromString.decode,
