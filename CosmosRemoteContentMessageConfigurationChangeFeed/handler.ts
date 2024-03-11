@@ -10,7 +10,7 @@ import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { ILogger } from "../utils/logger";
 import { errorsToError } from "../utils/conversions";
 
-const logErrorAndThrow = (logger: ILogger, error: Error) => {
+const logErrorAndThrow = (logger: ILogger, error: Error): void => {
   logger.error(error.message);
   throw error;
 };
