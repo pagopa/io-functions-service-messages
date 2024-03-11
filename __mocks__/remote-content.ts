@@ -6,8 +6,9 @@ import {
   RetrievedRCConfiguration
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
-import { aCosmosResourceMetadata } from "./models.mock";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
+import { FiscalCode } from "../generated/definitions/FiscalCode";
+import { aCosmosResourceMetadata } from "./models.mock";
 
 const aPublicDetailAuthentication = {
   header_key_name: "a" as NonEmptyString,
@@ -54,6 +55,25 @@ export const aPublicRemoteContentConfiguration: NewRCConfigurationPublic = {
     base_url: "aValidUrl" as NonEmptyString,
     details_authentication: aPublicDetailAuthentication
   }
+};
+
+const aFiscalCode = "FRLFRC74E04B157I" as FiscalCode;
+
+export const aRetrievedRCConfiguration: RetrievedRCConfiguration = {
+  configurationId: "01HMRBX079WA5SGYBQP1A7FSKH" as Ulid,
+  userId: aUserId,
+  hasPrecondition: HasPreconditionEnum.ALWAYS,
+  disableLollipopFor: [aFiscalCode],
+  isLollipopEnabled: true,
+  id: "id" as NonEmptyString,
+  name: "name" as NonEmptyString,
+  description: "description" as NonEmptyString,
+  prodEnvironment: {
+    baseUrl: "aValidUrl" as NonEmptyString,
+    detailsAuthentication: aDetailAuthentication
+  },
+  version: 0 as NonNegativeInteger,
+  ...aCosmosResourceMetadata
 };
 
 export const createNewConfigurationMock = jest.fn();
