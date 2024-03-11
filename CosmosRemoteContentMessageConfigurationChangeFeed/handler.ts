@@ -10,6 +10,11 @@ import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { ILogger } from "../utils/logger";
 import { errorsToError } from "../utils/conversions";
 
+const logErrorAndThrow = (logger: ILogger, error: Error) => {
+  logger.error(error.message);
+  throw error;
+};
+
 /**
  * This function cycles over the RetrievedRCConfiguration records sent by change feed processor
  * try to decode them and make a UserRCConfiguration to upsert.
@@ -24,15 +29,19 @@ import { errorsToError } from "../utils/conversions";
 const processRecords = async (
   userRCConfigurationModel: UserRCConfigurationModel,
   documents: ReadonlyArray<unknown>,
-  startTimeFilter: NonNegativeInteger
-): Promise<Error | void> => {
+  startTimeFilter: NonNegativeInteger,
+  logger: ILogger
+): Promise<void> => {
   for (const doc of documents) {
     // check if docs sent by change feed are valid RetrievedRCConfiguration
     const retrievedRCConfigurationOrError = RetrievedRCConfiguration.decode(
       doc
     );
     if (E.isLeft(retrievedRCConfigurationOrError)) {
-      return errorsToError(retrievedRCConfigurationOrError.left);
+      return logErrorAndThrow(
+        logger,
+        errorsToError(retrievedRCConfigurationOrError.left)
+      );
     }
 
     // skip older docs
@@ -48,7 +57,10 @@ const processRecords = async (
       userId: retrievedRCConfiguration.userId
     });
     if (E.isLeft(userRCConfigurationOrError)) {
-      return errorsToError(userRCConfigurationOrError.left);
+      return logErrorAndThrow(
+        logger,
+        errorsToError(userRCConfigurationOrError.left)
+      );
     }
 
     // upsert UserRCConfiguration and return any error
@@ -63,7 +75,7 @@ const processRecords = async (
       )
     )();
     if (E.isLeft(upsertResult)) {
-      return upsertResult.left;
+      return logErrorAndThrow(logger, upsertResult.left);
     }
   }
 };
@@ -73,14 +85,10 @@ export const handler = (
   logger: ILogger,
   startTimeFilter: NonNegativeInteger
 ) => async (documents: ReadonlyArray<unknown>): Promise<void> => {
-  const result = await processRecords(
+  await processRecords(
     userRCConfigurationModel,
     documents,
-    startTimeFilter
+    startTimeFilter,
+    logger
   );
-  // throw error to ensure retry mechanism will work
-  if (result instanceof Error) {
-    logger.error(result.message);
-    throw result;
-  }
 };
