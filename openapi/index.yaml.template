@@ -98,7 +98,32 @@ paths:
         - application/json
       produces:
         - application/json
-
+    get:
+      operationId: listRCConfiguration
+      summary: Get all the remote-content configurations associated to the userId
+      description: Get all the remote-content configurations associated to the userId retrived from the header
+      responses:
+        '200':
+          description: Return the configurations
+          schema:
+            $ref: '#/definitions/RCConfigurationListResponse'
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '403':
+          description: Request not authorized.
+        '404':
+          description: Resource not found.
+        '500':
+          description: >-
+            There was an error trying to get the configurations.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
   /remote-contents/configurations/{configurationId}:
     get:
       operationId: getRCConfiguration
@@ -195,6 +220,13 @@ definitions:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationTestEnvironment"
   HasPrecondition:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/HasPrecondition"
+  RCConfigurationListResponse:
+    type: object
+    properties:
+      rCConfigList:
+        type: array
+        items:
+          $ref: "#/definitions/RCConfigurationResponse"
   RCConfigurationResponse:
     allOf:
       - $ref: "#/definitions/RCConfigurationPublic"

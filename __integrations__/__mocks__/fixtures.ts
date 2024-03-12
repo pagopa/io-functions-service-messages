@@ -7,6 +7,7 @@ import { pipe } from "fp-ts/lib/function";
 
 import * as MessageCollection from "@pagopa/io-functions-commons/dist/src/models/message";
 import * as RCConfiguration from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import * as UserRCConfiguration from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
 import * as MessageViewCollection from "@pagopa/io-functions-commons/dist/src/models/message_view";
 import * as MessageStatusCollection from "@pagopa/io-functions-commons/dist/src/models/message_status";
 import * as ProfileCollection from "@pagopa/io-functions-commons/dist/src/models/profile";
@@ -164,14 +165,14 @@ export const createAllCollections = (
     RA.sequence(TE.ApplicativePar)
   );
 
-export const createRCCollection = (
+export const createUserRCCollection = (
   database: Database
 ): TE.TaskEither<CosmosErrors, Container> =>
   pipe(
     createCollection(
       database,
-      RCConfiguration.RC_CONFIGURATION_COLLECTION_NAME,
-      "configurationId",
+      UserRCConfiguration.USER_RC_CONFIGURATIONS_COLLECTION_NAME,
+      "userId",
       {
         indexingMode: "consistent",
         automatic: true,
@@ -184,22 +185,47 @@ export const createRCCollection = (
           {
             path: '/"_etag"/?'
           }
-        ],
-        compositeIndexes: [
-          [
-            {
-              path: "/fiscalCode",
-              order: "ascending"
-            },
-            {
-              path: "/id",
-              order: "descending"
-            }
-          ]
         ]
       } as any
     )
   );
+
+  export const createRCCollection = (
+    database: Database
+  ): TE.TaskEither<CosmosErrors, Container> =>
+    pipe(
+      createCollection(
+        database,
+        RCConfiguration.RC_CONFIGURATION_COLLECTION_NAME,
+        "configurationId",
+        {
+          indexingMode: "consistent",
+          automatic: true,
+          includedPaths: [
+            {
+              path: "/*"
+            }
+          ],
+          excludedPaths: [
+            {
+              path: '/"_etag"/?'
+            }
+          ],
+          compositeIndexes: [
+            [
+              {
+                path: "/fiscalCode",
+                order: "ascending"
+              },
+              {
+                path: "/id",
+                order: "descending"
+              }
+            ]
+          ]
+        } as any
+      )
+    );
 
 /**
  * Create DB
@@ -270,6 +296,7 @@ export const createRCCosmosDbAndCollections = (
     createDatabase(client, cosmosDbName),
     TE.chainFirst(deleteAllCollections),
     TE.chainFirst(createRCCollection),
+    TE.chainFirst(createUserRCCollection),
     TE.mapLeft(err => {
       log("Error", err);
       return err;
@@ -335,7 +362,29 @@ export const fillRCConfiguration = async (
         RA.sequence(TE.ApplicativePar)
       )
     ),
-    TE.map(_ => log(`${_.length} Messages created`)),
+    TE.map(_ => log(`${_.length} Remote content configuration created`)),
+    TE.mapLeft(_ => {
+      log("Error", _);
+    })
+  )();
+};
+
+export const fillUserRCConfiguration = async (
+  db: Database,
+  userConfigurations: ReadonlyArray<UserRCConfiguration.UserRCConfiguration>
+): Promise<void> => {
+  await pipe(
+    db.container(UserRCConfiguration.USER_RC_CONFIGURATIONS_COLLECTION_NAME),
+    TE.of,
+    TE.map(c => new UserRCConfiguration.UserRCConfigurationModel(c)),
+    TE.chain(model =>
+      pipe(
+        userConfigurations,
+        RA.map(m => model.create(m)),
+        RA.sequence(TE.ApplicativePar)
+      )
+    ),
+    TE.map(_ => log(`${_.length} User configuration created`)),
     TE.mapLeft(_ => {
       log("Error", _);
     })

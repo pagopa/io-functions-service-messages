@@ -27,6 +27,37 @@ export const aNewRemoteContentConfiguration: NewRCConfigurationPublic = {
   }
 };
 
+export const anotherRemoteContentConfiguration: RCConfiguration = {
+  hasPrecondition: HasPreconditionEnum.ALWAYS,
+  disableLollipopFor: [],
+  isLollipopEnabled: false,
+  userId: "aUserId" as NonEmptyString,
+  name: "aRemoteContentConfiguration" as NonEmptyString,
+  description: "a description" as NonEmptyString,
+  configurationId: "01HNG1XBMT8V6HWGF5T053K9RK" as Ulid,
+  prodEnvironment: {
+    baseUrl: "aValidUrl" as NonEmptyString,
+    detailsAuthentication: aModelDetailAuthentication
+  }
+};
+
+export const anotherPublicRemoteContentConfiguration = {
+  configuration_id: "01HNG1XBMT8V6HWGF5T053K9RK",
+  description: "a description",
+  disable_lollipop_for: [],
+  has_precondition: "ALWAYS",
+  is_lollipop_enabled: false,
+  name: "aRemoteContentConfiguration",
+  prod_environment: {
+    base_url: "aValidUrl",
+    details_authentication: {
+      header_key_name: "a",
+      key: "key",
+      type: "type"
+    }
+  }
+};
+
 export const aRemoteContentConfiguration: RCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
