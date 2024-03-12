@@ -101,7 +101,7 @@ paths:
     get:
       operationId: listRCConfiguration
       summary: Get all the remote-content configurations associated to the userId
-      description: Get all the remote-content configurations associated to the userId retrived from the header
+      description: Get all the remote-content configurations associated to the userId retrieved from the header
       responses:
         '200':
           description: Return the configurations

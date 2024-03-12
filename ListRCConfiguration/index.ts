@@ -16,7 +16,7 @@ import {
 import { remoteContentCosmosDbInstance } from "../utils/cosmosdb";
 import { listRCConfigurationExpressHandler } from "./handler";
 
-const rccModel = new RCConfigurationModel(
+const rcConfigurationModel = new RCConfigurationModel(
   remoteContentCosmosDbInstance.container(RC_CONFIGURATION_COLLECTION_NAME)
 );
 
@@ -34,7 +34,7 @@ secureExpressApp(app);
 app.get(
   "/api/v1/remote-contents/configurations",
   listRCConfigurationExpressHandler({
-    rccModel,
+    rcConfigurationModel,
     userRCConfigurationModel
   })
 );

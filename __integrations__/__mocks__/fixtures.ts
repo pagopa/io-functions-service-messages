@@ -210,18 +210,6 @@ export const createUserRCCollection = (
             {
               path: '/"_etag"/?'
             }
-          ],
-          compositeIndexes: [
-            [
-              {
-                path: "/fiscalCode",
-                order: "ascending"
-              },
-              {
-                path: "/id",
-                order: "descending"
-              }
-            ]
           ]
         } as any
       )

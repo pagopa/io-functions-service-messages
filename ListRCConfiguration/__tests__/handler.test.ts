@@ -33,7 +33,7 @@ describe("listRCConfigurationHandler", () => {
     );
 
     const r = await listRCConfigurationHandler({
-      rccModel: rccModelMock,
+      rcConfigurationModel: rccModelMock,
       userRCConfigurationModel: userRCCModelMock
     })({
       userId: aRemoteContentConfiguration.userId
@@ -52,18 +52,21 @@ describe("listRCConfigurationHandler", () => {
       TE.right([] as ReadonlyArray<RetrievedRCConfiguration>)
     );
     const r = await listRCConfigurationHandler({
-      rccModel: rccModelMock,
+      rcConfigurationModel: rccModelMock,
       userRCConfigurationModel: userRCCModelMock
     })({
       userId: aRemoteContentConfiguration.userId
     });
     expect(r.kind).toBe("IResponseSuccessJson");
+    if (r.kind === "IResponseSuccessJson") {
+      expect(r.value.rCConfigList).toHaveLength(0);
+    }
   });
 
   test("should return an IResponseErrorInternal if cosmos return an error", async () => {
     findAllByUserId.mockReturnValueOnce(TE.left(O.none));
     const r = await listRCConfigurationHandler({
-      rccModel: rccModelMock,
+      rcConfigurationModel: rccModelMock,
       userRCConfigurationModel: userRCCModelMock
     })({
       userId: aRemoteContentConfiguration.userId

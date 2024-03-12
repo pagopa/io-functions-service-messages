@@ -27,11 +27,11 @@ interface IHandlerParameter {
 }
 
 interface IListRCConfigurationHandlerParameter {
-  readonly rccModel: RCConfigurationModel;
+  readonly rcConfigurationModel: RCConfigurationModel;
   readonly userRCConfigurationModel: UserRCConfigurationModel;
 }
 
-export const handleCosmosErrorResponse = (
+const handleCosmosErrorResponse = (
   error: CosmosErrors
 ): IResponseErrorInternal =>
   ResponseErrorInternal(
@@ -41,7 +41,7 @@ export const handleCosmosErrorResponse = (
   );
 
 export const listRCConfigurationHandler = ({
-  rccModel,
+  rcConfigurationModel,
   userRCConfigurationModel
 }: IListRCConfigurationHandlerParameter) => ({
   userId
@@ -50,14 +50,13 @@ export const listRCConfigurationHandler = ({
 > =>
   pipe(
     userRCConfigurationModel.findAllByUserId(userId),
-    TE.mapLeft(handleCosmosErrorResponse),
     TE.chainW(configList =>
       pipe(
         configList,
         RA.map(configuration => Ulid.decode(configuration.id)),
         RA.rights,
         configIdList =>
-          rccModel.findAllLastVersionByConfigurationId(configIdList)
+          rcConfigurationModel.findAllLastVersionByConfigurationId(configIdList)
       )
     ),
     TE.mapLeft(handleCosmosErrorResponse),
@@ -70,7 +69,7 @@ export const listRCConfigurationHandler = ({
             user_id: userId
           }))
         ),
-        x => ResponseSuccessJson({ rCConfigList: x })
+        rCConfigList => ResponseSuccessJson({ rCConfigList })
       )
     ),
     TE.toUnion
@@ -83,11 +82,11 @@ type ListRCConfigurationHandler = (
 ) => ListRCConfigurationHandlerReturnType;
 
 export const listRCConfigurationExpressHandler: ListRCConfigurationHandler = ({
-  rccModel,
+  rcConfigurationModel,
   userRCConfigurationModel
 }) => {
   const handler = listRCConfigurationHandler({
-    rccModel,
+    rcConfigurationModel,
     userRCConfigurationModel
   });
 

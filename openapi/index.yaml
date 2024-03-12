@@ -100,7 +100,7 @@ paths:
       summary: Get all the remote-content configurations associated to the userId
       description: >-
         Get all the remote-content configurations associated to the userId
-        retrived from the header
+        retrieved from the header
       responses:
         '200':
           description: Return the configurations
