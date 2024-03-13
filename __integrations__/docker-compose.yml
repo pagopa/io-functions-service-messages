@@ -58,11 +58,13 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://function:7071/api/live"]
       interval: 12s
-      timeout: 10s
-      retries: 5
+      timeout: 15s
+      retries: 10
     build:
       context: ..
       dockerfile: ./docker/functions/Dockerfile
+    volumes:
+      - "../:/usr/src/app"
     ports:
       - ${FUNCTION_PORT}:7071
     links:
@@ -75,8 +77,7 @@ services:
 
   testagent:
     container_name: fn-service-messages-testagent
-    # FIX: use node 18 instead
-    image: node:16-alpine
+    image: node:18-alpine
     working_dir: /usr/src/app
     command: tail -f /dev/null # to keep it   up&running
     env_file:
