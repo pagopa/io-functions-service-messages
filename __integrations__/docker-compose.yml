@@ -58,11 +58,13 @@ services:
     healthcheck:
       test: ["CMD", "curl", "-f", "http://function:7071/api/live"]
       interval: 12s
-      timeout: 10s
+      timeout: 15s
       retries: 5
     build:
       context: ..
       dockerfile: ./docker/functions/Dockerfile
+    volumes:
+      - "../:/usr/src/app"
     ports:
       - ${FUNCTION_PORT}:7071
     links:
