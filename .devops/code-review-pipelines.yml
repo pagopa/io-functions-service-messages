@@ -81,6 +81,7 @@ stages:
         steps:
         - template: templates/node-job-setup/template.yaml@pagopaCommons
         - script: |
+            yarn build
             cd __integrations__
             sed -i 's/FF_TYPE=.*/FF_TYPE=none/g' environments/env.base
             cp environments/env.base environments/.env
@@ -99,6 +100,7 @@ stages:
         steps:
         - template: templates/node-job-setup/template.yaml@pagopaCommons
         - script: |
+            yarn build
             cd __integrations__
             sed -i 's/FF_TYPE=.*/FF_TYPE=prod/g' environments/env.base
             cp environments/env.base environments/.env
@@ -106,6 +108,7 @@ stages:
             yarn start
           displayName: 'Start test resources'
         - script: |
+            yarn build
             cd __integrations__
             yarn install --frozen-lockfile
             sleep 30s
