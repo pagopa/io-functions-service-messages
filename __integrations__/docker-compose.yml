@@ -59,7 +59,7 @@ services:
       test: ["CMD", "curl", "-f", "http://function:7071/api/live"]
       interval: 12s
       timeout: 15s
-      retries: 5
+      retries: 10
     build:
       context: ..
       dockerfile: ./docker/functions/Dockerfile
