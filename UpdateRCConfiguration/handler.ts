@@ -145,7 +145,7 @@ export const updateRCConfigurationHandler: UpdateRCConfigurationHandler = ({
         newRCConfiguration
       )
     ),
-    TE.chainW(handleUpsert({ rccModel, redisClientFactory, config })),
+    TE.chainW(handleUpsert({ config, rccModel, redisClientFactory })),
     TE.toUnion
   )();
 
@@ -167,9 +167,9 @@ export const getUpdateRCConfigurationExpressHandler: GetUpdateRCConfigurationHan
   config
 }) => {
   const handler = updateRCConfigurationHandler({
+    config,
     rccModel,
-    redisClientFactory,
-    config
+    redisClientFactory
   });
 
   const middlewaresWrap = withRequestMiddlewares(
