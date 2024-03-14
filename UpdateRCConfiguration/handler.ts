@@ -28,6 +28,10 @@ import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
 import { makeNewRCConfigurationWithConfigurationId } from "../utils/mappers";
+import { setWithExpirationTask } from "../utils/redis_storage";
+import { RedisClientFactory } from "../utils/redis";
+import { RC_CONFIGURATION_REDIS_PREFIX } from "../GetRCConfiguration/handler";
+import { IConfig } from "../utils/config";
 
 export const isUserAllowedToUpdateConfiguration = (
   userId: NonEmptyString
@@ -39,7 +43,17 @@ export const isUserAllowedToUpdateConfiguration = (
     () => ResponseErrorForbiddenNotAuthorized
   );
 
-export const handleUpsert = (rccModel: RCConfigurationModel) => (
+interface IHandleUpsertParameter {
+  readonly rccModel: RCConfigurationModel;
+  readonly redisClientFactory: RedisClientFactory;
+  readonly config: IConfig;
+}
+
+export const handleUpsert = ({
+  rccModel,
+  redisClientFactory,
+  config
+}: IHandleUpsertParameter) => (
   newRCConfiguration: RCConfiguration
 ): TE.TaskEither<IResponseErrorInternal, IResponseSuccessNoContent> =>
   pipe(
@@ -47,6 +61,17 @@ export const handleUpsert = (rccModel: RCConfigurationModel) => (
     TE.mapLeft(e =>
       ResponseErrorInternal(
         `Something went wrong trying to upsert the configuration: ${e}`
+      )
+    ),
+    TE.chainFirst(newConfiguration =>
+      pipe(
+        setWithExpirationTask(
+          redisClientFactory,
+          `${RC_CONFIGURATION_REDIS_PREFIX}-${newConfiguration.configurationId}`,
+          JSON.stringify(newConfiguration),
+          config.RC_CONFIGURATION_CACHE_TTL
+        ),
+        TE.orElseW(() => TE.of(newConfiguration))
       )
     ),
     TE.map(ResponseSuccessNoContent)
@@ -86,6 +111,8 @@ interface IHandlerParameter {
 
 interface IUpdateRCConfigurationHandlerParameter {
   readonly rccModel: RCConfigurationModel;
+  readonly redisClientFactory: RedisClientFactory;
+  readonly config: IConfig;
 }
 
 type UpdateRCConfigurationHandlerReturnType = (
@@ -102,7 +129,9 @@ type UpdateRCConfigurationHandler = (
 ) => UpdateRCConfigurationHandlerReturnType;
 
 export const updateRCConfigurationHandler: UpdateRCConfigurationHandler = ({
-  rccModel
+  rccModel,
+  redisClientFactory,
+  config
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 }) => ({ newRCConfiguration, configurationId, userId }) =>
   pipe(
@@ -116,12 +145,14 @@ export const updateRCConfigurationHandler: UpdateRCConfigurationHandler = ({
         newRCConfiguration
       )
     ),
-    TE.chainW(handleUpsert(rccModel)),
+    TE.chainW(handleUpsert({ rccModel, redisClientFactory, config })),
     TE.toUnion
   )();
 
 interface IGetUpdateRCConfigurationHandlerParameter {
   readonly rccModel: RCConfigurationModel;
+  readonly redisClientFactory: RedisClientFactory;
+  readonly config: IConfig;
 }
 
 type GetUpdateRCConfigurationHandlerReturnType = express.RequestHandler;
@@ -131,10 +162,14 @@ type GetUpdateRCConfigurationHandler = (
 ) => GetUpdateRCConfigurationHandlerReturnType;
 
 export const getUpdateRCConfigurationExpressHandler: GetUpdateRCConfigurationHandler = ({
-  rccModel
+  rccModel,
+  redisClientFactory,
+  config
 }) => {
   const handler = updateRCConfigurationHandler({
-    rccModel
+    rccModel,
+    redisClientFactory,
+    config
   });
 
   const middlewaresWrap = withRequestMiddlewares(
