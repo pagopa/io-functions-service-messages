@@ -63,15 +63,15 @@ export const handleUpsert = ({
         `Something went wrong trying to upsert the configuration: ${e}`
       )
     ),
-    TE.chainFirst(newConfiguration =>
+    TE.chainFirst(rcConfiguration =>
       pipe(
         setWithExpirationTask(
           redisClientFactory,
-          `${RC_CONFIGURATION_REDIS_PREFIX}-${newConfiguration.configurationId}`,
-          JSON.stringify(newConfiguration),
+          `${RC_CONFIGURATION_REDIS_PREFIX}-${rcConfiguration.configurationId}`,
+          JSON.stringify(rcConfiguration),
           config.RC_CONFIGURATION_CACHE_TTL
         ),
-        TE.orElseW(() => TE.of(newConfiguration))
+        TE.orElseW(() => TE.of(rcConfiguration))
       )
     ),
     TE.map(ResponseSuccessNoContent)
