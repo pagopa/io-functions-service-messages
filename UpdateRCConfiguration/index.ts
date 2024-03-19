@@ -10,11 +10,17 @@ import {
   RC_CONFIGURATION_COLLECTION_NAME
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { remoteContentCosmosDbInstance } from "../utils/cosmosdb";
+import { getConfigOrThrow } from "../utils/config";
+import { RedisClientFactory } from "../utils/redis";
 import { getUpdateRCConfigurationExpressHandler } from "./handler";
 
 const rccModel = new RCConfigurationModel(
   remoteContentCosmosDbInstance.container(RC_CONFIGURATION_COLLECTION_NAME)
 );
+
+const config = getConfigOrThrow();
+
+const redisClientFactory = new RedisClientFactory(config);
 
 // Setup Express
 const app = express();
@@ -24,7 +30,9 @@ secureExpressApp(app);
 app.put(
   "/api/v1/remote-contents/configurations/:configurationId",
   getUpdateRCConfigurationExpressHandler({
-    rccModel
+    config,
+    rccModel,
+    redisClientFactory
   })
 );
 

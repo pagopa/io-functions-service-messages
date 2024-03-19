@@ -1,6 +1,9 @@
 import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 import * as O from "fp-ts/lib/Option";
+import * as redis_storage from "../../utils/redis_storage";
+
+import { envConfig } from "../../__mocks__/env-config.mock";
 
 import {
   handleEmptyConfiguration,
@@ -15,6 +18,13 @@ import {
   upsertConfigurationMock
 } from "../../__mocks__/remote-content";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
+import { redisClientMock } from "../../__mocks__/redis.mock";
+import { RC_CONFIGURATION_REDIS_PREFIX } from "../../GetRCConfiguration/handler";
+
+const setWithExpirationTaskMock = jest.fn();
+jest
+  .spyOn(redis_storage, "setWithExpirationTask")
+  .mockImplementation(setWithExpirationTaskMock);
 
 describe("isUserAllowedToUpdateConfiguration", () => {
   test("should return a left if the userId is not equal to the userId of the configuration", async () => {
@@ -47,7 +57,6 @@ describe("handleEmptyConfiguration", () => {
       O.some(aRemoteContentConfiguration)
     )();
     expect(E.isRight(r)).toBe(true);
-    console.log(r);
     if (E.isRight(r)) expect(r.right).toBe(aRemoteContentConfiguration);
   });
 });
@@ -84,20 +93,63 @@ describe("handleGetLastRCConfigurationVersion", () => {
 });
 
 describe("handleUpsert", () => {
-  test("should return a left if the upsert method fail", async () => {
+  test("should return a left without calling the setTask if the upsert method fail", async () => {
     upsertConfigurationMock.mockReturnValueOnce(TE.left({}));
-    const r = await handleUpsert(rccModelMock)(aRemoteContentConfiguration)();
+
+    const r = await handleUpsert({
+      rccModel: rccModelMock,
+      config: envConfig,
+      redisClientFactory: redisClientMock
+    })(aRemoteContentConfiguration)();
     expect(E.isLeft(r)).toBe(true);
+    expect(setWithExpirationTaskMock).not.toHaveBeenCalled();
     if (E.isLeft(r))
       expect(r.left.detail).toContain(
         `Something went wrong trying to upsert the configuration: `
       );
   });
 
-  test("should return a right if the upsert method goes well", async () => {
-    upsertConfigurationMock.mockReturnValueOnce(TE.right({}));
-    const r = await handleUpsert(rccModelMock)(aRemoteContentConfiguration)();
+  test("should return a right calling the setTask if the upsert method goes well", async () => {
+    upsertConfigurationMock.mockReturnValueOnce(
+      TE.right(aRemoteContentConfiguration)
+    );
+    setWithExpirationTaskMock.mockReturnValueOnce(TE.right(true));
+
+    const r = await handleUpsert({
+      rccModel: rccModelMock,
+      config: envConfig,
+      redisClientFactory: redisClientMock
+    })(aRemoteContentConfiguration)();
     expect(E.isRight(r)).toBe(true);
+    expect(setWithExpirationTaskMock).toHaveBeenCalledWith(
+      redisClientMock,
+      `${RC_CONFIGURATION_REDIS_PREFIX}-${aRemoteContentConfiguration.configurationId}`,
+      JSON.stringify(aRemoteContentConfiguration),
+      envConfig.RC_CONFIGURATION_CACHE_TTL
+    );
+    if (E.isRight(r)) expect(r.right.kind).toBe("IResponseSuccessNoContent");
+  });
+
+  test("should return a right calling the setTask if the upsert method goes well but the setTask return an error", async () => {
+    upsertConfigurationMock.mockReturnValueOnce(
+      TE.right(aRemoteContentConfiguration)
+    );
+    setWithExpirationTaskMock.mockReturnValueOnce(
+      TE.left(new Error("Something went wrong"))
+    );
+
+    const r = await handleUpsert({
+      rccModel: rccModelMock,
+      config: envConfig,
+      redisClientFactory: redisClientMock
+    })(aRemoteContentConfiguration)();
+    expect(E.isRight(r)).toBe(true);
+    expect(setWithExpirationTaskMock).toHaveBeenCalledWith(
+      redisClientMock,
+      `${RC_CONFIGURATION_REDIS_PREFIX}-${aRemoteContentConfiguration.configurationId}`,
+      JSON.stringify(aRemoteContentConfiguration),
+      envConfig.RC_CONFIGURATION_CACHE_TTL
+    );
     if (E.isRight(r)) expect(r.right.kind).toBe("IResponseSuccessNoContent");
   });
 });
