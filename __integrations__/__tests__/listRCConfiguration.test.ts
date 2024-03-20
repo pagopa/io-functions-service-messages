@@ -83,7 +83,10 @@ describe("ListRCConfiguration", () => {
 
     expect(r.status).toBe(200);
     expect(response).toMatchObject({
-      rcConfigList: [anotherPublicRemoteContentConfiguration, aPublicRemoteContentConfiguration]
+      rcConfigList: [
+        {...anotherPublicRemoteContentConfiguration, user_id: "aUserId"},
+        {...aPublicRemoteContentConfiguration, user_id: "aUserId"}
+      ]
     });
   });
 });
