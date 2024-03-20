@@ -78,6 +78,10 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/NewRCConfigurationPublic'
+        - in: header
+          name: x-user-id
+          type: string
+          required: true
       responses:
         '201':
           description: Configuration created
@@ -101,6 +105,11 @@ paths:
       description: >-
         Get all the remote-content configurations associated to the userId
         retrieved from the header
+      parameters:
+        - in: header
+          name: x-user-id
+          type: string
+          required: true
       responses:
         '200':
           description: Return the configurations
@@ -137,6 +146,10 @@ paths:
           description: Ulid string.
           format: Ulid
           x-import: '@pagopa/ts-commons/lib/strings'
+        - in: header
+          name: x-user-id
+          type: string
+          required: true
       responses:
         '200':
           description: Return the configuration
@@ -177,6 +190,10 @@ paths:
           description: Ulid string.
           format: Ulid
           x-import: '@pagopa/ts-commons/lib/strings'
+        - in: header
+          name: x-user-id
+          type: string
+          required: true
       responses:
         '204':
           description: Configuration updated
