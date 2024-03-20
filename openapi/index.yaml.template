@@ -223,7 +223,7 @@ definitions:
   RCConfigurationListResponse:
     type: object
     properties:
-      rCConfigList:
+      rcConfigList:
         type: array
         items:
           $ref: "#/definitions/RCConfigurationResponse"

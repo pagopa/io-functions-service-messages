@@ -69,7 +69,7 @@ export const listRCConfigurationHandler = ({
             user_id: userId
           }))
         ),
-        rCConfigList => ResponseSuccessJson({ rCConfigList })
+        rcConfigList => ResponseSuccessJson({ rcConfigList })
       )
     ),
     TE.toUnion
