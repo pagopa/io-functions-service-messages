@@ -5,6 +5,11 @@ import {
   RCConfigurationModel,
   RetrievedRCConfiguration
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import {
+  RetrievedUserRCConfiguration,
+  UserRCConfiguration,
+  UserRCConfigurationModel
+} from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
 import { NonNegativeInteger } from "@pagopa/ts-commons/lib/numbers";
 import { FiscalCode } from "../generated/definitions/FiscalCode";
@@ -28,7 +33,21 @@ export const aRemoteContentConfiguration: RCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
   isLollipopEnabled: false,
-  configurationId: "01HQRD0YCVDXF1XDW634N87XCG" as Ulid,
+  configurationId: "01HNG1XBMT8V6HWGF5T053K9RJ" as Ulid,
+  userId: aUserId,
+  name: "aRemoteContentConfiguration" as NonEmptyString,
+  description: "a description" as NonEmptyString,
+  prodEnvironment: {
+    baseUrl: "aValidUrl" as NonEmptyString,
+    detailsAuthentication: aDetailAuthentication
+  }
+};
+
+export const anotherRemoteContentConfiguration: RCConfiguration = {
+  hasPrecondition: HasPreconditionEnum.ALWAYS,
+  disableLollipopFor: [],
+  isLollipopEnabled: false,
+  configurationId: "01HNG1XBMT8V6HWGF5T053K9RK" as Ulid,
   userId: aUserId,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
@@ -57,6 +76,23 @@ export const aPublicRemoteContentConfiguration: NewRCConfigurationPublic = {
   }
 };
 
+export const allLastVersionConfigurations: ReadonlyArray<RCConfiguration> = [aRemoteContentConfiguration, anotherRemoteContentConfiguration];
+
+export const aUserRCC: UserRCConfiguration = {
+  id: "01HNG1XBMT8V6HWGF5T053K9RK" as NonEmptyString,
+  userId: aUserId
+}
+
+export const anotherUserRCC: UserRCConfiguration = {
+  id: "01HNG1XBMT8V6HWGF5T053K9RJ" as NonEmptyString,
+  userId: aUserId
+}
+
+export const aUserRCCList: ReadonlyArray<RetrievedUserRCConfiguration> = [
+  {...aUserRCC, ...aCosmosResourceMetadata}, 
+  {...anotherUserRCC, ...aCosmosResourceMetadata}, 
+];
+
 const aFiscalCode = "FRLFRC74E04B157I" as FiscalCode;
 
 export const aRetrievedRCConfiguration: RetrievedRCConfiguration = {
@@ -79,9 +115,17 @@ export const aRetrievedRCConfiguration: RetrievedRCConfiguration = {
 export const createNewConfigurationMock = jest.fn();
 export const upsertConfigurationMock = jest.fn();
 export const findLastVersionMock = jest.fn();
+export const findAllLastVersionByConfigurationId = jest.fn();
 
 export const rccModelMock = ({
   create: createNewConfigurationMock,
   upsert: upsertConfigurationMock,
-  findLastVersionByModelId: findLastVersionMock
+  findLastVersionByModelId: findLastVersionMock,
+  findAllLastVersionByConfigurationId: findAllLastVersionByConfigurationId
 } as unknown) as RCConfigurationModel;
+
+export const findAllByUserId = jest.fn();
+
+export const userRCCModelMock = ({
+  findAllByUserId: findAllByUserId,
+} as unknown) as UserRCConfigurationModel;
