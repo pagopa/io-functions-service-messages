@@ -410,7 +410,6 @@ definitions:
     description: User's fiscal code.
     format: FiscalCode
     x-import: '@pagopa/ts-commons/lib/strings'
-    example: SPNDNL80R13C555X
 securityDefinitions:
   SubscriptionKey:
     type: apiKey
