@@ -78,11 +78,68 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/NewRCConfigurationPublic'
+          x-examples:
+            text/json: |
+                "name": "string",
+                "description": "string",
+                "has_precondition": "NONE",
+                "disable_lollipop_for": [
+                  "DIXDPZ44E08F367A"
+                ],
+                "is_lollipop_enabled": true,
+                "test_environment": {
+                  "base_url": "string",
+                  "details_authentication": {
+                    "header_key_name": "string",
+                    "key": "string",
+                    "type": "API-KEY"
+                  },
+                  "test_users": [
+                    "DIXDPZ44E08F367A"
+                  ]
+                },
+                "prod_environment": {
+                  "base_url": "string",
+                  "details_authentication": {
+                    "header_key_name": "string",
+                    "key": "string",
+                    "type": "API-KEY",
+                  }
+                }
       responses:
         '201':
           description: Configuration created
           schema:
             $ref: '#/definitions/RCConfigurationPublic'
+          examples:
+            text/json: |
+                "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                "name": "string",
+                "description": "string",
+                "has_precondition": "NONE",
+                "disable_lollipop_for": [
+                  "DIXDPZ44E08F367A"
+                ],
+                "is_lollipop_enabled": true,
+                "test_environment": {
+                  "base_url": "string",
+                  "details_authentication": {
+                    "header_key_name": "string",
+                    "key": "string",
+                    "type": "API-KEY"
+                  },
+                  "test_users": [
+                    "DIXDPZ44E08F367A"
+                  ]
+                },
+                "prod_environment": {
+                  "base_url": "string",
+                  "details_authentication": {
+                    "header_key_name": "string",
+                    "key": "string",
+                    "type": "API-KEY",
+                  }
+                }
         '400':
           description: Bad request
           schema:
@@ -283,31 +340,10 @@ definitions:
         type: string
         minLength: 1
         description: authentication config type
-      cert:
-        $ref: '#/definitions/RCClientCert'
     required:
       - header_key_name
       - key
       - type
-  RCClientCert:
-    type: object
-    properties:
-      client_cert:
-        type: string
-        minLength: 1
-        description: authentication config client cert
-      client_key:
-        type: string
-        minLength: 1
-        description: authentication config client key
-      server_ca:
-        type: string
-        minLength: 1
-        description: authentication config server ca
-    required:
-      - client_cert
-      - client_key
-      - server_ca
   RCConfigurationTestEnvironment:
     allOf:
       - $ref: '#/definitions/RCConfigurationProdEnvironment'
