@@ -70,7 +70,7 @@ paths:
           examples:
             text/json: |
                 "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-                "name": "name",
+                "name": "Configuration name",
                 "description": "Configuration description",
                 "has_precondition": "NONE",
                 "disable_lollipop_for": [
@@ -157,7 +157,7 @@ paths:
           examples:
             text/json: |
                 "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-                "name": "name",
+                "name": "Configuration name",
                 "description": "Configuration description",
                 "has_precondition": "NONE",
                 "disable_lollipop_for": [
