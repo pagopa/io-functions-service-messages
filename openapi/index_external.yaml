@@ -23,50 +23,6 @@ schemes:
 security:
   - SubscriptionKey: []
 paths:
-  /ping:
-    get:
-      operationId: pingOperation
-      summary: Ping
-      description: Returns function's package name and version
-      tags:
-        - restricted
-      responses:
-        '200':
-          description: Success.
-        '500':
-          description: Internal Server error
-  /notify:
-    post:
-      operationId: notify
-      summary: Notify a user
-      description: Post the notification to the user using a push notification.
-      parameters:
-        - in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/NotificationInfo'
-      responses:
-        '204':
-          description: Success.
-        '400':
-          description: Bad request
-          schema:
-            $ref: '#/definitions/ProblemJson'
-        '401':
-          description: Token null or invalid.
-        '403':
-          description: Request not authorized.
-        '404':
-          description: Resource not found.
-        '500':
-          description: There was an error in forwarding the notification.
-          schema:
-            $ref: '#/definitions/ProblemJson'
-      consumes:
-        - application/json
-      produces:
-        - application/json
   /remote-contents/configurations:
     post:
       operationId: createRCConfiguration
@@ -80,13 +36,13 @@ paths:
             $ref: '#/definitions/NewRCConfigurationPublic'
           x-examples:
             text/json: |
-                "name": "string",
-                "description": "string",
+                "name": "Descriptive congiguration name",
+                "description": "Configuration description",
                 "has_precondition": "NONE",
                 "disable_lollipop_for": [
                   "DIXDPZ44E08F367A"
                 ],
-                "is_lollipop_enabled": true,
+                "is_lollipop_enabled": false,
                 "test_environment": {
                   "base_url": "string",
                   "details_authentication": {
@@ -114,13 +70,13 @@ paths:
           examples:
             text/json: |
                 "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-                "name": "string",
-                "description": "string",
+                "name": "name",
+                "description": "Configuration description",
                 "has_precondition": "NONE",
                 "disable_lollipop_for": [
                   "DIXDPZ44E08F367A"
                 ],
-                "is_lollipop_enabled": true,
+                "is_lollipop_enabled": false,
                 "test_environment": {
                   "base_url": "string",
                   "details_authentication": {
@@ -198,6 +154,35 @@ paths:
           description: Return the configuration
           schema:
             $ref: '#/definitions/RCConfigurationResponse'
+          examples:
+            text/json: |
+                "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                "name": "name",
+                "description": "Configuration description",
+                "has_precondition": "NONE",
+                "disable_lollipop_for": [
+                  "DIXDPZ44E08F367A"
+                ],
+                "is_lollipop_enabled": false,
+                "test_environment": {
+                  "base_url": "string",
+                  "details_authentication": {
+                    "header_key_name": "string",
+                    "key": "string",
+                    "type": "API-KEY"
+                  },
+                  "test_users": [
+                    "DIXDPZ44E08F367A"
+                  ]
+                },
+                "prod_environment": {
+                  "base_url": "string",
+                  "details_authentication": {
+                    "header_key_name": "string",
+                    "key": "string",
+                    "type": "API-KEY",
+                  }
+                }
         '400':
           description: Bad request
           schema:
@@ -226,6 +211,34 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/NewRCConfigurationPublic'
+          x-examples:
+            text/json: |
+                "name": "Descriptive congiguration name",
+                "description": "Configuration description",
+                "has_precondition": "NONE",
+                "disable_lollipop_for": [
+                  "DIXDPZ44E08F367A"
+                ],
+                "is_lollipop_enabled": false,
+                "test_environment": {
+                  "base_url": "string",
+                  "details_authentication": {
+                    "header_key_name": "string",
+                    "key": "string",
+                    "type": "API-KEY"
+                  },
+                  "test_users": [
+                    "DIXDPZ44E08F367A"
+                  ]
+                },
+                "prod_environment": {
+                  "base_url": "string",
+                  "details_authentication": {
+                    "header_key_name": "string",
+                    "key": "string",
+                    "type": "API-KEY",
+                  }
+                }
         - in: path
           name: configurationId
           required: true
