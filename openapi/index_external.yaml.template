@@ -8,14 +8,7 @@ info:
   x-logo:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: >
-    # Warning
-
-    **This is an experimental API that is (most probably) going to change as we
-    evolve the IO platform.**
-
-    # Introduction
-
-    This is the documentation of the IO API for App.
+    External manage apis to manage message related entities.
 host: api.cd.italia.it
 basePath: /service-messages/api/v1
 schemes:

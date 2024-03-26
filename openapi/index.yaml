@@ -7,15 +7,8 @@ info:
     url: https://forum.italia.it/c/progetto-io
   x-logo:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
-  description: >
-    # Warning
-
-    **This is an experimental API that is (most probably) going to change as we
-    evolve the IO platform.**
-
-    # Introduction
-
-    This is the documentation of the IO API for App.
+  description: |
+    # Warning Experimental API These apis are experimental and for internal use.
 host: api.cd.italia.it
 basePath: /service-messages/api/v1
 schemes:
