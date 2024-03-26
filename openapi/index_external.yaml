@@ -8,8 +8,14 @@ info:
   x-logo:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: >
-    These are the openapi specification to manage the Remote Content Configuration
+    # Warning
 
+    **This is an experimental API that is (most probably) going to change as we
+    evolve the IO platform.**
+
+    # Introduction
+
+    This is the documentation of the IO API for App.
 host: api.cd.italia.it
 basePath: /service-messages/api/v1
 schemes:
@@ -28,68 +34,11 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/NewRCConfigurationPublic'
-          x-examples:
-            text/json: |
-              "name": "Descriptive congiguration name",
-              "description": "Configuration description",
-              "has_precondition": "NONE",
-              "disable_lollipop_for": [
-                "DIXDPZ44E08F367A"
-              ],
-              "is_lollipop_enabled": false,
-              "test_environment": {
-                "base_url": "string",
-                "details_authentication": {
-                  "header_key_name": "string",
-                  "key": "string",
-                  "type": "API-KEY"
-                },
-                "test_users": [
-                  "DIXDPZ44E08F367A"
-                ]
-              },
-              "prod_environment": {
-                "base_url": "string",
-                "details_authentication": {
-                  "header_key_name": "string",
-                  "key": "string",
-                  "type": "API-KEY",
-                }
-              }
       responses:
         '201':
           description: Configuration created
           schema:
             $ref: '#/definitions/RCConfigurationPublic'
-          examples:
-            text/json: |
-              "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-              "name": "Configuration name",
-              "description": "Configuration description",
-              "has_precondition": "NONE",
-              "disable_lollipop_for": [
-                "DIXDPZ44E08F367A"
-              ],
-              "is_lollipop_enabled": false,
-              "test_environment": {
-                "base_url": "string",
-                "details_authentication": {
-                  "header_key_name": "string",
-                  "key": "string",
-                  "type": "API-KEY"
-                },
-                "test_users": [
-                  "DIXDPZ44E08F367A"
-                ]
-              },
-              "prod_environment": {
-                "base_url": "string",
-                "details_authentication": {
-                  "header_key_name": "string",
-                  "key": "string",
-                  "type": "API-KEY",
-                }
-              }
         '400':
           description: Bad request
           schema:
@@ -104,9 +53,10 @@ paths:
         - application/json
     get:
       operationId: listRCConfiguration
-      summary: Get all the remote-content configurations
+      summary: Get all the remote-content configurations associated to the userId
       description: >-
-        Get all the remote-content configurations
+        Get all the remote-content configurations associated to the userId
+        retrieved from the header
       responses:
         '200':
           description: Return the configurations
@@ -133,7 +83,8 @@ paths:
       operationId: getRCConfiguration
       summary: Get the remote-content configuration identified by the configurationId
       description: >-
-        Get the remote-content configuration using the provided configurationId passed as path param
+        Get the remote-content configuration using the provided configurationId
+        passed as path param
       parameters:
         - in: path
           name: configurationId
@@ -147,35 +98,6 @@ paths:
           description: Return the configuration
           schema:
             $ref: '#/definitions/RCConfigurationResponse'
-          examples:
-            text/json: |
-              "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-              "name": "Configuration name",
-              "description": "Configuration description",
-              "has_precondition": "NONE",
-              "disable_lollipop_for": [
-                "DIXDPZ44E08F367A"
-              ],
-              "is_lollipop_enabled": false,
-              "test_environment": {
-                "base_url": "string",
-                "details_authentication": {
-                  "header_key_name": "string",
-                  "key": "string",
-                  "type": "API-KEY"
-                },
-                "test_users": [
-                  "DIXDPZ44E08F367A"
-                ]
-              },
-              "prod_environment": {
-                "base_url": "string",
-                "details_authentication": {
-                  "header_key_name": "string",
-                  "key": "string",
-                  "type": "API-KEY",
-                }
-              }
         '400':
           description: Bad request
           schema:
@@ -196,41 +118,14 @@ paths:
       operationId: updateRCConfiguration
       summary: Update an existing remote-content configuration
       description: >-
-        Update an existing remote-content configuration using the provided payload
+        Update an existing remote-content configuration using the provided
+        payload
       parameters:
         - in: body
           name: body
           required: true
           schema:
             $ref: '#/definitions/NewRCConfigurationPublic'
-          x-examples:
-            text/json: |
-              "name": "Descriptive congiguration name",
-              "description": "Configuration description",
-              "has_precondition": "NONE",
-              "disable_lollipop_for": [
-                "DIXDPZ44E08F367A"
-              ],
-              "is_lollipop_enabled": false,
-              "test_environment": {
-                "base_url": "string",
-                "details_authentication": {
-                  "header_key_name": "string",
-                  "key": "string",
-                  "type": "API-KEY"
-                },
-                "test_users": [
-                  "DIXDPZ44E08F367A"
-                ]
-              },
-              "prod_environment": {
-                "base_url": "string",
-                "details_authentication": {
-                  "header_key_name": "string",
-                  "key": "string",
-                  "type": "API-KEY",
-                }
-              }
         - in: path
           name: configurationId
           required: true
@@ -284,7 +179,11 @@ definitions:
       disable_lollipop_for:
         type: array
         items:
-          $ref: '#/definitions/FiscalCode'
+          type: string
+          description: User's fiscal code.
+          format: FiscalCode
+          x-import: '@pagopa/ts-commons/lib/strings'
+          example: SPNDNL80R13C555X
       is_lollipop_enabled:
         type: boolean
         description: Flag to check if lollipop is enabled
@@ -345,10 +244,31 @@ definitions:
         type: string
         minLength: 1
         description: authentication config type
+      cert:
+        $ref: '#/definitions/RCClientCert'
     required:
       - header_key_name
       - key
       - type
+  RCClientCert:
+    type: object
+    properties:
+      client_cert:
+        type: string
+        minLength: 1
+        description: authentication config client cert
+      client_key:
+        type: string
+        minLength: 1
+        description: authentication config client key
+      server_ca:
+        type: string
+        minLength: 1
+        description: authentication config server ca
+    required:
+      - client_cert
+      - client_key
+      - server_ca
   RCConfigurationTestEnvironment:
     allOf:
       - $ref: '#/definitions/RCConfigurationProdEnvironment'
@@ -357,7 +277,8 @@ definitions:
           test_users:
             type: array
             items:
-              $ref: '#/definitions/FiscalCode'
+              $ref: >-
+                #/definitions/NewRCConfigurationBase/properties/disable_lollipop_for/items
         required:
           - test_users
   HasPrecondition:
@@ -383,27 +304,6 @@ definitions:
             minLength: 1
         required:
           - user_id
-  NotificationType:
-    type: string
-    enum:
-      - MESSAGE
-      - REMINDER_READ
-      - REMINDER_PAYMENT
-      - REMINDER_PAYMENT_LAST
-  NotificationInfo:
-    type: object
-    properties:
-      notification_type:
-        $ref: '#/definitions/NotificationType'
-      fiscal_code:
-        $ref: '#/definitions/FiscalCode'
-      message_id:
-        type: string
-        minLength: 1
-    required:
-      - notification_type
-      - fiscal_code
-      - message_id
   ProblemJson:
     type: object
     properties:
@@ -426,7 +326,8 @@ definitions:
         type: integer
         format: int32
         description: >-
-          The HTTP status code generated by the origin server for this occurrence of the problem.
+          The HTTP status code generated by the origin server for this
+          occurrence of the problem.
         minimum: 100
         maximum: 600
         exclusiveMaximum: true
@@ -441,14 +342,10 @@ definitions:
         type: string
         format: uri
         description: >-
-          An absolute URI that identifies the specific occurrence of the problem.
+          An absolute URI that identifies the specific occurrence of the
+          problem.
 
           It may or may not yield further information if dereferenced.
-  FiscalCode:
-    type: string
-    description: User's fiscal code.
-    format: FiscalCode
-    x-import: '@pagopa/ts-commons/lib/strings'
 securityDefinitions:
   SubscriptionKey:
     type: apiKey

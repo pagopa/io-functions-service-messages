@@ -1,0 +1,201 @@
+swagger: '2.0'
+info:
+  version: 1.4.0
+  title: IO API for service Messages
+  contact:
+    name: PagoPA
+    url: https://forum.italia.it/c/progetto-io
+  x-logo:
+    url: https://io.italia.it/assets/img/io-logo-blue.svg
+  description: >
+    # Warning
+
+    **This is an experimental API that is (most probably) going to change as we
+    evolve the IO platform.**
+
+    # Introduction
+
+    This is the documentation of the IO API for App.
+host: api.cd.italia.it
+basePath: /service-messages/api/v1
+schemes:
+  - https
+security:
+  - SubscriptionKey: []
+paths:
+  /remote-contents/configurations:
+    post:
+      operationId: createRCConfiguration
+      summary: Create a new remote-content configuration
+      description: Create a new remote-content configuration using the provided payload
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/NewRCConfigurationPublic'
+      responses:
+        '201':
+          description: Configuration created
+          schema:
+            $ref: '#/definitions/RCConfigurationPublic'
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '500':
+          description: >-
+            There was an error creating the configuration.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+    get:
+      operationId: listRCConfiguration
+      summary: Get all the remote-content configurations associated to the userId
+      description: Get all the remote-content configurations associated to the userId retrieved from the header
+      responses:
+        '200':
+          description: Return the configurations
+          schema:
+            $ref: '#/definitions/RCConfigurationListResponse'
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '403':
+          description: Request not authorized.
+        '404':
+          description: Resource not found.
+        '500':
+          description: >-
+            There was an error trying to get the configurations.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+  /remote-contents/configurations/{configurationId}:
+    get:
+      operationId: getRCConfiguration
+      summary: Get the remote-content configuration identified by the configurationId
+      description: Get the remote-content configuration using the provided configurationId passed as path param
+      parameters:
+        - in: path
+          name: configurationId
+          required: true
+          type: string
+          description: Ulid string.
+          format: Ulid
+          x-import: '@pagopa/ts-commons/lib/strings'
+      responses:
+        '200':
+          description: Return the configuration
+          schema:
+            $ref: '#/definitions/RCConfigurationResponse'
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '403':
+          description: Request not authorized.
+        '404':
+          description: Resource not found.
+        '500':
+          description: >-
+            There was an error trying to get the configuration.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+    put:
+      operationId: updateRCConfiguration
+      summary: Update an existing remote-content configuration
+      description: Update an existing remote-content configuration using the provided payload
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/NewRCConfigurationPublic'
+        - in: path
+          name: configurationId
+          required: true
+          type: string
+          description: Ulid string.
+          format: Ulid
+          x-import: '@pagopa/ts-commons/lib/strings'
+      responses:
+        '204':
+          description: Configuration updated
+        '400':
+          description: Bad request
+          schema:
+            $ref: '#/definitions/ProblemJson'
+        '403':
+          description: Request not authorized.
+        '404':
+          description: Resource not found.
+        '500':
+          description: >-
+            There was an error updating the configuration.
+          schema:
+            $ref: '#/definitions/ProblemJson'
+      consumes:
+        - application/json
+      produces:
+        - application/json
+
+definitions:
+  RCConfigurationId:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/Ulid"
+  RCConfigurationPublic:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationPublic"
+  NewRCConfigurationBase:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NewRCConfigurationBase"
+  NewRCConfigurationPublic:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NewRCConfigurationPublic"
+  RCConfigurationBase:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationBase"
+  RCConfigurationEnvironment:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationEnvironment"
+  RCConfigurationProdEnvironment:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationProdEnvironment"
+  RCAuthenticationConfig:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCAuthenticationConfig"
+  RCClientCert:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCClientCert"
+  RCConfigurationTestEnvironment:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationTestEnvironment"
+  HasPrecondition:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/HasPrecondition"
+  RCConfigurationListResponse:
+    type: object
+    properties:
+      rcConfigList:
+        type: array
+        items:
+          $ref: "#/definitions/RCConfigurationResponse"
+  RCConfigurationResponse:
+    allOf:
+      - $ref: "#/definitions/RCConfigurationPublic"
+      - type: object
+        properties:
+          user_id:
+            type: string
+            minLength: 1
+        required:
+          - user_id
+  ProblemJson:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ProblemJson"
+securityDefinitions:
+  SubscriptionKey:
+    type: apiKey
+    name: Ocp-Apim-Subscription-Key
+    in: header
+    description: The API key obtained through the developer portal.
