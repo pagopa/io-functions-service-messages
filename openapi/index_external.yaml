@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 1.8.0
+  version: 1.10.0
   title: IO API for service Messages
   contact:
     name: PagoPA
@@ -9,6 +9,7 @@ info:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: >
     These are the openapi specification to manage the Remote Content Configuration
+
 host: api.cd.italia.it
 basePath: /service-messages/api/v1
 schemes:
@@ -29,32 +30,32 @@ paths:
             $ref: '#/definitions/NewRCConfigurationPublic'
           x-examples:
             text/json: |
-                "name": "Descriptive congiguration name",
-                "description": "Configuration description",
-                "has_precondition": "NONE",
-                "disable_lollipop_for": [
-                  "DIXDPZ44E08F367A"
-                ],
-                "is_lollipop_enabled": false,
-                "test_environment": {
-                  "base_url": "string",
-                  "details_authentication": {
-                    "header_key_name": "string",
-                    "key": "string",
-                    "type": "API-KEY"
-                  },
-                  "test_users": [
-                    "DIXDPZ44E08F367A"
-                  ]
+              "name": "Descriptive congiguration name",
+              "description": "Configuration description",
+              "has_precondition": "NONE",
+              "disable_lollipop_for": [
+                "DIXDPZ44E08F367A"
+              ],
+              "is_lollipop_enabled": false,
+              "test_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY"
                 },
-                "prod_environment": {
-                  "base_url": "string",
-                  "details_authentication": {
-                    "header_key_name": "string",
-                    "key": "string",
-                    "type": "API-KEY",
-                  }
+                "test_users": [
+                  "DIXDPZ44E08F367A"
+                ]
+              },
+              "prod_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY",
                 }
+              }
       responses:
         '201':
           description: Configuration created
@@ -62,33 +63,33 @@ paths:
             $ref: '#/definitions/RCConfigurationPublic'
           examples:
             text/json: |
-                "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-                "name": "Configuration name",
-                "description": "Configuration description",
-                "has_precondition": "NONE",
-                "disable_lollipop_for": [
-                  "DIXDPZ44E08F367A"
-                ],
-                "is_lollipop_enabled": false,
-                "test_environment": {
-                  "base_url": "string",
-                  "details_authentication": {
-                    "header_key_name": "string",
-                    "key": "string",
-                    "type": "API-KEY"
-                  },
-                  "test_users": [
-                    "DIXDPZ44E08F367A"
-                  ]
+              "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+              "name": "Configuration name",
+              "description": "Configuration description",
+              "has_precondition": "NONE",
+              "disable_lollipop_for": [
+                "DIXDPZ44E08F367A"
+              ],
+              "is_lollipop_enabled": false,
+              "test_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY"
                 },
-                "prod_environment": {
-                  "base_url": "string",
-                  "details_authentication": {
-                    "header_key_name": "string",
-                    "key": "string",
-                    "type": "API-KEY",
-                  }
+                "test_users": [
+                  "DIXDPZ44E08F367A"
+                ]
+              },
+              "prod_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY",
                 }
+              }
         '400':
           description: Bad request
           schema:
@@ -132,8 +133,7 @@ paths:
       operationId: getRCConfiguration
       summary: Get the remote-content configuration identified by the configurationId
       description: >-
-        Get the remote-content configuration using the provided configurationId
-        passed as path param
+        Get the remote-content configuration using the provided configurationId passed as path param
       parameters:
         - in: path
           name: configurationId
@@ -149,33 +149,33 @@ paths:
             $ref: '#/definitions/RCConfigurationResponse'
           examples:
             text/json: |
-                "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
-                "name": "Configuration name",
-                "description": "Configuration description",
-                "has_precondition": "NONE",
-                "disable_lollipop_for": [
-                  "DIXDPZ44E08F367A"
-                ],
-                "is_lollipop_enabled": false,
-                "test_environment": {
-                  "base_url": "string",
-                  "details_authentication": {
-                    "header_key_name": "string",
-                    "key": "string",
-                    "type": "API-KEY"
-                  },
-                  "test_users": [
-                    "DIXDPZ44E08F367A"
-                  ]
+              "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+              "name": "Configuration name",
+              "description": "Configuration description",
+              "has_precondition": "NONE",
+              "disable_lollipop_for": [
+                "DIXDPZ44E08F367A"
+              ],
+              "is_lollipop_enabled": false,
+              "test_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY"
                 },
-                "prod_environment": {
-                  "base_url": "string",
-                  "details_authentication": {
-                    "header_key_name": "string",
-                    "key": "string",
-                    "type": "API-KEY",
-                  }
+                "test_users": [
+                  "DIXDPZ44E08F367A"
+                ]
+              },
+              "prod_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY",
                 }
+              }
         '400':
           description: Bad request
           schema:
@@ -196,8 +196,7 @@ paths:
       operationId: updateRCConfiguration
       summary: Update an existing remote-content configuration
       description: >-
-        Update an existing remote-content configuration using the provided
-        payload
+        Update an existing remote-content configuration using the provided payload
       parameters:
         - in: body
           name: body
@@ -206,32 +205,32 @@ paths:
             $ref: '#/definitions/NewRCConfigurationPublic'
           x-examples:
             text/json: |
-                "name": "Descriptive congiguration name",
-                "description": "Configuration description",
-                "has_precondition": "NONE",
-                "disable_lollipop_for": [
-                  "DIXDPZ44E08F367A"
-                ],
-                "is_lollipop_enabled": false,
-                "test_environment": {
-                  "base_url": "string",
-                  "details_authentication": {
-                    "header_key_name": "string",
-                    "key": "string",
-                    "type": "API-KEY"
-                  },
-                  "test_users": [
-                    "DIXDPZ44E08F367A"
-                  ]
+              "name": "Descriptive congiguration name",
+              "description": "Configuration description",
+              "has_precondition": "NONE",
+              "disable_lollipop_for": [
+                "DIXDPZ44E08F367A"
+              ],
+              "is_lollipop_enabled": false,
+              "test_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY"
                 },
-                "prod_environment": {
-                  "base_url": "string",
-                  "details_authentication": {
-                    "header_key_name": "string",
-                    "key": "string",
-                    "type": "API-KEY",
-                  }
+                "test_users": [
+                  "DIXDPZ44E08F367A"
+                ]
+              },
+              "prod_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY",
                 }
+              }
         - in: path
           name: configurationId
           required: true
@@ -427,8 +426,7 @@ definitions:
         type: integer
         format: int32
         description: >-
-          The HTTP status code generated by the origin server for this
-          occurrence of the problem.
+          The HTTP status code generated by the origin server for this occurrence of the problem.
         minimum: 100
         maximum: 600
         exclusiveMaximum: true
@@ -443,8 +441,7 @@ definitions:
         type: string
         format: uri
         description: >-
-          An absolute URI that identifies the specific occurrence of the
-          problem.
+          An absolute URI that identifies the specific occurrence of the problem.
 
           It may or may not yield further information if dereferenced.
   FiscalCode:
