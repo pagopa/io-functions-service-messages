@@ -1,14 +1,14 @@
 swagger: '2.0'
 info:
-  version: 1.10.0
+  version: 1.4.0
   title: IO API for service Messages
   contact:
     name: PagoPA
     url: https://forum.italia.it/c/progetto-io
   x-logo:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
-  description: |
-    # Warning Experimental API These apis are experimental and for internal use.
+  description: >
+    External manage apis to manage message related entities.
 host: api.cd.italia.it
 basePath: /service-messages/api/v1
 schemes:
@@ -16,50 +16,6 @@ schemes:
 security:
   - SubscriptionKey: []
 paths:
-  /ping:
-    get:
-      operationId: pingOperation
-      summary: Ping
-      description: Returns function's package name and version
-      tags:
-        - restricted
-      responses:
-        '200':
-          description: Success.
-        '500':
-          description: Internal Server error
-  /notify:
-    post:
-      operationId: notify
-      summary: Notify a user
-      description: Post the notification to the user using a push notification.
-      parameters:
-        - in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/NotificationInfo'
-      responses:
-        '204':
-          description: Success.
-        '400':
-          description: Bad request
-          schema:
-            $ref: '#/definitions/ProblemJson'
-        '401':
-          description: Token null or invalid.
-        '403':
-          description: Request not authorized.
-        '404':
-          description: Resource not found.
-        '500':
-          description: There was an error in forwarding the notification.
-          schema:
-            $ref: '#/definitions/ProblemJson'
-      consumes:
-        - application/json
-      produces:
-        - application/json
   /remote-contents/configurations:
     post:
       operationId: createRCConfiguration
@@ -71,21 +27,75 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/NewRCConfigurationPublic'
-        - in: header
-          name: x-user-id
-          type: string
-          required: true
+          x-examples:
+            text/json: |
+              "name": "Descriptive congiguration name",
+              "description": "Configuration description",
+              "has_precondition": "NONE",
+              "disable_lollipop_for": [
+                "DIXDPZ44E08F367A"
+              ],
+              "is_lollipop_enabled": false,
+              "test_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY"
+                },
+                "test_users": [
+                  "DIXDPZ44E08F367A"
+                ]
+              },
+              "prod_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY",
+                }
+              }
       responses:
         '201':
           description: Configuration created
           schema:
             $ref: '#/definitions/RCConfigurationPublic'
+          examples:
+            text/json: |
+              "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+              "name": "Configuration name",
+              "description": "Configuration description",
+              "has_precondition": "NONE",
+              "disable_lollipop_for": [
+                "DIXDPZ44E08F367A"
+              ],
+              "is_lollipop_enabled": false,
+              "test_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY"
+                },
+                "test_users": [
+                  "DIXDPZ44E08F367A"
+                ]
+              },
+              "prod_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY",
+                }
+              }
         '400':
           description: Bad request
           schema:
             $ref: '#/definitions/ProblemJson'
         '500':
-          description: There was an error creating the configuration.
+          description: >-
+            There was an error creating the configuration.
           schema:
             $ref: '#/definitions/ProblemJson'
       consumes:
@@ -94,20 +104,46 @@ paths:
         - application/json
     get:
       operationId: listRCConfiguration
-      summary: Get all the remote-content configurations associated to the userId
-      description: >-
-        Get all the remote-content configurations associated to the userId
-        retrieved from the header
-      parameters:
-        - in: header
-          name: x-user-id
-          type: string
-          required: true
+      summary: Get all the owned remote-content configurations
+      description: Get all the owned remote-content configurations
       responses:
         '200':
           description: Return the configurations
           schema:
             $ref: '#/definitions/RCConfigurationListResponse'
+          examples:
+            text/json: |
+              rcConfigList: [
+                {
+                  "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+                  "name": "Configuration name",
+                  "description": "Configuration description",
+                  "has_precondition": "NONE",
+                  "disable_lollipop_for": [
+                    "DIXDPZ44E08F367A"
+                  ],
+                  "is_lollipop_enabled": false,
+                  "test_environment": {
+                    "base_url": "string",
+                    "details_authentication": {
+                      "header_key_name": "string",
+                      "key": "string",
+                      "type": "API-KEY"
+                    },
+                    "test_users": [
+                      "DIXDPZ44E08F367A"
+                    ]
+                  },
+                  "prod_environment": {
+                    "base_url": "string",
+                    "details_authentication": {
+                      "header_key_name": "string",
+                      "key": "string",
+                      "type": "API-KEY",
+                    }
+                  }
+                }
+              ]
         '400':
           description: Bad request
           schema:
@@ -117,7 +153,8 @@ paths:
         '404':
           description: Resource not found.
         '500':
-          description: There was an error trying to get the configurations.
+          description: >-
+            There was an error trying to get the configurations.
           schema:
             $ref: '#/definitions/ProblemJson'
       consumes:
@@ -128,9 +165,7 @@ paths:
     get:
       operationId: getRCConfiguration
       summary: Get the remote-content configuration identified by the configurationId
-      description: >-
-        Get the remote-content configuration using the provided configurationId
-        passed as path param
+      description: Get the remote-content configuration using the provided configurationId passed as path param
       parameters:
         - in: path
           name: configurationId
@@ -139,15 +174,40 @@ paths:
           description: Ulid string.
           format: Ulid
           x-import: '@pagopa/ts-commons/lib/strings'
-        - in: header
-          name: x-user-id
-          type: string
-          required: true
       responses:
         '200':
           description: Return the configuration
           schema:
             $ref: '#/definitions/RCConfigurationResponse'
+          examples:
+            text/json: |
+              "configuration_id": "01ARZ3NDEKTSV4RRFFQ69G5FAV",
+              "name": "Configuration name",
+              "description": "Configuration description",
+              "has_precondition": "NONE",
+              "disable_lollipop_for": [
+                "DIXDPZ44E08F367A"
+              ],
+              "is_lollipop_enabled": false,
+              "test_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY"
+                },
+                "test_users": [
+                  "DIXDPZ44E08F367A"
+                ]
+              },
+              "prod_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY",
+                }
+              }
         '400':
           description: Bad request
           schema:
@@ -157,7 +217,8 @@ paths:
         '404':
           description: Resource not found.
         '500':
-          description: There was an error trying to get the configuration.
+          description: >-
+            There was an error trying to get the configuration.
           schema:
             $ref: '#/definitions/ProblemJson'
       consumes:
@@ -167,15 +228,41 @@ paths:
     put:
       operationId: updateRCConfiguration
       summary: Update an existing remote-content configuration
-      description: >-
-        Update an existing remote-content configuration using the provided
-        payload
+      description: Update an existing remote-content configuration using the provided payload
       parameters:
         - in: body
           name: body
           required: true
           schema:
             $ref: '#/definitions/NewRCConfigurationPublic'
+          x-examples:
+            text/json: |
+              "name": "Descriptive congiguration name",
+              "description": "Configuration description",
+              "has_precondition": "NONE",
+              "disable_lollipop_for": [
+                "DIXDPZ44E08F367A"
+              ],
+              "is_lollipop_enabled": false,
+              "test_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY"
+                },
+                "test_users": [
+                  "DIXDPZ44E08F367A"
+                ]
+              },
+              "prod_environment": {
+                "base_url": "string",
+                "details_authentication": {
+                  "header_key_name": "string",
+                  "key": "string",
+                  "type": "API-KEY",
+                }
+              }
         - in: path
           name: configurationId
           required: true
@@ -183,10 +270,6 @@ paths:
           description: Ulid string.
           format: Ulid
           x-import: '@pagopa/ts-commons/lib/strings'
-        - in: header
-          name: x-user-id
-          type: string
-          required: true
       responses:
         '204':
           description: Configuration updated
@@ -199,13 +282,15 @@ paths:
         '404':
           description: Resource not found.
         '500':
-          description: There was an error updating the configuration.
+          description: >-
+            There was an error updating the configuration.
           schema:
             $ref: '#/definitions/ProblemJson'
       consumes:
         - application/json
       produces:
         - application/json
+
 definitions:
   RCConfigurationId:
     type: string
@@ -233,7 +318,11 @@ definitions:
       disable_lollipop_for:
         type: array
         items:
-          $ref: '#/definitions/FiscalCode'
+          type: string
+          description: User's fiscal code.
+          format: FiscalCode
+          x-import: '@pagopa/ts-commons/lib/strings'
+          example: SPNDNL80R13C555X
       is_lollipop_enabled:
         type: boolean
         description: Flag to check if lollipop is enabled
@@ -294,31 +383,10 @@ definitions:
         type: string
         minLength: 1
         description: authentication config type
-      cert:
-        $ref: '#/definitions/RCClientCert'
     required:
       - header_key_name
       - key
       - type
-  RCClientCert:
-    type: object
-    properties:
-      client_cert:
-        type: string
-        minLength: 1
-        description: authentication config client cert
-      client_key:
-        type: string
-        minLength: 1
-        description: authentication config client key
-      server_ca:
-        type: string
-        minLength: 1
-        description: authentication config server ca
-    required:
-      - client_cert
-      - client_key
-      - server_ca
   RCConfigurationTestEnvironment:
     allOf:
       - $ref: '#/definitions/RCConfigurationProdEnvironment'
@@ -353,75 +421,10 @@ definitions:
             minLength: 1
         required:
           - user_id
-  NotificationType:
-    type: string
-    enum:
-      - MESSAGE
-      - REMINDER_READ
-      - REMINDER_PAYMENT
-      - REMINDER_PAYMENT_LAST
-  NotificationInfo:
-    type: object
-    properties:
-      notification_type:
-        $ref: '#/definitions/NotificationType'
-      fiscal_code:
-        $ref: '#/definitions/FiscalCode'
-      message_id:
-        type: string
-        minLength: 1
-    required:
-      - notification_type
-      - fiscal_code
-      - message_id
   ProblemJson:
-    type: object
-    properties:
-      type:
-        type: string
-        format: uri
-        description: |-
-          An absolute URI that identifies the problem type. When dereferenced,
-          it SHOULD provide human-readable documentation for the problem type
-          (e.g., using HTML).
-        default: about:blank
-        example: https://example.com/problem/constraint-violation
-      title:
-        type: string
-        description: |-
-          A short, summary of the problem type. Written in english and readable
-          for engineers (usually not suited for non technical stakeholders and
-          not localized); example: Service Unavailable
-      status:
-        type: integer
-        format: int32
-        description: >-
-          The HTTP status code generated by the origin server for this
-          occurrence of the problem.
-        minimum: 100
-        maximum: 600
-        exclusiveMaximum: true
-        example: 200
-      detail:
-        type: string
-        description: |-
-          A human readable explanation specific to this occurrence of the
-          problem.
-        example: There was an error processing the request
-      instance:
-        type: string
-        format: uri
-        description: >-
-          An absolute URI that identifies the specific occurrence of the
-          problem.
-
-          It may or may not yield further information if dereferenced.
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ProblemJson"
   FiscalCode:
-    type: string
-    description: User's fiscal code.
-    format: FiscalCode
-    x-import: '@pagopa/ts-commons/lib/strings'
-    example: SPNDNL80R13C555X
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/FiscalCode"
 securityDefinitions:
   SubscriptionKey:
     type: apiKey
