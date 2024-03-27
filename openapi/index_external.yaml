@@ -103,10 +103,8 @@ paths:
         - application/json
     get:
       operationId: listRCConfiguration
-      summary: Get all the remote-content configurations associated to the userId
-      description: >-
-        Get all the remote-content configurations associated to the userId
-        retrieved from the header
+      summary: Get all the owned remote-content configurations
+      description: Get all the owned remote-content configurations
       responses:
         '200':
           description: Return the configurations
@@ -384,31 +382,10 @@ definitions:
         type: string
         minLength: 1
         description: authentication config type
-      cert:
-        $ref: '#/definitions/RCClientCert'
     required:
       - header_key_name
       - key
       - type
-  RCClientCert:
-    type: object
-    properties:
-      client_cert:
-        type: string
-        minLength: 1
-        description: authentication config client cert
-      client_key:
-        type: string
-        minLength: 1
-        description: authentication config client key
-      server_ca:
-        type: string
-        minLength: 1
-        description: authentication config server ca
-    required:
-      - client_cert
-      - client_key
-      - server_ca
   RCConfigurationTestEnvironment:
     allOf:
       - $ref: '#/definitions/RCConfigurationProdEnvironment'
@@ -417,8 +394,7 @@ definitions:
           test_users:
             type: array
             items:
-              $ref: >-
-                #/definitions/NewRCConfigurationBase/properties/disable_lollipop_for/items
+              $ref: '#/definitions/FiscalCode'
         required:
           - test_users
   HasPrecondition:
@@ -486,6 +462,12 @@ definitions:
           problem.
 
           It may or may not yield further information if dereferenced.
+  FiscalCode:
+    type: string
+    description: User's fiscal code.
+    format: FiscalCode
+    x-import: '@pagopa/ts-commons/lib/strings'
+    example: SPNDNL80R13C555X
 securityDefinitions:
   SubscriptionKey:
     type: apiKey

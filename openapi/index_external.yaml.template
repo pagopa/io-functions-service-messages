@@ -104,8 +104,8 @@ paths:
         - application/json
     get:
       operationId: listRCConfiguration
-      summary: Get all the remote-content configurations associated to the userId
-      description: Get all the remote-content configurations associated to the userId retrieved from the header
+      summary: Get all the owned remote-content configurations
+      description: Get all the owned remote-content configurations
       responses:
         '200':
           description: Return the configurations
@@ -293,37 +293,127 @@ paths:
 
 definitions:
   RCConfigurationId:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/Ulid"
+    type: string
+    description: Ulid string.
+    format: Ulid
+    x-import: '@pagopa/ts-commons/lib/strings'
+    example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
   RCConfigurationPublic:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationPublic"
+    allOf:
+      - $ref: '#/definitions/RCConfigurationBase'
+      - $ref: '#/definitions/RCConfigurationEnvironment'
   NewRCConfigurationBase:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NewRCConfigurationBase"
+    type: object
+    properties:
+      name:
+        type: string
+        minLength: 1
+        description: Configuration name.
+      description:
+        type: string
+        minLength: 1
+        description: Configuration description.
+      has_precondition:
+        $ref: '#/definitions/HasPrecondition'
+      disable_lollipop_for:
+        type: array
+        items:
+          type: string
+          description: User's fiscal code.
+          format: FiscalCode
+          x-import: '@pagopa/ts-commons/lib/strings'
+          example: SPNDNL80R13C555X
+      is_lollipop_enabled:
+        type: boolean
+        description: Flag to check if lollipop is enabled
+    required:
+      - name
+      - description
+      - has_precondition
+      - disable_lollipop_for
+      - is_lollipop_enabled
   NewRCConfigurationPublic:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/NewRCConfigurationPublic"
+    allOf:
+      - $ref: '#/definitions/NewRCConfigurationBase'
+      - $ref: '#/definitions/RCConfigurationEnvironment'
   RCConfigurationBase:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationBase"
+    allOf:
+      - $ref: '#/definitions/NewRCConfigurationBase'
+      - type: object
+        properties:
+          configuration_id:
+            type: string
+            description: Ulid string.
+            format: Ulid
+            x-import: '@pagopa/ts-commons/lib/strings'
+            example: 01ARZ3NDEKTSV4RRFFQ69G5FAV
+        required:
+          - configuration_id
   RCConfigurationEnvironment:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationEnvironment"
+    type: object
+    properties:
+      test_environment:
+        $ref: '#/definitions/RCConfigurationTestEnvironment'
+      prod_environment:
+        $ref: '#/definitions/RCConfigurationProdEnvironment'
   RCConfigurationProdEnvironment:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationProdEnvironment"
+    type: object
+    properties:
+      base_url:
+        type: string
+        minLength: 1
+        description: Base url of the server.
+      details_authentication:
+        $ref: '#/definitions/RCAuthenticationConfig'
+    required:
+      - base_url
+      - details_authentication
   RCAuthenticationConfig:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCAuthenticationConfig"
-  RCClientCert:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCClientCert"
+    type: object
+    properties:
+      header_key_name:
+        type: string
+        minLength: 1
+        description: header key name
+      key:
+        type: string
+        minLength: 1
+        description: authentication config key
+      type:
+        type: string
+        minLength: 1
+        description: authentication config type
+    required:
+      - header_key_name
+      - key
+      - type
   RCConfigurationTestEnvironment:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/RCConfigurationTestEnvironment"
+    allOf:
+      - $ref: '#/definitions/RCConfigurationProdEnvironment'
+      - type: object
+        properties:
+          test_users:
+            type: array
+            items:
+              $ref: '#/definitions/FiscalCode'
+        required:
+          - test_users
   HasPrecondition:
-    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/HasPrecondition"
+    type: string
+    x-extensible-enum:
+      - ALWAYS
+      - ONCE
+      - NEVER
   RCConfigurationListResponse:
     type: object
     properties:
       rcConfigList:
         type: array
         items:
-          $ref: "#/definitions/RCConfigurationResponse"
+          $ref: '#/definitions/RCConfigurationResponse'
   RCConfigurationResponse:
     allOf:
-      - $ref: "#/definitions/RCConfigurationPublic"
+      - $ref: '#/definitions/RCConfigurationPublic'
       - type: object
         properties:
           user_id:
@@ -333,6 +423,8 @@ definitions:
           - user_id
   ProblemJson:
     $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/ProblemJson"
+  FiscalCode:
+    $ref: "../node_modules/@pagopa/io-functions-commons/openapi/definitions.yaml#/FiscalCode"
 securityDefinitions:
   SubscriptionKey:
     type: apiKey
