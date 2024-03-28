@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 1.10.2
+  version: 1.10.3
   title: IO API for service Messages
   contact:
     name: PagoPA
@@ -9,7 +9,7 @@ info:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: |
     External manage apis to manage message related entities.
-host:  api.io.pagopa.it
+host: api.io.pagopa.it
 basePath: /service-messages/manage/api/v1
 schemes:
   - https
