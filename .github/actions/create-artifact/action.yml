@@ -9,7 +9,7 @@ inputs:
 outputs:
   artifact-path:
     description: The path to the created artifact
-    value: ${{ steps[make-function-app-artifact].outputs.artifact-path }}
+    value: ${{ steps['make-function-app-artifact'].outputs.artifact-path }}
 
 runs:
   using: "composite"
