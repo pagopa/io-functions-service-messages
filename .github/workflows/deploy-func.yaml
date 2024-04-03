@@ -5,7 +5,7 @@ on:
 jobs:
   deploy_workspace_to_azure:
     name: Deploy
-    uses: ./actions/deploy.yaml
+    uses: ./.github/actions/deploy.yaml
     with:
       workspace-name: io-functions-service-messages
     secrets: inherit
