@@ -1,13 +1,11 @@
-name: Deploy (io-p-messages-sending-func)
-
+name: Deploy (io-functions-service-messages)
 on:
   workflow_dispatch: {}
 
 jobs:
   deploy_workspace_to_azure:
     name: Deploy
-    uses: pagopa/io-std/.github/workflows/deploy-workspace.yaml@main
+    uses: ./actions/deploy.yaml
     with:
-      environment: io-p-messages-sending-func
-      workspace-name: io-p-messages-sending-func
+      workspace-name: io-functions-service-messages
     secrets: inherit

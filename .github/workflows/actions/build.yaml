@@ -1,0 +1,25 @@
+name: "Build workspace"
+
+inputs:
+  workspace-name:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: ".node-version"
+        cache: "yarn"
+        cache-dependency-path: "./out/yarn.lock"
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+      shell: bash
+      working-directory: ./out
+
+    - name: Build ${{ inputs.workspace-name }}
+      run: yarn build
+      shell: bash
+      working-directory: ./out
