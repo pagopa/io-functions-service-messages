@@ -12,14 +12,12 @@ runs:
       with:
         node-version-file: ".node-version"
         cache: "yarn"
-        cache-dependency-path: "./out/yarn.lock"
+        cache-dependency-path: "./yarn.lock"
 
     - name: Install dependencies
       run: yarn install --frozen-lockfile
       shell: bash
-      working-directory: ./out
 
     - name: Build ${{ inputs.workspace-name }}
       run: yarn build
       shell: bash
-      working-directory: ./out
