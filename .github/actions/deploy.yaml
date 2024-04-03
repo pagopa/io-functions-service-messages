@@ -18,13 +18,13 @@ jobs:
           fetch-depth: 3
 
       - name: Build workspace
-        uses: "./build.yaml"
+        uses: "./.github/actions/build.yaml"
         with:
           workspace-name: ${{ inputs.workspace-name }}
 
       - name: Make workspace artifact
         id: make_artifact
-        uses: "./create-artifact.yaml"
+        uses: "./.github/actions/create-artifact.yaml"
         with:
           workspace-name: ${{ inputs.workspace-name }}
 
