@@ -1,5 +1,8 @@
 name: Deploy (io-functions-service-messages)
 on:
+  push:
+    branches:
+      - "iocom-1221"
   workflow_dispatch: {}
 
 jobs:
