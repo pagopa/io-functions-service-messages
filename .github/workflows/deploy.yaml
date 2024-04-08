@@ -17,6 +17,7 @@ jobs:
         uses: "./.github/actions/build"
 
       - name: Make the azure function app artifact
+        id: make_artifact
         run: |
           zip -r io-functions-service-messages.zip .
           echo "artifact-path=$(realpath io-functions-service-messages.zip)" >> "$GITHUB_OUTPUT"
