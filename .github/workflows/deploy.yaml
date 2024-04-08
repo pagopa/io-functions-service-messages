@@ -1,11 +1,7 @@
-name: Deploy workspace
+name: Deploy functions
 
 on:
-  workflow_call:
-    inputs:
-      workspace-name:
-        required: true
-        type: string
+  workflow_call: {}
 
 jobs:
   build:
@@ -17,21 +13,18 @@ jobs:
         with:
           fetch-depth: 3
 
-      - name: Build workspace
+      - name: Build functions
         uses: "./.github/actions/build"
-        with:
-          workspace-name: ${{ inputs.workspace-name }}
 
-      - name: Make workspace artifact
-        id: make_artifact
-        uses: "./.github/actions/create-artifact"
-        with:
-          workspace-name: ${{ inputs.workspace-name }}
-
-      - name: Upload workspace artifact
+      - name: Make the azure function app artifact
+        run: |
+          zip -r io-functions-service-messages.zip .
+          echo "artifact-path=$(realpath io-functions-service-messages.zip)" >> "$GITHUB_OUTPUT"
+        shell: bash
+      
+      - name: Upload functions artifact
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ inputs.workspace-name }}
           path: ${{ steps.make_artifact.outputs.artifact-path }}
 
   deploy:
@@ -46,10 +39,8 @@ jobs:
       contents: read
 
     steps:
-      - name: Download workspace artifact
+      - name: Download functions artifact
         uses: actions/download-artifact@v3
-        with:
-          name: ${{ inputs.workspace-name }}
 
       - name: Login to Azure
         uses: azure/login@v1
@@ -64,7 +55,7 @@ jobs:
           resource-group-name: ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }}
           app-name: ${{ vars.AZURE_WEB_APP_NAME }}
           slot-name: staging
-          package: ${{ inputs.workspace-name }}.zip
+          package: io-functions-service-messages.zip
 
       - name: Check staging health
         run: curl --retry 5 --retry-max-time 120 --retry-all-errors -f 'https://${{ vars.AZURE_WEB_APP_NAME }}-staging.azurewebsites.net${{ vars.HEALTH_CHECK_PATH }}'

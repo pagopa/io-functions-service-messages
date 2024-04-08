@@ -1,12 +1,6 @@
 name: "Build workspace"
 description: "This action builds the project."
 
-
-inputs:
-  workspace-name:
-    description: The name of the workspace to create the artifact for"
-    required: true
-
 runs:
   using: "composite"
   steps:
@@ -21,6 +15,6 @@ runs:
       run: yarn install --frozen-lockfile
       shell: bash
 
-    - name: Build ${{ inputs.workspace-name }}
+    - name: Build io-functions-service-messages
       run: yarn build
       shell: bash
