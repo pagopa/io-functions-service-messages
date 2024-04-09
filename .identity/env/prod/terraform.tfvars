@@ -7,7 +7,7 @@ tags = {
   CreatedBy   = "Terraform"
   Environment = "Prod"
   Owner       = "io"
-  Source      = "https://github.com/pagopa/io-sign"
+  Source      = "https://github.com/pagopa/io-functions-service-messages"
   CostCenter  = "TS310 - PAGAMENTI & SERVIZI"
 }
 
@@ -17,7 +17,7 @@ web_apps_environment_cd_roles = {
     "io-p-github-runner-rg" = [
       "Contributor",
     ],
-    "io-p-sign-backend-rg" = [
+    "io-p-service-messages-rg" = [
       "Contributor",
     ]
   }
