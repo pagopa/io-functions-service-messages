@@ -1,12 +1,14 @@
-name: Deploy (io-functions-service-messages)
+name: functions-service-messages Release
 on:
   push:
     branches:
       - "iocom-1221"
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
   deploy_workspace_to_azure:
     name: Deploy
     uses: ./.github/workflows/deploy.yaml
+    with:
+      environment: prod
     secrets: inherit

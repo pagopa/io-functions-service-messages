@@ -8,7 +8,7 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "3.84.0"
+      version = "<= 3.98"
     }
     github = {
       source  = "integrations/github"
@@ -16,7 +16,12 @@ terraform {
     }
   }
 
-  backend "azurerm" {}
+  backend "azurerm" {
+    resource_group_name  = terraform-state-rg
+    storage_account_name = tfappprodio
+    container_name       = terraform-state
+    key                  = io-functions-service-messages.identity.tfstate
+  }
 }
 
 provider "azurerm" {
@@ -24,9 +29,7 @@ provider "azurerm" {
 }
 
 provider "github" {
-  owner          = var.github.org
-  write_delay_ms = "200"
-  read_delay_ms  = "200"
+  owner = "pagopa"
 }
 
 data "azurerm_subscription" "current" {}
