@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 2
 
       - name: Build functions
-        uses: "./.github/worflows/templates/composite_node_yarn.yml"
+        uses: "./.github/worflows/templates/composite_node_yarn.yml@main"
 
       - name: Make the azure function app artifact
         id: make_artifact
