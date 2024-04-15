@@ -55,7 +55,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v3
         with:
-          name: app.zip
+          path: ./app.zip
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -70,7 +70,7 @@ jobs:
           resource-group-name: ${{ inputs.app_service_resource_group }}
           app-name: ${{ inputs.app_service_name }}
           slot-name: staging
-          package: app.zip
+          package: ./app.zip
 
       - name: Check Staging Health
         run: curl --retry 5 --retry-max-time 120 --retry-all-errors -f 'https://${{ inputs.app_service_name }}-staging.azurewebsites.net${{ inputs.healtcheck_path }}'
