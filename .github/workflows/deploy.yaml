@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build app
-        uses: "./.github/workflows/composite_node_yarn.yml"
+        uses: "./.github/workflows/action.yml"
 
       - name: Make the azure app artifact
         id: make_artifact
@@ -43,10 +43,13 @@ jobs:
     needs: [build]
     runs-on: ubuntu-20.04
     environment: ${{ inputs.environment }}-cd
-
     permissions:
       id-token: write
       contents: read
+    env:
+      ARM_USE_OIDC: true
+      ARM_USE_AZUREAD: true
+      ARM_STORAGE_USE_AZUREAD: true
 
     steps:
       - name: Download artifact
