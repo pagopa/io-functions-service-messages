@@ -13,10 +13,10 @@ terraform {
   }
 
   backend "azurerm" {
-    resource_group_name  = terraform-state-rg
-    storage_account_name = tfappprodio
-    container_name       = terraform-state
-    key                  = io-functions-service-messages.identity.tfstate
+    resource_group_name  = "terraform-state-rg"
+    storage_account_name = "tfappprodio"
+    container_name       = "terraform-state"
+    key                  = "io-functions-service-messages.repository.tfstate"
   }
 }
 
@@ -28,7 +28,3 @@ provider "azurerm" {
 provider "github" {
   owner = "pagopa"
 }
-
-data "azurerm_client_config" "current" {}
-
-data "azurerm_subscription" "current" {}

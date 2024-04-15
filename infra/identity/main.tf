@@ -2,25 +2,17 @@ terraform {
   required_version = ">=1.6.0"
 
   required_providers {
-    azuread = {
-      source  = "hashicorp/azuread"
-      version = "2.33.0"
-    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "<= 3.98"
     }
-    github = {
-      source  = "integrations/github"
-      version = "5.39.0"
-    }
   }
 
   backend "azurerm" {
-    resource_group_name  = terraform-state-rg
-    storage_account_name = tfappprodio
-    container_name       = terraform-state
-    key                  = io-functions-service-messages.identity.tfstate
+    resource_group_name  = "terraform-state-rg"
+    storage_account_name = "tfappprodio"
+    container_name       = "terraform-state"
+    key                  = "io-functions-service-messages.identity.tfstate"
   }
 }
 
@@ -28,10 +20,17 @@ provider "azurerm" {
   features {}
 }
 
-provider "github" {
-  owner = "pagopa"
+module "federated_identities" {
+  source = "github.com/dx//infra/modules/azure_federated_identity_with_github?ref=main"
+
+  prefix    = local.prefix
+  env_short = local.env_short
+  env       = local.env
+  continuous_integration = {
+    enable = false
+  }
+
+  repositories = [local.repo_name]
+
+  tags = local.tags
 }
-
-data "azurerm_subscription" "current" {}
-
-data "azurerm_client_config" "current" {}

@@ -4,6 +4,15 @@ on:
       environment: 
         type: string
         required: true
+      app_service_name:
+        type: string
+        required: true
+      app_service_resource_group:
+        type: string
+        required: true
+      healtcheck_path:
+        type: string
+        required: true
 
 jobs:
   build:
@@ -12,26 +21,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 2
 
-      - name: Build functions
-        uses: "./.github/worflows/templates/composite_node_yarn.yml@main"
+      - name: Build app
+        uses: "./.github/worflows/composite_node_yarn.yml"
 
-      - name: Make the azure function app artifact
+      - name: Make the azure app artifact
         id: make_artifact
         run: |
-          zip -r io-functions-service-messages.zip .
-          echo "artifact-path=$(realpath io-functions-service-messages.zip)" >> "$GITHUB_OUTPUT"
+          zip -r app.zip .
+          echo "artifact-path=$(realpath app.zip)" >> "$GITHUB_OUTPUT"
         shell: bash
       
-      - name: Upload functions artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           path: ${{ steps.make_artifact.outputs.artifact-path }}
 
   deploy:
-    name: Deploy Function App
+    name: Deploy App
     if: ${{ !github.event.act }}
     needs: [build]
     runs-on: self-hosted
@@ -42,26 +49,26 @@ jobs:
       contents: read
 
     steps:
-      - name: Download functions artifact
+      - name: Download artifact
         uses: actions/download-artifact@v3
 
       - name: Login to Azure
-        uses: azure/login@v1
+        uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
-          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-id: ${{ secrets.ARM_CLIENT_ID }}
+          tenant-id: ${{ secrets.ARM_TENANT_ID }}
+          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
 
-      - name: Deploy Function App to Staging Slot
+      - name: Deploy App to Staging Slot
         uses: azure/webapps-deploy@v2
         with:
-          resource-group-name: ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }}
-          app-name: ${{ vars.AZURE_WEB_APP_NAME }}
+          resource-group-name: ${{ inputs.app_service_resource_group }}
+          app-name: ${{ inputs.app_service_name }}
           slot-name: staging
-          package: io-functions-service-messages.zip
+          package: app.zip
 
       - name: Check Staging Health
-        run: curl --retry 5 --retry-max-time 120 --retry-all-errors -f 'https://${{ vars.AZURE_WEB_APP_NAME }}-staging.azurewebsites.net${{ vars.HEALTH_CHECK_PATH }}'
+        run: curl --retry 5 --retry-max-time 120 --retry-all-errors -f 'https://${{ inputs.app_service_name }}-staging.azurewebsites.net${{ inputs.healtcheck_path }}'
 
       - name: Swap Staging and Production Slots
-        run: az webapp deployment slot swap -g ${{ vars.AZURE_WEB_APP_RESOURCE_GROUP }} -n ${{ vars.AZURE_WEB_APP_NAME }} --slot staging --target-slot production
+        run: az webapp deployment slot swap -g ${{ inputs.app_service_resource_group }} -n ${{ inputs.app_service_name }} --slot staging --target-slot production

@@ -11,4 +11,7 @@ jobs:
     uses: ./.github/workflows/deploy.yaml
     with:
       environment: prod
+      app_service_name: io-p-messages-sending-func
+      app_service_resource_group: io-p-service-messages-rg
+      healtcheck_path: /api/v1/info
     secrets: inherit
