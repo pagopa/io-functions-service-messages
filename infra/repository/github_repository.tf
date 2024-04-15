@@ -1,5 +1,5 @@
 resource "github_repository" "this" {
-  name        = local.repository
+  name        = local.repo_name
   description = "Manage functions for service messages"
 
   visibility = "public"
@@ -19,7 +19,7 @@ resource "github_repository" "this" {
   has_issues      = false
   has_downloads   = false
 
-  topics = ["service messages", "iocom", "manage functions"]
+  topics = ["service-messages", "iocom", "manage-functions"]
 
   vulnerability_alerts = true
 

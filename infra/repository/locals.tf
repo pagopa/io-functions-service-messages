@@ -3,7 +3,9 @@ locals {
   env_short = "p"
   project   = "${local.prefix}-${local.env_short}"
   domain    = "functions-services-messages"
-  repo_name = "${locals.prefix}-${locals.domain}"
+  repo_name = "${local.prefix}-${local.domain}"
+
+  identity_cd_name = "${local.project}-${local.domain}-github-cd-identity"
 
   identity_resource_group_name = "${local.project}-identity-rg"
 

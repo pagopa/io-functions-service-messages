@@ -1,11 +1,11 @@
 resource "github_branch_default" "default_main" {
   repository = github_repository.this.name
-  branch     = "main"
+  branch     = "master"
 }
 
 resource "github_branch_protection" "protection_main" {
   repository_id = github_repository.this.name
-  pattern       = "main"
+  pattern       = "master"
 
   required_status_checks {
     strict   = false

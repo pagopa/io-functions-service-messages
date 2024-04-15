@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Build app
-        uses: "./.github/worflows/composite_node_yarn.yml"
+        uses: "./.github/workflows/composite_node_yarn.yml"
 
       - name: Make the azure app artifact
         id: make_artifact
