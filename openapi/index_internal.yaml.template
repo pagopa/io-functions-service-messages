@@ -17,18 +17,6 @@ schemes:
 security:
   - SubscriptionKey: []
 paths:
-  /ping:
-    get:
-      operationId: pingOperation
-      summary: Ping
-      description: Returns function's package name and version
-      tags:
-        - restricted
-      responses:
-        '200':
-          description: Success.
-        '500':
-          description: Internal Server error
   /notify:
     post:
       operationId: notify
