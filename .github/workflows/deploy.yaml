@@ -23,7 +23,7 @@ jobs:
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
 
       - name: Build app
-        uses: ./.github/actions/node-yarn/action.yml
+        uses: ./.github/actions/node-yarn
 
       - name: Make the azure app artifact
         id: make_artifact
