@@ -74,7 +74,7 @@ jobs:
           package: app.zip
 
       - name: Check Staging Health
-        run: curl --retry 5 --retry-max-time 120 --retry-all-errors -f 'https://${{ inputs.app_service_name }}-staging.azurewebsites.net${{ inputs.healtcheck_path }}'
+        run: curl --retry 5 --retry-max-time 120 -f 'https://${{ inputs.app_service_name }}-staging.azurewebsites.net${{ inputs.healtcheck_path }}'
 
       - name: Swap Staging and Production Slots
         run: az webapp deployment slot swap -g ${{ inputs.app_service_resource_group }} -n ${{ inputs.app_service_name }} --slot staging --target-slot production
