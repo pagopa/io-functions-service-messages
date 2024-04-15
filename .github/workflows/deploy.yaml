@@ -42,7 +42,7 @@ jobs:
     name: Deploy App
     if: ${{ !github.event.act }}
     needs: [build]
-    runs-on: ubuntu-20.04
+    runs-on: self-hosted
     environment: ${{ inputs.environment }}-cd
     permissions:
       id-token: write
