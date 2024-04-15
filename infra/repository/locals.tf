@@ -1,9 +1,9 @@
 locals {
-  prefix     = "io"
-  env_short  = "p"
-  project    = "${local.prefix}-${local.env_short}"
-  domain     = "functions-services-messages"
-  repository = "${locals.prefix}-${locals.domain}"
+  prefix    = "io"
+  env_short = "p"
+  project   = "${local.prefix}-${local.env_short}"
+  domain    = "functions-services-messages"
+  repo_name = "${locals.prefix}-${locals.domain}"
 
   identity_resource_group_name = "${local.project}-identity-rg"
 

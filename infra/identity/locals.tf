@@ -1,8 +1,9 @@
 locals {
-  prefix     = "io"
-  env_short  = "p"
-  domain     = "functions-services-messages"
-  repository = "${locals.prefix}-${locals.domain}"
+  prefix    = "io"
+  env_short = "p"
+  env       = "prod"
+  domain    = "functions-services-messages"
+  repo_name = "${local.prefix}-${local.domain}"
 
   tags = {
     CreatedBy      = "Terraform"
