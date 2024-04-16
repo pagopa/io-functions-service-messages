@@ -1,0 +1,20 @@
+name: "Build workspace"
+description: "This action builds the project."
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version-file: ".node-version"
+        cache: "yarn"
+        cache-dependency-path: "./yarn.lock"
+
+    - name: Install dependencies
+      run: yarn install --frozen-lockfile
+      shell: bash
+
+    - name: Build io-functions-service-messages
+      run: yarn build
+      shell: bash

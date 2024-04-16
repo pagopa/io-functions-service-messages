@@ -1,0 +1,80 @@
+on:
+  workflow_call:
+    inputs: 
+      environment: 
+        type: string
+        required: true
+      app_service_name:
+        type: string
+        required: true
+      app_service_resource_group:
+        type: string
+        required: true
+      healtcheck_path:
+        type: string
+        required: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Build app
+        uses: ./.github/actions/node-yarn
+
+      - name: Make the azure app artifact
+        id: make_artifact
+        run: |
+          zip -r app.zip .
+          echo "artifact-path=$(realpath app.zip)" >> "$GITHUB_OUTPUT"
+        shell: bash
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app.zip
+          path: ${{ steps.make_artifact.outputs.artifact-path }}
+
+  deploy:
+    name: Deploy App
+    if: ${{ !github.event.act }}
+    needs: [build]
+    runs-on: self-hosted
+    environment: ${{ inputs.environment }}-cd
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      ARM_USE_OIDC: true
+      ARM_USE_AZUREAD: true
+      ARM_STORAGE_USE_AZUREAD: true
+
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app.zip
+        
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.ARM_CLIENT_ID }}
+          tenant-id: ${{ secrets.ARM_TENANT_ID }}
+          subscription-id: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+
+      - name: Deploy App to Staging Slot
+        uses: azure/webapps-deploy@v2
+        with:
+          resource-group-name: ${{ inputs.app_service_resource_group }}
+          app-name: ${{ inputs.app_service_name }}
+          slot-name: staging
+          package: app.zip
+
+      - name: Check Staging Health
+        run: curl --retry 5 --retry-max-time 120 -f 'https://${{ inputs.app_service_name }}-staging.azurewebsites.net${{ inputs.healtcheck_path }}'
+
+      - name: Swap Staging and Production Slots
+        run: az webapp deployment slot swap -g ${{ inputs.app_service_resource_group }} -n ${{ inputs.app_service_name }} --slot staging --target-slot production
