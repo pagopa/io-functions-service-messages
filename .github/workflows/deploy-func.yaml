@@ -2,10 +2,6 @@ name: functions-service-messages Release
 on:
   workflow_dispatch:
 
-  push:
-    branches:
-      - "iocom-1221"
-
 jobs:
 
   deploy_workspace_to_azure:
