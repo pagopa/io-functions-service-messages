@@ -54,12 +54,14 @@ jobs:
           yarn install --frozen-lockfile
           yarn start
         shell: bash
+        
       - name: Run Integration Tests
         run: |
           cd __integrations__
           yarn install --frozen-lockfile
           sleep 30s
           docker exec fn-service-messages-testagent yarn test
+        shell: bash
 
       
 
