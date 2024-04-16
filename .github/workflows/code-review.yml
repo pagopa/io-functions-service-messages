@@ -33,8 +33,27 @@ jobs:
         run: |
           yarn generate
           yarn test:coverage
-          bash <(curl -s https://codecov.io/bash)
         shell: bash
+      
+  integration_test:
+    timeout-minutes: 10 # temp fix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Start Functions
+        run: |
+          cd __integrations__
+          sed -i 's/FF_TYPE=.*/FF_TYPE=none/g' environments/env.base
+          cp environments/env.base environments/.env
+          yarn install --frozen-lockfile
+          yarn start
+        shell: bash
+      - name: Run Integration Tests
+        run: |
+          cd __integrations__
+          yarn install --frozen-lockfile
+          sleep 30s
+          docker exec fn-service-messages-testagent yarn test
 
       
 
