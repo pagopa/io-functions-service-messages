@@ -9,7 +9,7 @@ info:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: >
     External manage apis to manage message related entities.
-host: api.cd.italia.it
+host: api.io.pagopa.it
 basePath: /service-messages/api/v1
 schemes:
   - https

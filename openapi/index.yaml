@@ -9,7 +9,7 @@ info:
     url: https://io.italia.it/assets/img/io-logo-blue.svg
   description: |
     # Warning Experimental API These apis are experimental and for internal use.
-host: api.cd.italia.it
+host: api.io.pagopa.it
 basePath: /service-messages/api/v1
 schemes:
   - https
