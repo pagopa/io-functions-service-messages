@@ -56,7 +56,7 @@ services:
     env_file:
       - ./environments/generated/env.function
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://function:7071/api/info"]
+      test: ["CMD", "curl", "-f", "http://function:7071/api/v1/ping"]
       interval: 12s
       timeout: 10s
       retries: 5
