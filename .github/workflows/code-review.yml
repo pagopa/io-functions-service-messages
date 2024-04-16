@@ -35,7 +35,7 @@ jobs:
           yarn test:coverage
         shell: bash
       
-  integration_test:
+  integration_test_ff_none:
     timeout-minutes: 10 # temp fix
     runs-on: ubuntu-latest
 
@@ -54,7 +54,7 @@ jobs:
           yarn install --frozen-lockfile
           yarn start
         shell: bash
-        
+
       - name: Run Integration Tests
         run: |
           cd __integrations__
@@ -63,8 +63,30 @@ jobs:
           docker exec fn-service-messages-testagent yarn test
         shell: bash
 
-      
+  integration_test_ff_prod:
+    timeout-minutes: 10 # temp fix
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       
+      - name: Build app
+        uses: ./.github/actions/node-yarn
 
-      
+      - name: Start Functions
+        run: |
+          cd __integrations__
+          sed -i 's/FF_TYPE=.*/FF_TYPE=prod/g' environments/env.base
+          cp environments/env.base environments/.env
+          yarn install --frozen-lockfile
+          yarn start
+        shell: bash
+
+      - name: Run Integration Tests
+        run: |
+          cd __integrations__
+          yarn install --frozen-lockfile
+          sleep 30s
+          docker exec fn-service-messages-testagent yarn test
+        shell: bash
