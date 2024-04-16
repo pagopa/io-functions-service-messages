@@ -17,8 +17,8 @@ module "container_app_job" {
   }
 
   job = {
-    name = "service-messages"
-    repo = "io-functions-service-messages"
+    name = "f-services-messages"
+    repo = "io-functions-services-messages"
   }
 
   tags = local.tags
