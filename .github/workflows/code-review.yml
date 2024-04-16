@@ -1,0 +1,49 @@
+name: "Code Review"
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - apps/**
+      - packages/**
+  pull_request:
+    types: [opened, synchronize]
+    paths:
+      - apps/**
+      - packages/**
+  workflow_dispatch: {}
+
+jobs:
+  code_review:
+    timeout-minutes: 10 # temp fix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Build app
+        uses: ./.github/actions/node-yarn
+
+      - name: Lint 
+        run: yarn lint
+        shell: bash
+
+      - name: Validate Openapi Specs
+        run: |
+          npx oval validate -p openapi/index.yaml 
+          npx oval validate -p openapi/index_external.yaml
+        shell: bash
+
+      - name: Unit Tests
+        run: |
+          yarn generate
+          yarn test:coverage
+          bash <(curl -s https://codecov.io/bash)
+        shell: bash
+
+      
+
+      
+
+      
