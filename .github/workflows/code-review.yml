@@ -40,6 +40,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      
+      - name: Build app
+        uses: ./.github/actions/node-yarn
+
       - name: Start Functions
         run: |
           cd __integrations__
