@@ -111,3 +111,19 @@ Then you can stop all the containers running
 ```
 yarn stop
 ```
+
+### Debugging
+
+When the container `fn-service-messages` is up and running and you want to update the source code to make a fix
+or to add some logs during debugging, you don't need to rebuild the entire image, just run
+
+```bash
+yarn build
+```
+
+In the root of the project in order to update the source code inside the `dist/` folder and then you only need to restart
+the container to see the changes by running
+
+```bash
+docker compose --env-file environments/.env restart function
+```
