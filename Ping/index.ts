@@ -10,7 +10,7 @@ const app = express();
 secureExpressApp(app);
 
 // Add express route
-app.get("/api/live", Ping());
+app.get("/api/v1/ping", Ping());
 
 const azureFunctionHandler = createAzureFunctionHandler(app);
 

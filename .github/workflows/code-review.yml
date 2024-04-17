@@ -1,0 +1,91 @@
+name: "Code Review"
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  workflow_dispatch: {}
+
+jobs:
+  code_review:
+    name: Run linting and unit tests
+    timeout-minutes: 10 # temp fix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+
+      - name: Build app
+        uses: ./.github/actions/node-yarn
+
+      - name: Lint 
+        run: yarn lint
+        shell: bash
+
+      - name: Validate Openapi Specs
+        run: |
+          npx oval validate -p openapi/index.yaml 
+          npx oval validate -p openapi/index_external.yaml
+        shell: bash
+
+      - name: Unit Tests
+        run: |
+          yarn generate
+          yarn test:coverage
+        shell: bash
+      
+  integration_test_ff_none:
+    name: Run integration tests with FF_TYPE=none
+    timeout-minutes: 10 # temp fix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      
+      - name: Build app
+        uses: ./.github/actions/node-yarn
+
+      - name: Start Functions
+        run: |
+          cd __integrations__
+          sed -i 's/FF_TYPE=.*/FF_TYPE=none/g' environments/env.base
+          cp environments/env.base environments/.env
+          yarn install --frozen-lockfile
+          yarn start
+        shell: bash
+
+      - name: Run Integration Tests
+        run: |
+          cd __integrations__
+          yarn install --frozen-lockfile
+          docker exec fn-service-messages-testagent yarn test
+        shell: bash
+
+  integration_test_ff_prod:
+    name: Run integration tests with FF_TYPE=prod
+    timeout-minutes: 10 # temp fix
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      
+      - name: Build app
+        uses: ./.github/actions/node-yarn
+
+      - name: Start Functions
+        run: |
+          cd __integrations__
+          sed -i 's/FF_TYPE=.*/FF_TYPE=prod/g' environments/env.base
+          cp environments/env.base environments/.env
+          yarn install --frozen-lockfile
+          yarn start
+        shell: bash
+
+      - name: Run Integration Tests
+        run: |
+          cd __integrations__
+          yarn install --frozen-lockfile
+          docker exec fn-service-messages-testagent yarn test
+        shell: bash

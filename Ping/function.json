@@ -5,7 +5,7 @@
       "type": "httpTrigger",
       "direction": "in",
       "name": "req",
-      "route": "live",
+      "route": "v1/ping",
       "methods": [
         "get"
       ]
