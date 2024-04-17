@@ -9,6 +9,7 @@ on:
 
 jobs:
   code_review:
+    name: Run linting and unit tests
     timeout-minutes: 10 # temp fix
     runs-on: ubuntu-latest
 
@@ -36,6 +37,7 @@ jobs:
         shell: bash
       
   integration_test_ff_none:
+    name: Run integration tests with FF_TYPE=none
     timeout-minutes: 10 # temp fix
     runs-on: ubuntu-latest
 
@@ -64,6 +66,7 @@ jobs:
         shell: bash
 
   integration_test_ff_prod:
+    name: Run integration tests with FF_TYPE=prod
     timeout-minutes: 10 # temp fix
     runs-on: ubuntu-latest
 
