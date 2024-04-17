@@ -1,4 +1,4 @@
-name: functions-service-messages Release
+name: Start Deploy io-functions-services-messages
 on:
   workflow_dispatch:
 
