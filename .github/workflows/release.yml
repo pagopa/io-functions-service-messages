@@ -1,8 +1,16 @@
 name: Release
 
 on:
-  # Trigger the workflow by dispatching
   workflow_dispatch:
+    inputs:
+      release_type:
+        description: The type of this release
+        required: true
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
 
 jobs:
   release:
@@ -12,20 +20,20 @@ jobs:
     steps:
       - name: Checkout
         id: checkout
-        # from https://github.com/actions/checkout/commits/main
         uses: actions/checkout@1f9a0c22da41e6ebfa534300ef656657ea2c6707
-        with:
-          persist-credentials: false
-          fetch-depth: 0
 
       - name: Release
         id: release
-        # from https://github.com/cycjimmy/semantic-release-action/commits/main
-        uses: cycjimmy/semantic-release-action@bdd914ff2423e2792c73475f11e8da603182f32d
-        with:
-          semantic_version: 18.0.0
-          extra_plugins: |
-            @semantic-release/release-notes-generator@10.0.3
-            @semantic-release/git@10.0.1
+        run: |
+          npm version ${{ inputs.release_type }} --no-git-tag-version
+          NEXT_VERSION=$(node -p "require('./package.json').version")
+          RELEASE_TAG="v$NEXT_VERSION-RELEASE"
+          TITLE="Release $NEXT_VERSION"
+          git add package.json
+          git tag $RELEASE_TAG
+          git commit -m "Bump version to $RELEASE_TAG [skip ci]"
+          git push origin master && git push --tags
+          gh release create $RELEASE_TAG --title $TITLE
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
