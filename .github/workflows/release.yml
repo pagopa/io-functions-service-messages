@@ -22,6 +22,9 @@ jobs:
         id: checkout
         uses: actions/checkout@1f9a0c22da41e6ebfa534300ef656657ea2c6707
 
+      - name: Build app
+        uses: ./.github/actions/node-yarn
+
       - name: Release
         id: release
         run: |
