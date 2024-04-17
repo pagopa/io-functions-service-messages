@@ -28,6 +28,8 @@ jobs:
       - name: Release
         id: release
         run: |
+          git config user.email "github-bot@pagopa.it"
+          git config user.name "pagopa-github-bot"
           npm version ${{ inputs.release_type }} --no-git-tag-version
           NEXT_VERSION=$(node -p "require('./package.json').version")
           RELEASE_TAG="v$NEXT_VERSION-RELEASE"
