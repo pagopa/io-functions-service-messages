@@ -1,14 +1,6 @@
 name: Release
 
 on:
-  # Trigger the workflow on push on the main branch
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - 'CODEOWNERS'
-      - '**.md'
-      - '.**'
   # Trigger the workflow by dispatching
   workflow_dispatch:
 
