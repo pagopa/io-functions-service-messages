@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout the code
-        uses: actions/checkout@v3
+        uses: actions/checkout@1d96c772d19495a3b5c517cd2bc0cb401ea0529f # v4.1.3
       - name: Build the Docker image
         run: docker build . --file ${{ env.DOCKERFILE }} --tag localbuild/testimage:latest
       - name: Run the Anchore scan action itself with GitHub Advanced Security code scanning integration enabled
