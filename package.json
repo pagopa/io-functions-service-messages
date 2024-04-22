@@ -1,6 +1,6 @@
 {
   "name": "@pagopa/io-functions-service-messages",
-  "version": "1.10.4",
+  "version": "0.10.5",
   "license": "MIT",
   "scripts": {
     "prebuild": "yarn generate",
