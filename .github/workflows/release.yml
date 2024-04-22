@@ -5,8 +5,8 @@ on:
     types:
       - closed
     branches:
-      - main
-      
+      - master
+
 jobs:
   build_and_publish:
     # run this job only if the PR was containing the specific release label 
