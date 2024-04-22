@@ -1,44 +1,52 @@
-name: Release
-
 on:
   workflow_dispatch:
-    inputs:
-      release_type:
-        description: The type of this release
-        required: true
-        type: choice
-        options:
-          - major
-          - minor
-          - patch
-
+  # on merge on main branch
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+      
 jobs:
-  release:
-    name: Release
-    runs-on: ubuntu-22.04
-
+  build_and_publish:
+    # run this job only if the PR was containing the specific release label 
+    if: contains( github.event.pull_request.labels.*.name, 'release') ||  github.event_name == 'workflow_dispatch'
+    environment: prod-cd
+    runs-on: ubuntu-latest
+    permissions:
+      # contents write permissions required for release
+      contents: write
+      packages: write
     steps:
-      - name: Checkout
-        id: checkout
-        uses: actions/checkout@1f9a0c22da41e6ebfa534300ef656657ea2c6707
-
-      - name: Build app
-        uses: ./.github/actions/node-yarn
-
-      - name: Release
-        id: release
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          registry-url: 'https://registry.npmjs.org'
+          node-version-file: ".node-version"
+          # Defaults to the user or organization that owns the workflow file
+          scope: '@pagopa'
+      - run: yarn install --frozen-lockfile
+      - run: yarn build
+      - id: get_version
+        name: Get Version
         run: |
-          git config user.email "io-pagopa-github-bot@pagopa.it"
-          git config user.name "pagopa-github-bot"
-          npm version ${{ inputs.release_type }} --no-git-tag-version
-          NEXT_VERSION=$(node -p "require('./package.json').version")
-          RELEASE_TAG="v$NEXT_VERSION-RELEASE"
-          TITLE="Release $NEXT_VERSION"
-          git add package.json
-          git tag $RELEASE_TAG
-          git commit -m "Bump version to $RELEASE_TAG [skip ci]"
-          git push origin master && git push --tags
-          gh release create $RELEASE_TAG --title $TITLE
+          PACKAGE_FILE="package.json"
+          if [[ -f "$PACKAGE_FILE" ]]; then
+            echo "new_version=$(jq -r .version package.json)" >> $GITHUB_ENV
+          else
+            echo "::error title=Pipeline error::Pipeline could not find package.json file"
+            exit 1
+          fi
         shell: bash
+      - name: Create Release tag
+        uses: ncipollo/release-action@v1.12.0
+        with:
+          commit: ${{ github.ref_name }}
+          tag: ${{ env.new_version }}
+          name: Release ${{ env.new_version }}
+          makeLatest: latest
+          generateReleaseNotes: true
+          prerelease: false
+      - run: npm publish
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
