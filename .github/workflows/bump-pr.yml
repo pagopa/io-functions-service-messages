@@ -1,0 +1,82 @@
+name: Make Release Bump PR
+
+on:
+  workflow_dispatch:
+    branches:
+      - master
+    inputs:
+      semver:
+        required: true
+        type: choice
+        description: Select the new Semantic Version
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  bump_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Input Log
+        run: |
+          echo "📝 Inputs"
+          echo "semver: ${{ inputs.semver }}" 
+        shell: bash
+
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: ".node-version"
+
+      - id: get_version
+        name: Get Version
+        run: |
+          PACKAGE_FILE="package.json"
+          if [[ -f "$PACKAGE_FILE" ]]; then
+            echo "version=$(jq .version package.json)" >> $GITHUB_ENV
+          fi
+        shell: bash
+
+      - name: Bump Package Version
+        id: bump
+        uses: pagopa/github-actions-template/bump-semver@main
+        with:
+          semver: ${{ inputs.semver  }}
+          current_version: ${{ env.version }}
+
+      - id: semver
+        name: New Version
+        run: |   
+          echo "new_version=${{ steps.bump.outputs.new_version}}" >> $GITHUB_OUTPUT
+        shell: bash
+
+      - name: Push New Version to new branch
+        id: new_branch_push
+        shell: bash
+        env:
+          NEW_BRANCH_NAME: releases/${{ steps.semver.outputs.new_version }}
+        run: |
+          contents="$(jq '.version = "${{ steps.semver.outputs.new_version }}"' package.json)"
+          echo -E "${contents}" > package.json
+          # Creating new branch for the release
+          echo "new_branch_name=$NEW_BRANCH_NAME" >> $GITHUB_OUTPUT
+          git checkout -b $NEW_BRANCH_NAME
+          git add .
+          git config --global user.email "github-bot@pagopa.it"
+          git config --global user.name "pagopa-github-bot"
+          git commit -m "Bump to version ${{ steps.semver.outputs.new_version }}" || exit 0
+          git push -u origin $NEW_BRANCH_NAME
+
+      - name: Create release pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run:
+          gh pr create -B main -H ${{ steps.new_branch_push.outputs.new_branch_name }} --title 'Release version ${{ steps.semver.outputs.new_version }} pull request' --body 'This PR has been created by a Github Action' -l 'release'
