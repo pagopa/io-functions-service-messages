@@ -2,8 +2,6 @@ name: Make Release Bump PR
 
 on:
   workflow_dispatch:
-    branches:
-      - master
     inputs:
       semver:
         required: true
@@ -36,26 +34,17 @@ jobs:
         with:
           node-version-file: ".node-version"
 
-      - id: get_version
-        name: Get Version
-        run: |
-          PACKAGE_FILE="package.json"
-          if [[ -f "$PACKAGE_FILE" ]]; then
-            echo "version=$(jq .version package.json)" >> $GITHUB_ENV
-          fi
-        shell: bash
-
       - name: Bump Package Version
         id: bump
-        uses: pagopa/github-actions-template/bump-semver@main
-        with:
-          semver: ${{ inputs.semver  }}
-          current_version: ${{ env.version }}
+        run: |
+          npm version ${{ inputs.semver }} --no-git-tag-version
+        shell: bash
 
       - id: semver
         name: New Version
         run: |   
-          echo "new_version=${{ steps.bump.outputs.new_version}}" >> $GITHUB_OUTPUT
+          NEXT_VERSION=$(node -p "require('./package.json').version")
+          echo "new_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
         shell: bash
 
       - name: Push New Version to new branch
@@ -63,10 +52,7 @@ jobs:
         shell: bash
         env:
           NEW_BRANCH_NAME: releases/${{ steps.semver.outputs.new_version }}
-        run: |
-          contents="$(jq '.version = "${{ steps.semver.outputs.new_version }}"' package.json)"
-          echo -E "${contents}" > package.json
-          # Creating new branch for the release
+        run: | 
           echo "new_branch_name=$NEW_BRANCH_NAME" >> $GITHUB_OUTPUT
           git checkout -b $NEW_BRANCH_NAME
           git add .
@@ -79,4 +65,4 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run:
-          gh pr create -B main -H ${{ steps.new_branch_push.outputs.new_branch_name }} --title 'Release version ${{ steps.semver.outputs.new_version }} pull request' --body 'This PR has been created by a Github Action' -l 'release'
+          gh pr create -B master -H ${{ steps.new_branch_push.outputs.new_branch_name }} --title 'Release version ${{ steps.semver.outputs.new_version }} pull request' --body 'This PR has been created by a Github Action' -l 'release'
