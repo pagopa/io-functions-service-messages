@@ -34,6 +34,8 @@ jobs:
         with:
           node-version-file: ".node-version"
 
+      - run: yarn install --frozen-lockfile
+
       - name: Bump Package Version
         id: bump
         run: |
