@@ -1,7 +1,7 @@
 swagger: '2.0'
 info:
   version: 1.4.0
-  title: IO API for service Messages
+  title: IO API for messages sending functions
   contact:
     name: PagoPA
     url: https://forum.italia.it/c/progetto-io
@@ -10,7 +10,7 @@ info:
   description: >
     External manage apis to manage message related entities.
 host: api.io.pagopa.it
-basePath: /service-messages/api/v1
+basePath: /api/v1/messages-sending
 schemes:
   - https
 security:
