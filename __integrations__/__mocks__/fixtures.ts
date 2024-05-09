@@ -6,7 +6,7 @@ import * as O from "fp-ts/Option";
 import { pipe } from "fp-ts/lib/function";
 
 import * as MessageCollection from "@pagopa/io-functions-commons/dist/src/models/message";
-import * as RCConfiguration from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import * as RCConfiguration from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
 import * as UserRCConfiguration from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
 import * as MessageViewCollection from "@pagopa/io-functions-commons/dist/src/models/message_view";
 import * as MessageStatusCollection from "@pagopa/io-functions-commons/dist/src/models/message_status";

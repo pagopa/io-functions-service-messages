@@ -13,7 +13,7 @@ import {
 } from "../handler";
 import {
   aRemoteContentConfiguration,
-  findLastVersionMock,
+  findByConfigurationIdMock,
   rccModelMock,
   upsertConfigurationMock
 } from "../../__mocks__/remote-content";
@@ -63,7 +63,7 @@ describe("handleEmptyConfiguration", () => {
 
 describe("handleGetLastRCConfigurationVersion", () => {
   test("should return a left if the find return an error", async () => {
-    findLastVersionMock.mockReturnValueOnce(TE.left({}));
+    findByConfigurationIdMock.mockReturnValueOnce(TE.left({}));
     const rccModel = rccModelMock;
     const r = await handleGetLastRCConfigurationVersion(
       rccModel,
@@ -79,7 +79,7 @@ describe("handleGetLastRCConfigurationVersion", () => {
   });
 
   test("should return a right if the find return a right", async () => {
-    findLastVersionMock.mockReturnValueOnce(
+    findByConfigurationIdMock.mockReturnValueOnce(
       TE.right(O.some(aRemoteContentConfiguration))
     );
     const r = await handleGetLastRCConfigurationVersion(

@@ -7,7 +7,7 @@ import * as redis_storage from "../../utils/redis_storage";
 import {
   aRemoteContentConfiguration,
   aRetrievedRCConfiguration,
-  findLastVersionMock,
+  findByConfigurationIdMock,
   rccModelMock
 } from "../../__mocks__/remote-content";
 
@@ -49,7 +49,7 @@ describe("handleEmptyErrorResponse ", () => {
 describe("getRCConfigurationHandler", () => {
   test("should return an IResponseSuccessJson calling the model if redis does not return a valid configuration and the userId match", async () => {
     getTaskMock.mockReturnValueOnce(TE.right(O.none));
-    findLastVersionMock.mockReturnValueOnce(
+    findByConfigurationIdMock.mockReturnValueOnce(
       TE.right(O.some(aRemoteContentConfiguration))
     );
     setWithExpirationTaskMock.mockReturnValueOnce(TE.right(true));
@@ -63,7 +63,7 @@ describe("getRCConfigurationHandler", () => {
     });
     expect(r.kind).toBe("IResponseSuccessJson");
     expect(getTaskMock).toHaveBeenCalled();
-    expect(findLastVersionMock).toHaveBeenCalled();
+    expect(findByConfigurationIdMock).toHaveBeenCalled();
     expect(setWithExpirationTaskMock).toHaveBeenCalledWith(
       redisClientMock,
       `${RC_CONFIGURATION_REDIS_PREFIX}-${aRemoteContentConfiguration.configurationId}`,
@@ -86,13 +86,13 @@ describe("getRCConfigurationHandler", () => {
     });
     expect(r.kind).toBe("IResponseSuccessJson");
     expect(getTaskMock).toHaveBeenCalled();
-    expect(findLastVersionMock).not.toHaveBeenCalled();
+    expect(findByConfigurationIdMock).not.toHaveBeenCalled();
     expect(setWithExpirationTaskMock).not.toHaveBeenCalled();
   });
 
   test("should return an IResponseSuccessJson if the model return a valid configuration and the user-id is internal", async () => {
     getTaskMock.mockReturnValueOnce(TE.right(O.none));
-    findLastVersionMock.mockReturnValueOnce(
+    findByConfigurationIdMock.mockReturnValueOnce(
       TE.right(O.some(aRemoteContentConfiguration))
     );
     setWithExpirationTaskMock.mockReturnValueOnce(TE.right(true));
@@ -106,7 +106,7 @@ describe("getRCConfigurationHandler", () => {
     });
     expect(r.kind).toBe("IResponseSuccessJson");
     expect(getTaskMock).toHaveBeenCalled();
-    expect(findLastVersionMock).toHaveBeenCalled();
+    expect(findByConfigurationIdMock).toHaveBeenCalled();
     expect(setWithExpirationTaskMock).toHaveBeenCalledWith(
       redisClientMock,
       `${RC_CONFIGURATION_REDIS_PREFIX}-${aRemoteContentConfiguration.configurationId}`,
@@ -117,7 +117,7 @@ describe("getRCConfigurationHandler", () => {
 
   test("should return an IResponseErrorForbiddenNotAuthorized if the model return a valid configuration but the userId is not internal or does not match", async () => {
     getTaskMock.mockReturnValueOnce(TE.right(O.none));
-    findLastVersionMock.mockReturnValueOnce(
+    findByConfigurationIdMock.mockReturnValueOnce(
       TE.right(O.some(aRemoteContentConfiguration))
     );
     setWithExpirationTaskMock.mockReturnValueOnce(TE.right(true));
@@ -131,7 +131,7 @@ describe("getRCConfigurationHandler", () => {
     });
     expect(r.kind).toBe("IResponseErrorForbiddenNotAuthorized");
     expect(getTaskMock).toHaveBeenCalled();
-    expect(findLastVersionMock).toHaveBeenCalled();
+    expect(findByConfigurationIdMock).toHaveBeenCalled();
     expect(setWithExpirationTaskMock).toHaveBeenCalledWith(
       redisClientMock,
       `${RC_CONFIGURATION_REDIS_PREFIX}-${aRemoteContentConfiguration.configurationId}`,
@@ -142,7 +142,7 @@ describe("getRCConfigurationHandler", () => {
 
   test("should return an IResponseErrorNotFound if the model return an empty Option", async () => {
     getTaskMock.mockReturnValueOnce(TE.right(O.none));
-    findLastVersionMock.mockReturnValueOnce(TE.right(O.none));
+    findByConfigurationIdMock.mockReturnValueOnce(TE.right(O.none));
     const r = await getRCConfigurationHandler({
       rccModel: rccModelMock,
       config: aConfig,
@@ -156,13 +156,13 @@ describe("getRCConfigurationHandler", () => {
       "Configuration not found: Cannot find any configuration with configurationId: 01HNG1XBMT8V6HWGF5T053K9RJ"
     );
     expect(getTaskMock).toHaveBeenCalled();
-    expect(findLastVersionMock).toHaveBeenCalled();
+    expect(findByConfigurationIdMock).toHaveBeenCalled();
     expect(setWithExpirationTaskMock).not.toHaveBeenCalled();
   });
 
   test("should return an IResponseErrorInternal if cosmos return an error", async () => {
     getTaskMock.mockReturnValueOnce(TE.right(O.none));
-    findLastVersionMock.mockReturnValueOnce(TE.left(O.none));
+    findByConfigurationIdMock.mockReturnValueOnce(TE.left(O.none));
     const r = await getRCConfigurationHandler({
       rccModel: rccModelMock,
       config: aConfig,
@@ -176,7 +176,7 @@ describe("getRCConfigurationHandler", () => {
       "Internal server error: Something went wrong trying to retrieve the configuration"
     );
     expect(getTaskMock).toHaveBeenCalled();
-    expect(findLastVersionMock).toHaveBeenCalled();
+    expect(findByConfigurationIdMock).toHaveBeenCalled();
     expect(setWithExpirationTaskMock).not.toHaveBeenCalled();
   });
 });

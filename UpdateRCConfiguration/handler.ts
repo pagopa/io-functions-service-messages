@@ -23,7 +23,7 @@ import { pipe } from "fp-ts/lib/function";
 import {
   RCConfiguration,
   RCConfigurationModel
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
@@ -95,7 +95,7 @@ export const handleGetLastRCConfigurationVersion = (
   configurationId: Ulid
 ): TE.TaskEither<IResponseErrorInternal, O.Option<RCConfiguration>> =>
   pipe(
-    rccModel.findLastVersionByModelId([configurationId]),
+    rccModel.findByConfigurationId(configurationId),
     TE.mapLeft(e =>
       ResponseErrorInternal(
         `Something went wrong trying to retrieve the configuration: ${e}`
