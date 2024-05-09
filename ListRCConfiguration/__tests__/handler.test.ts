@@ -1,14 +1,13 @@
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import * as O from "fp-ts/lib/Option";
-import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 
 import {
   aRemoteContentConfiguration,
   aUserRCCList,
-  allLastVersionConfigurations,
+  allConfigurations,
   findAllByUserId,
-  findAllLastVersionByConfigurationId,
+  findAllByConfigurationId,
   rccModelMock,
   userRCCModelMock
 } from "../../__mocks__/remote-content";
@@ -17,8 +16,8 @@ import {
   listRCConfigurationHandler
 } from "../handler";
 import { IConfig } from "../../utils/config";
-import { RetrievedUserRCConfiguration, UserRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
-import { RetrievedRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import { RetrievedUserRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
+import { RetrievedRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
 
 const aUserId = "aUserId" as NonEmptyString;
 const aConfig = { INTERNAL_USER_ID: "internalUserId" } as IConfig;
@@ -28,8 +27,8 @@ describe("listRCConfigurationHandler", () => {
     findAllByUserId.mockReturnValueOnce(
       TE.right(aUserRCCList)
     );
-    findAllLastVersionByConfigurationId.mockReturnValueOnce(
-      TE.right(allLastVersionConfigurations)
+    findAllByConfigurationId.mockReturnValueOnce(
+      TE.right(allConfigurations)
     );
 
     const r = await listRCConfigurationHandler({
@@ -48,7 +47,7 @@ describe("listRCConfigurationHandler", () => {
     findAllByUserId.mockReturnValueOnce(
       TE.right([] as ReadonlyArray<RetrievedUserRCConfiguration>)
     );
-    findAllLastVersionByConfigurationId.mockReturnValueOnce(
+    findAllByConfigurationId.mockReturnValueOnce(
       TE.right([] as ReadonlyArray<RetrievedRCConfiguration>)
     );
     const r = await listRCConfigurationHandler({

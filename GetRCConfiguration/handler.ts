@@ -26,7 +26,7 @@ import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/d
 import {
   RCConfigurationModel,
   RetrievedRCConfiguration
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
 import { parse } from "fp-ts/lib/Json";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
@@ -112,7 +112,7 @@ const getOrCacheMaybeRCConfigurationById = (
     TE.fold(
       () =>
         pipe(
-          rccModel.findLastVersionByModelId([configurationId]),
+          rccModel.findByConfigurationId(configurationId),
           TE.mapLeft(
             e => new Error(`${e.kind}, RCConfiguration Id=${configurationId}`)
           ),

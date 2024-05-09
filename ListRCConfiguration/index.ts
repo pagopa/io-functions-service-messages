@@ -8,7 +8,7 @@ import { withAppInsightsContext } from "@pagopa/io-functions-commons/dist/src/ut
 import {
   RCConfigurationModel,
   RC_CONFIGURATION_COLLECTION_NAME
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
 import {
   UserRCConfigurationModel,
   USER_RC_CONFIGURATIONS_COLLECTION_NAME

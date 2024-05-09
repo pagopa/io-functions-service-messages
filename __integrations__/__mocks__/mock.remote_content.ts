@@ -1,7 +1,7 @@
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { NewRCConfigurationPublic } from "@pagopa/io-functions-commons/dist/generated/definitions/NewRCConfigurationPublic";
 import { HasPreconditionEnum } from "@pagopa/io-functions-commons/dist/generated/definitions/HasPrecondition";
-import { RCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+import { RCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
 
 export const aPublicDetailAuthentication = {
   header_key_name: "a" as NonEmptyString,
@@ -34,6 +34,7 @@ export const anotherRemoteContentConfiguration: RCConfiguration = {
   userId: "aUserId" as NonEmptyString,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
+  id: "01HNG1XBMT8V6HWGF5T053K9RK-0000000000000000" as NonEmptyString,
   configurationId: "01HNG1XBMT8V6HWGF5T053K9RK" as Ulid,
   prodEnvironment: {
     baseUrl: "aValidUrl" as NonEmptyString,
@@ -65,6 +66,7 @@ export const aRemoteContentConfiguration: RCConfiguration = {
   userId: "aUserId" as NonEmptyString,
   name: "aRemoteContentConfiguration" as NonEmptyString,
   description: "a description" as NonEmptyString,
+  id: "01HNG1XBMT8V6HWGF5T053K9RJ-0000000000000000" as NonEmptyString,
   configurationId: "01HNG1XBMT8V6HWGF5T053K9RJ" as Ulid,
   prodEnvironment: {
     baseUrl: "aValidUrl" as NonEmptyString,

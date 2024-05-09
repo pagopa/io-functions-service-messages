@@ -4,7 +4,7 @@ import {
   RCConfiguration,
   RCConfigurationModel,
   RetrievedRCConfiguration
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
 import {
   RetrievedUserRCConfiguration,
   UserRCConfiguration,
@@ -33,6 +33,7 @@ export const aRemoteContentConfiguration: RCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
   isLollipopEnabled: false,
+  id: "01HNG1XBMT8V6HWGF5T053K9RK-0000000000000000" as NonEmptyString,
   configurationId: "01HNG1XBMT8V6HWGF5T053K9RJ" as Ulid,
   userId: aUserId,
   name: "aRemoteContentConfiguration" as NonEmptyString,
@@ -47,6 +48,7 @@ export const anotherRemoteContentConfiguration: RCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
   disableLollipopFor: [],
   isLollipopEnabled: false,
+  id: "01HNG1XBMT8V6HWGF5T053K9RK-0000000000000000" as NonEmptyString,
   configurationId: "01HNG1XBMT8V6HWGF5T053K9RK" as Ulid,
   userId: aUserId,
   name: "aRemoteContentConfiguration" as NonEmptyString,
@@ -76,21 +78,24 @@ export const aPublicRemoteContentConfiguration: NewRCConfigurationPublic = {
   }
 };
 
-export const allLastVersionConfigurations: ReadonlyArray<RCConfiguration> = [aRemoteContentConfiguration, anotherRemoteContentConfiguration];
+export const allConfigurations: ReadonlyArray<RCConfiguration> = [
+  aRemoteContentConfiguration,
+  anotherRemoteContentConfiguration
+];
 
 export const aUserRCC: UserRCConfiguration = {
   id: "01HNG1XBMT8V6HWGF5T053K9RK" as NonEmptyString,
   userId: aUserId
-}
+};
 
 export const anotherUserRCC: UserRCConfiguration = {
   id: "01HNG1XBMT8V6HWGF5T053K9RJ" as NonEmptyString,
   userId: aUserId
-}
+};
 
 export const aUserRCCList: ReadonlyArray<RetrievedUserRCConfiguration> = [
-  {...aUserRCC, ...aCosmosResourceMetadata}, 
-  {...anotherUserRCC, ...aCosmosResourceMetadata}, 
+  { ...aUserRCC, ...aCosmosResourceMetadata },
+  { ...anotherUserRCC, ...aCosmosResourceMetadata }
 ];
 
 const aFiscalCode = "FRLFRC74E04B157I" as FiscalCode;
@@ -114,18 +119,18 @@ export const aRetrievedRCConfiguration: RetrievedRCConfiguration = {
 
 export const createNewConfigurationMock = jest.fn();
 export const upsertConfigurationMock = jest.fn();
-export const findLastVersionMock = jest.fn();
-export const findAllLastVersionByConfigurationId = jest.fn();
+export const findByConfigurationIdMock = jest.fn();
+export const findAllByConfigurationId = jest.fn();
 
 export const rccModelMock = ({
   create: createNewConfigurationMock,
   upsert: upsertConfigurationMock,
-  findLastVersionByModelId: findLastVersionMock,
-  findAllLastVersionByConfigurationId: findAllLastVersionByConfigurationId
+  findByConfigurationId: findByConfigurationIdMock,
+  findAllByConfigurationId: findAllByConfigurationId
 } as unknown) as RCConfigurationModel;
 
 export const findAllByUserId = jest.fn();
 
 export const userRCCModelMock = ({
-  findAllByUserId: findAllByUserId,
+  findAllByUserId: findAllByUserId
 } as unknown) as UserRCConfigurationModel;

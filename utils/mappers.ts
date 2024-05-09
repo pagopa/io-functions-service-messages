@@ -1,13 +1,12 @@
 import {
   RCConfiguration,
   RCEnvironmentConfig,
-  RCTestEnvironmentConfig
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
-import {
+  RCTestEnvironmentConfig,
   RCClientCert as RCClientCertModel,
   RCAuthenticationConfig as RCAuthenticationConfigModel
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
+import { pipe } from "fp-ts/lib/function";
 import { RCClientCert } from "../generated/definitions/RCClientCert";
 import { RCAuthenticationConfig } from "../generated/definitions/RCAuthenticationConfig";
 import { RCConfigurationProdEnvironment } from "../generated/definitions/RCConfigurationProdEnvironment";
@@ -64,18 +63,20 @@ export const makeNewRCConfigurationWithConfigurationId = (
   generateConfigurationId: () => Ulid,
   userId: NonEmptyString,
   publicConfiguration: NewRCConfigurationPublic
-): RCConfiguration => ({
-  configurationId: generateConfigurationId(),
-  description: publicConfiguration.description,
-  disableLollipopFor: publicConfiguration.disable_lollipop_for,
-  hasPrecondition: publicConfiguration.has_precondition,
-  isLollipopEnabled: publicConfiguration.is_lollipop_enabled,
-  name: publicConfiguration.name,
-  prodEnvironment: publicConfiguration.prod_environment
-    ? getModelProdEnvironmentFromPublic(publicConfiguration.prod_environment)
-    : undefined,
-  testEnvironment: publicConfiguration.test_environment
-    ? getModelTestEnvironmentFromPublic(publicConfiguration.test_environment)
-    : undefined,
-  userId
-});
+): RCConfiguration =>
+  pipe(generateConfigurationId(), ulid => ({
+    configurationId: ulid,
+    description: publicConfiguration.description,
+    disableLollipopFor: publicConfiguration.disable_lollipop_for,
+    hasPrecondition: publicConfiguration.has_precondition,
+    id: `${ulid}` as NonEmptyString,
+    isLollipopEnabled: publicConfiguration.is_lollipop_enabled,
+    name: publicConfiguration.name,
+    prodEnvironment: publicConfiguration.prod_environment
+      ? getModelProdEnvironmentFromPublic(publicConfiguration.prod_environment)
+      : undefined,
+    testEnvironment: publicConfiguration.test_environment
+      ? getModelTestEnvironmentFromPublic(publicConfiguration.test_environment)
+      : undefined,
+    userId
+  }));
