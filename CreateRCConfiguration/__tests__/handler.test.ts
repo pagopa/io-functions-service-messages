@@ -10,7 +10,7 @@ import {
 } from "../../__mocks__/remote-content";
 import { ulidGeneratorAsUlid } from "@pagopa/io-functions-commons/dist/src/utils/strings";
 import { createRCConfigurationHandler } from "../handler";
-import { RCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
+import { RCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { Ulid } from "@pagopa/ts-commons/lib/strings";
 import { makeNewRCConfigurationWithConfigurationId } from "../../utils/mappers";
 

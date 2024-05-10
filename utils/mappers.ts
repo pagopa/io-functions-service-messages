@@ -4,7 +4,7 @@ import {
   RCTestEnvironmentConfig,
   RCClientCert as RCClientCertModel,
   RCAuthenticationConfig as RCAuthenticationConfigModel
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/lib/function";
 import { RCClientCert } from "../generated/definitions/RCClientCert";
