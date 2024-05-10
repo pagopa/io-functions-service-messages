@@ -1,6 +1,6 @@
 swagger: '2.0'
 info:
-  version: 1.10.7
+  version: 1.10.8
   title: IO internal API for messages sending functions
   contact:
     name: PagoPA
