@@ -16,7 +16,7 @@ import {
 import { flow, pipe } from "fp-ts/lib/function";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/dist/src/utils/rc_configuration";
-import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
+import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { UserRCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";

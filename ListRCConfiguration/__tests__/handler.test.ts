@@ -17,7 +17,7 @@ import {
 } from "../handler";
 import { IConfig } from "../../utils/config";
 import { RetrievedUserRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
-import { RetrievedRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
+import { RetrievedRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 
 const aUserId = "aUserId" as NonEmptyString;
 const aConfig = { INTERNAL_USER_ID: "internalUserId" } as IConfig;

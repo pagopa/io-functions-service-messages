@@ -9,7 +9,7 @@ import { withAppInsightsContext } from "@pagopa/io-functions-commons/dist/src/ut
 import {
   RCConfigurationModel,
   RC_CONFIGURATION_COLLECTION_NAME
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { remoteContentCosmosDbInstance } from "../utils/cosmosdb";
 import { getCreateRCConfigurationExpressHandler } from "./handler";
 

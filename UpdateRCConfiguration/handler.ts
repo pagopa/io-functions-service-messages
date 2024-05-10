@@ -23,7 +23,7 @@ import { pipe } from "fp-ts/lib/function";
 import {
   RCConfiguration,
   RCConfigurationModel
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";

@@ -26,7 +26,7 @@ import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/d
 import {
   RCConfigurationModel,
   RetrievedRCConfiguration
-} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration_non_versioned_temp";
+} from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
 import { parse } from "fp-ts/lib/Json";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
