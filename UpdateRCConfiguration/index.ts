@@ -13,6 +13,7 @@ import { remoteContentCosmosDbInstance } from "../utils/cosmosdb";
 import { getConfigOrThrow } from "../utils/config";
 import { RedisClientFactory } from "../utils/redis";
 import { getUpdateRCConfigurationExpressHandler } from "./handler";
+import { initTelemetryClient } from "../utils/appinsights";
 
 const rccModel = new RCConfigurationModel(
   remoteContentCosmosDbInstance.container(RC_CONFIGURATION_COLLECTION_NAME)
@@ -26,13 +27,16 @@ const redisClientFactory = new RedisClientFactory(config);
 const app = express();
 secureExpressApp(app);
 
+const telemetryClient = initTelemetryClient();
+
 // Add express route
 app.put(
   "/api/v1/remote-contents/configurations/:configurationId",
   getUpdateRCConfigurationExpressHandler({
     config,
     rccModel,
-    redisClientFactory
+    redisClientFactory,
+    telemetryClient
   })
 );
 

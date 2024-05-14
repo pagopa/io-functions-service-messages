@@ -32,6 +32,9 @@ import { setWithExpirationTask } from "../utils/redis_storage";
 import { RedisClientFactory } from "../utils/redis";
 import { RC_CONFIGURATION_REDIS_PREFIX } from "../GetRCConfiguration/handler";
 import { IConfig } from "../utils/config";
+import { TelemetryClient } from "applicationinsights";
+
+export const eventName = "remote.content.configuration.updated";
 
 export const isUserAllowedToUpdateConfiguration = (
   userId: NonEmptyString
@@ -47,12 +50,14 @@ interface IHandleUpsertParameter {
   readonly rccModel: RCConfigurationModel;
   readonly redisClientFactory: RedisClientFactory;
   readonly config: IConfig;
+  readonly telemetryClient: TelemetryClient;
 }
 
 export const handleUpsert = ({
   rccModel,
   redisClientFactory,
-  config
+  config,
+  telemetryClient
 }: IHandleUpsertParameter) => (
   newRCConfiguration: RCConfiguration
 ): TE.TaskEither<IResponseErrorInternal, IResponseSuccessNoContent> =>
@@ -74,7 +79,20 @@ export const handleUpsert = ({
         TE.orElseW(() => TE.of(rcConfiguration))
       )
     ),
-    TE.map(ResponseSuccessNoContent)
+    TE.map(rcConfiguration =>
+      pipe(
+        telemetryClient.trackEvent({
+          name: eventName,
+          properties: {
+            configurationName: rcConfiguration.name,
+            configurationId: rcConfiguration.configurationId,
+            userId: rcConfiguration.userId
+          },
+          tagOverrides: { samplingEnabled: "false" }
+        }),
+        ResponseSuccessNoContent
+      )
+    )
   );
 
 export const handleEmptyConfiguration = (
@@ -113,6 +131,7 @@ interface IUpdateRCConfigurationHandlerParameter {
   readonly rccModel: RCConfigurationModel;
   readonly redisClientFactory: RedisClientFactory;
   readonly config: IConfig;
+  readonly telemetryClient: TelemetryClient;
 }
 
 type UpdateRCConfigurationHandlerReturnType = (
@@ -131,7 +150,8 @@ type UpdateRCConfigurationHandler = (
 export const updateRCConfigurationHandler: UpdateRCConfigurationHandler = ({
   rccModel,
   redisClientFactory,
-  config
+  config,
+  telemetryClient
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 }) => ({ newRCConfiguration, configurationId, userId }) =>
   pipe(
@@ -145,7 +165,9 @@ export const updateRCConfigurationHandler: UpdateRCConfigurationHandler = ({
         newRCConfiguration
       )
     ),
-    TE.chainW(handleUpsert({ config, rccModel, redisClientFactory })),
+    TE.chainW(
+      handleUpsert({ config, rccModel, redisClientFactory, telemetryClient })
+    ),
     TE.toUnion
   )();
 
@@ -153,6 +175,7 @@ interface IGetUpdateRCConfigurationHandlerParameter {
   readonly rccModel: RCConfigurationModel;
   readonly redisClientFactory: RedisClientFactory;
   readonly config: IConfig;
+  readonly telemetryClient: TelemetryClient;
 }
 
 type GetUpdateRCConfigurationHandlerReturnType = express.RequestHandler;
@@ -164,12 +187,14 @@ type GetUpdateRCConfigurationHandler = (
 export const getUpdateRCConfigurationExpressHandler: GetUpdateRCConfigurationHandler = ({
   rccModel,
   redisClientFactory,
-  config
+  config,
+  telemetryClient
 }) => {
   const handler = updateRCConfigurationHandler({
     config,
     rccModel,
-    redisClientFactory
+    redisClientFactory,
+    telemetryClient
   });
 
   const middlewaresWrap = withRequestMiddlewares(
