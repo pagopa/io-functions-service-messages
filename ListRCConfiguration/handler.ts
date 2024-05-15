@@ -11,14 +11,12 @@ import {
   IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
   IResponseSuccessJson,
-  ResponseErrorInternal,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
 import { flow, pipe } from "fp-ts/lib/function";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/dist/src/utils/rc_configuration";
 import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
-import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { UserRCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
 import {
   RequiredSubscriptionIdMiddleware,
@@ -27,6 +25,7 @@ import {
 } from "../middlewares/required_headers_middleware";
 import { RCConfigurationListResponse } from "../generated/definitions/RCConfigurationListResponse";
 import { checkGroupAndManageSubscription } from "../utils/remote_content";
+import { handleCosmosErrorResponse } from "../utils/response";
 
 interface IHandlerParameter {
   readonly subscriptionId: NonEmptyString;
@@ -38,15 +37,6 @@ interface IListRCConfigurationHandlerParameter {
   readonly rcConfigurationModel: RCConfigurationModel;
   readonly userRCConfigurationModel: UserRCConfigurationModel;
 }
-
-const handleCosmosErrorResponse = (
-  error: CosmosErrors
-): IResponseErrorInternal =>
-  ResponseErrorInternal(
-    `Something went wrong trying to retrieve the configurations: ${JSON.stringify(
-      error
-    )}`
-  );
 
 export const listRCConfigurationHandler = ({
   rcConfigurationModel,
@@ -65,7 +55,11 @@ export const listRCConfigurationHandler = ({
     TE.chainW(_ =>
       pipe(
         userRCConfigurationModel.findAllByUserId(userId),
-        TE.mapLeft(handleCosmosErrorResponse)
+        TE.mapLeft(
+          handleCosmosErrorResponse(
+            "Something went wrong trying to retrieve the user's configurations"
+          )
+        )
       )
     ),
     TE.chainW(configList =>
@@ -75,8 +69,11 @@ export const listRCConfigurationHandler = ({
         RA.rights,
         configIdList =>
           rcConfigurationModel.findAllByConfigurationId(configIdList),
-        TE.mapLeft(handleCosmosErrorResponse),
-        x => x
+        TE.mapLeft(
+          handleCosmosErrorResponse(
+            "Something went wrong trying to retrieve the configurations by id"
+          )
+        )
       )
     ),
     TE.map(retrievedConfigurations =>

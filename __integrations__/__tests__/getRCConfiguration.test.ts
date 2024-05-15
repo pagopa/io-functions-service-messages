@@ -130,7 +130,12 @@ const getRCConfiguration = (nodeFetch: typeof fetch) => async (
     "Content-Type": "application/json"
   };
   const headers = userId
-    ? { ...baseHeaders, "x-user-id": userId }
+    ? {
+        ...baseHeaders,
+        "x-user-id": userId,
+        "x-user-groups": "ApiRemoteContentConfigurationWrite",
+        "x-subscription-id": "MANAGE-aSubscriptionId"
+      }
     : baseHeaders;
   return await nodeFetch(
     `${baseUrl}/api/v1/remote-contents/configurations/${configurationId}`,

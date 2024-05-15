@@ -72,7 +72,7 @@ describe("listRCConfigurationHandler", () => {
     });
     expect(r.kind).toBe("IResponseErrorInternal");
     expect(r.detail).toContain(
-      "Internal server error: Something went wrong trying to retrieve the configurations"
+      "Internal server error: Something went wrong trying to retrieve the user's configurations"
     );
   });
 

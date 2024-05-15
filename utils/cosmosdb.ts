@@ -2,7 +2,6 @@
  * Use a singleton CosmosDB client across functions.
  */
 import { CosmosClient } from "@azure/cosmos";
-
 import { getConfigOrThrow } from "../utils/config";
 
 const config = getConfigOrThrow();

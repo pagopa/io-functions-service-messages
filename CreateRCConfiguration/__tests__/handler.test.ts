@@ -2,11 +2,15 @@ import * as E from "fp-ts/lib/Either";
 import * as TE from "fp-ts/lib/TaskEither";
 
 import {
+  aManageSubscriptionId,
   aPublicRemoteContentConfiguration,
   aRemoteContentConfiguration,
+  aSubscriptionId,
   aUserId,
   createNewConfigurationMock,
-  rccModelMock
+  rccModelMock,
+  someUserGroups,
+  someUserGroupsWithTheAllowedOne
 } from "../../__mocks__/remote-content";
 import { ulidGeneratorAsUlid } from "@pagopa/io-functions-commons/dist/src/utils/strings";
 import { createRCConfigurationHandler } from "../handler";
@@ -39,12 +43,14 @@ describe("createRCConfigurationHandler", () => {
       newRCConfiguration: {
         ...aPublicRemoteContentConfiguration
       },
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
       userId: aUserId
     });
 
     expect(r.kind).toBe("IResponseErrorInternal");
     expect(r.detail).toBe(
-      "Internal server error: Error creating the new configuration: undefined"
+      "Internal server error: Something went wrong trying to create the configuration: {}"
     );
   });
 
@@ -57,6 +63,8 @@ describe("createRCConfigurationHandler", () => {
       generateConfigurationId: ulidGeneratorAsUlid
     })({
       newRCConfiguration: aPublicRemoteContentConfiguration,
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
       userId: aUserId
     });
 
@@ -65,5 +73,41 @@ describe("createRCConfigurationHandler", () => {
       expect(r.payload).toMatchObject({
         ...aPublicRemoteContentConfiguration
       });
+  });
+
+  test("should return 403 if group is not allowed", async () => {
+    createNewConfigurationMock.mockReturnValueOnce(
+      TE.right(aRemoteContentConfiguration)
+    );
+    const r = await createRCConfigurationHandler({
+      rccModel: rccModelMock,
+      generateConfigurationId: ulidGeneratorAsUlid
+    })({
+      newRCConfiguration: aPublicRemoteContentConfiguration,
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroups,
+      userId: aUserId
+    });
+
+    expect(r.kind).toBe("IResponseErrorForbiddenNotAuthorized");
+    expect(createNewConfigurationMock).not.toHaveBeenCalled();
+  });
+
+  test("should return 403 if subscription is not manage", async () => {
+    createNewConfigurationMock.mockReturnValueOnce(
+      TE.right(aRemoteContentConfiguration)
+    );
+    const r = await createRCConfigurationHandler({
+      rccModel: rccModelMock,
+      generateConfigurationId: ulidGeneratorAsUlid
+    })({
+      newRCConfiguration: aPublicRemoteContentConfiguration,
+      subscriptionId: aSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
+      userId: aUserId
+    });
+
+    expect(r.kind).toBe("IResponseErrorForbiddenNotAuthorized");
+    expect(createNewConfigurationMock).not.toHaveBeenCalled();
   });
 });
