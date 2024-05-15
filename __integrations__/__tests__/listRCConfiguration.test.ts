@@ -107,6 +107,7 @@ const listRCConfiguration = (nodeFetch: typeof fetch) => async (
     ? {
         ...baseHeaders,
         "x-user-id": userId,
+        "x-user-groups": "ApiRemoteContentConfigurationWrite",
         "x-subscription-id": "MANAGE-aSubscriptionId"
       }
     : baseHeaders;

@@ -11,11 +11,10 @@ import {
   IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
   IResponseSuccessJson,
-  ResponseErrorForbiddenNotAuthorized,
   ResponseErrorInternal,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
-import { flow, identity, pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/dist/src/utils/rc_configuration";
 import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
@@ -23,13 +22,15 @@ import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmos
 import { UserRCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
 import {
   RequiredSubscriptionIdMiddleware,
+  RequiredUserGroupsMiddleware,
   RequiredUserIdMiddleware
 } from "../middlewares/required_headers_middleware";
 import { RCConfigurationListResponse } from "../generated/definitions/RCConfigurationListResponse";
-import { isManageSubscription } from "../utils/apim";
+import { checkGroupAndManageSubscription } from "../utils/remote_content";
 
 interface IHandlerParameter {
   readonly subscriptionId: NonEmptyString;
+  readonly userGroups: NonEmptyString;
   readonly userId: NonEmptyString;
 }
 
@@ -52,6 +53,7 @@ export const listRCConfigurationHandler = ({
   userRCConfigurationModel
 }: IListRCConfigurationHandlerParameter) => ({
   subscriptionId,
+  userGroups,
   userId
 }: IHandlerParameter): Promise<
   | IResponseSuccessJson<RCConfigurationListResponse>
@@ -59,8 +61,7 @@ export const listRCConfigurationHandler = ({
   | IResponseErrorForbiddenNotAuthorized
 > =>
   pipe(
-    isManageSubscription(subscriptionId),
-    TE.fromPredicate(identity, _ => ResponseErrorForbiddenNotAuthorized),
+    checkGroupAndManageSubscription(subscriptionId, userGroups),
     TE.chainW(_ =>
       pipe(
         userRCConfigurationModel.findAllByUserId(userId),
@@ -111,12 +112,13 @@ export const listRCConfigurationExpressHandler: ListRCConfigurationHandler = ({
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
     RequiredSubscriptionIdMiddleware(),
+    RequiredUserGroupsMiddleware(),
     RequiredUserIdMiddleware()
   );
 
   return wrapRequestHandler(
-    middlewaresWrap((_, subscriptionId, userId) =>
-      handler({ subscriptionId, userId })
+    middlewaresWrap((_, subscriptionId, userGroups, userId) =>
+      handler({ subscriptionId, userGroups, userId })
     )
   );
 };

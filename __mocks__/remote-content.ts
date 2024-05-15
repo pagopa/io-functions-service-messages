@@ -14,6 +14,7 @@ import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigur
 import { FiscalCode } from "../generated/definitions/FiscalCode";
 import { aCosmosResourceMetadata } from "./models.mock";
 import { MANAGE_SUBSCRIPTION_PREFIX } from "../utils/apim";
+import { ALLOWED_RC_CONFIG_API_GROUP } from "../utils/remote_content";
 
 const aPublicDetailAuthentication = {
   header_key_name: "a" as NonEmptyString,
@@ -30,6 +31,8 @@ const aDetailAuthentication = {
 export const aUserId = "aUserId" as NonEmptyString;
 export const aSubscriptionId = "aSubscriptionId" as NonEmptyString;
 export const aManageSubscriptionId = `${MANAGE_SUBSCRIPTION_PREFIX}${aSubscriptionId}` as NonEmptyString;
+export const someUserGroups = "GroupA,GroupB,GroupC" as NonEmptyString;
+export const someUserGroupsWithTheAllowedOne = `${someUserGroups},${ALLOWED_RC_CONFIG_API_GROUP}` as NonEmptyString;
 
 export const aRemoteContentConfiguration: RCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,

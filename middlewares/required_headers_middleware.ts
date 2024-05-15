@@ -3,7 +3,8 @@ import * as T from "fp-ts/lib/Task";
 import { IRequestMiddleware } from "@pagopa/ts-commons/lib/request_middleware";
 import {
   IResponse,
-  ResponseErrorForbiddenAnonymousUser
+  ResponseErrorForbiddenAnonymousUser,
+  ResponseErrorForbiddenNotAuthorized
 } from "@pagopa/ts-commons/lib/responses";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { pipe } from "fp-ts/lib/function";
@@ -50,5 +51,20 @@ export const RequiredSubscriptionIdMiddleware = (): IRequestMiddleware<
     request.header("x-subscription-id"),
     NonEmptyString.decode,
     E.mapLeft(() => ResponseErrorForbiddenAnonymousUser),
+    T.of
+  )();
+
+export const RequiredUserGroupsMiddleware = (): IRequestMiddleware<
+  "IResponseErrorForbiddenNotAuthorized",
+  NonEmptyString
+> => (
+  request
+): Promise<
+  E.Either<IResponse<"IResponseErrorForbiddenNotAuthorized">, NonEmptyString>
+> =>
+  pipe(
+    request.header("x-user-groups"),
+    NonEmptyString.decode,
+    E.mapLeft(() => ResponseErrorForbiddenNotAuthorized),
     T.of
   )();
