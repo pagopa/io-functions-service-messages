@@ -25,6 +25,7 @@ import {
   RCConfigurationModel
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
+import { TelemetryClient } from "applicationinsights";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
 import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
 import { makeNewRCConfigurationWithConfigurationId } from "../utils/mappers";
@@ -32,7 +33,6 @@ import { setWithExpirationTask } from "../utils/redis_storage";
 import { RedisClientFactory } from "../utils/redis";
 import { RC_CONFIGURATION_REDIS_PREFIX } from "../GetRCConfiguration/handler";
 import { IConfig } from "../utils/config";
-import { TelemetryClient } from "applicationinsights";
 
 export const eventName = "remote.content.configuration.updated";
 
@@ -84,8 +84,8 @@ export const handleUpsert = ({
         telemetryClient.trackEvent({
           name: eventName,
           properties: {
-            configurationName: rcConfiguration.name,
             configurationId: rcConfiguration.configurationId,
+            configurationName: rcConfiguration.name,
             userId: rcConfiguration.userId
           },
           tagOverrides: { samplingEnabled: "false" }

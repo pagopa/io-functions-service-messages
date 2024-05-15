@@ -12,8 +12,8 @@ import {
 import { remoteContentCosmosDbInstance } from "../utils/cosmosdb";
 import { getConfigOrThrow } from "../utils/config";
 import { RedisClientFactory } from "../utils/redis";
-import { getUpdateRCConfigurationExpressHandler } from "./handler";
 import { initTelemetryClient } from "../utils/appinsights";
+import { getUpdateRCConfigurationExpressHandler } from "./handler";
 
 const rccModel = new RCConfigurationModel(
   remoteContentCosmosDbInstance.container(RC_CONFIGURATION_COLLECTION_NAME)
