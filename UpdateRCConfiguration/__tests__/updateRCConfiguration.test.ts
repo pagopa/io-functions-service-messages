@@ -20,11 +20,17 @@ import {
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { redisClientMock } from "../../__mocks__/redis.mock";
 import { RC_CONFIGURATION_REDIS_PREFIX } from "../../GetRCConfiguration/handler";
+import { TelemetryClient } from "applicationinsights";
 
 const setWithExpirationTaskMock = jest.fn();
 jest
   .spyOn(redis_storage, "setWithExpirationTask")
   .mockImplementation(setWithExpirationTaskMock);
+
+const trackEventMock = jest.fn();
+const telemetryClientMock = ({
+  trackEvent: trackEventMock
+} as unknown) as TelemetryClient;
 
 describe("isUserAllowedToUpdateConfiguration", () => {
   test("should return a left if the userId is not equal to the userId of the configuration", async () => {
@@ -99,7 +105,8 @@ describe("handleUpsert", () => {
     const r = await handleUpsert({
       rccModel: rccModelMock,
       config: envConfig,
-      redisClientFactory: redisClientMock
+      redisClientFactory: redisClientMock,
+      telemetryClient: telemetryClientMock
     })(aRemoteContentConfiguration)();
     expect(E.isLeft(r)).toBe(true);
     expect(setWithExpirationTaskMock).not.toHaveBeenCalled();
@@ -118,7 +125,8 @@ describe("handleUpsert", () => {
     const r = await handleUpsert({
       rccModel: rccModelMock,
       config: envConfig,
-      redisClientFactory: redisClientMock
+      redisClientFactory: redisClientMock,
+      telemetryClient: telemetryClientMock
     })(aRemoteContentConfiguration)();
     expect(E.isRight(r)).toBe(true);
     expect(setWithExpirationTaskMock).toHaveBeenCalledWith(
@@ -141,7 +149,8 @@ describe("handleUpsert", () => {
     const r = await handleUpsert({
       rccModel: rccModelMock,
       config: envConfig,
-      redisClientFactory: redisClientMock
+      redisClientFactory: redisClientMock,
+      telemetryClient: telemetryClientMock
     })(aRemoteContentConfiguration)();
     expect(E.isRight(r)).toBe(true);
     expect(setWithExpirationTaskMock).toHaveBeenCalledWith(
