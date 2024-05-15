@@ -8,21 +8,28 @@ import {
   wrapRequestHandler
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
+  IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
   IResponseSuccessJson,
+  ResponseErrorForbiddenNotAuthorized,
   ResponseErrorInternal,
   ResponseSuccessJson
 } from "@pagopa/ts-commons/lib/responses";
-import { flow, pipe } from "fp-ts/lib/function";
+import { flow, identity, pipe } from "fp-ts/lib/function";
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/dist/src/utils/rc_configuration";
 import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { CosmosErrors } from "@pagopa/io-functions-commons/dist/src/utils/cosmosdb_model";
 import { UserRCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
-import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
+import {
+  RequiredSubscriptionIdMiddleware,
+  RequiredUserIdMiddleware
+} from "../middlewares/required_headers_middleware";
 import { RCConfigurationListResponse } from "../generated/definitions/RCConfigurationListResponse";
+import { isManageSubscription } from "../utils/apim";
 
 interface IHandlerParameter {
+  readonly subscriptionId: NonEmptyString;
   readonly userId: NonEmptyString;
 }
 
@@ -44,22 +51,33 @@ export const listRCConfigurationHandler = ({
   rcConfigurationModel,
   userRCConfigurationModel
 }: IListRCConfigurationHandlerParameter) => ({
+  subscriptionId,
   userId
 }: IHandlerParameter): Promise<
-  IResponseSuccessJson<RCConfigurationListResponse> | IResponseErrorInternal
+  | IResponseSuccessJson<RCConfigurationListResponse>
+  | IResponseErrorInternal
+  | IResponseErrorForbiddenNotAuthorized
 > =>
   pipe(
-    userRCConfigurationModel.findAllByUserId(userId),
+    isManageSubscription(subscriptionId),
+    TE.fromPredicate(identity, _ => ResponseErrorForbiddenNotAuthorized),
+    TE.chainW(_ =>
+      pipe(
+        userRCConfigurationModel.findAllByUserId(userId),
+        TE.mapLeft(handleCosmosErrorResponse)
+      )
+    ),
     TE.chainW(configList =>
       pipe(
         configList,
         RA.map(configuration => Ulid.decode(configuration.id)),
         RA.rights,
         configIdList =>
-          rcConfigurationModel.findAllByConfigurationId(configIdList)
+          rcConfigurationModel.findAllByConfigurationId(configIdList),
+        TE.mapLeft(handleCosmosErrorResponse),
+        x => x
       )
     ),
-    TE.mapLeft(handleCosmosErrorResponse),
     TE.map(retrievedConfigurations =>
       pipe(
         retrievedConfigurations,
@@ -92,10 +110,13 @@ export const listRCConfigurationExpressHandler: ListRCConfigurationHandler = ({
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
-    RequiredUserIdMiddleware()
+    RequiredUserIdMiddleware(),
+    RequiredSubscriptionIdMiddleware()
   );
 
   return wrapRequestHandler(
-    middlewaresWrap((_, userId) => handler({ userId }))
+    middlewaresWrap((_, userId, subscriptionId) =>
+      handler({ subscriptionId, userId })
+    )
   );
 };

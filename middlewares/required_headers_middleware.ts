@@ -37,3 +37,18 @@ export const RequiredUserIdMiddleware = (): IRequestMiddleware<
     E.mapLeft(() => ResponseErrorForbiddenAnonymousUser),
     T.of
   )();
+
+export const RequiredSubscriptionIdMiddleware = (): IRequestMiddleware<
+  "IResponseErrorForbiddenAnonymousUser",
+  NonEmptyString
+> => (
+  request
+): Promise<
+  E.Either<IResponse<"IResponseErrorForbiddenAnonymousUser">, NonEmptyString>
+> =>
+  pipe(
+    request.header("x-subscription-id"),
+    NonEmptyString.decode,
+    E.mapLeft(() => ResponseErrorForbiddenAnonymousUser),
+    T.of
+  )();

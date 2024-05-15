@@ -13,6 +13,7 @@ import {
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
 import { FiscalCode } from "../generated/definitions/FiscalCode";
 import { aCosmosResourceMetadata } from "./models.mock";
+import { MANAGE_SUBSCRIPTION_PREFIX } from "../utils/apim";
 
 const aPublicDetailAuthentication = {
   header_key_name: "a" as NonEmptyString,
@@ -27,6 +28,8 @@ const aDetailAuthentication = {
 };
 
 export const aUserId = "aUserId" as NonEmptyString;
+export const aSubscriptionId = "aSubscriptionId" as NonEmptyString;
+export const aManageSubscriptionId = `${MANAGE_SUBSCRIPTION_PREFIX}${aSubscriptionId}` as NonEmptyString;
 
 export const aRemoteContentConfiguration: RCConfiguration = {
   hasPrecondition: HasPreconditionEnum.ALWAYS,
@@ -61,7 +64,7 @@ export const anotherRemoteContentConfiguration: RCConfiguration = {
 export const aRetrievedRemoteContentConfiguration: RetrievedRCConfiguration = {
   ...aRemoteContentConfiguration,
   ...aCosmosResourceMetadata,
-  id: `${aRemoteContentConfiguration.configurationId}` as NonEmptyString,
+  id: `${aRemoteContentConfiguration.configurationId}` as NonEmptyString
 };
 
 export const aPublicRemoteContentConfiguration: NewRCConfigurationPublic = {
