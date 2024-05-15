@@ -110,12 +110,12 @@ export const listRCConfigurationExpressHandler: ListRCConfigurationHandler = ({
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
-    RequiredUserIdMiddleware(),
-    RequiredSubscriptionIdMiddleware()
+    RequiredSubscriptionIdMiddleware(),
+    RequiredUserIdMiddleware()
   );
 
   return wrapRequestHandler(
-    middlewaresWrap((_, userId, subscriptionId) =>
+    middlewaresWrap((_, subscriptionId, userId) =>
       handler({ subscriptionId, userId })
     )
   );
