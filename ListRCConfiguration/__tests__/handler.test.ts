@@ -1,4 +1,3 @@
-import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import * as O from "fp-ts/lib/Option";
 import * as TE from "fp-ts/lib/TaskEither";
 
@@ -9,32 +8,28 @@ import {
   findAllByUserId,
   findAllByConfigurationId,
   rccModelMock,
-  userRCCModelMock
+  userRCCModelMock,
+  aManageSubscriptionId,
+  aSubscriptionId,
+  someUserGroupsWithTheAllowedOne,
+  someUserGroups
 } from "../../__mocks__/remote-content";
 
-import {
-  listRCConfigurationHandler
-} from "../handler";
-import { IConfig } from "../../utils/config";
+import { listRCConfigurationHandler } from "../handler";
 import { RetrievedUserRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
 import { RetrievedRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 
-const aUserId = "aUserId" as NonEmptyString;
-const aConfig = { INTERNAL_USER_ID: "internalUserId" } as IConfig;
-
 describe("listRCConfigurationHandler", () => {
   test("should return an IResponseSuccessJson if the model return a valid configuration and the userId match", async () => {
-    findAllByUserId.mockReturnValueOnce(
-      TE.right(aUserRCCList)
-    );
-    findAllByConfigurationId.mockReturnValueOnce(
-      TE.right(allConfigurations)
-    );
+    findAllByUserId.mockReturnValueOnce(TE.right(aUserRCCList));
+    findAllByConfigurationId.mockReturnValueOnce(TE.right(allConfigurations));
 
     const r = await listRCConfigurationHandler({
       rcConfigurationModel: rccModelMock,
       userRCConfigurationModel: userRCCModelMock
     })({
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
       userId: aRemoteContentConfiguration.userId
     });
     expect(r.kind).toBe("IResponseSuccessJson");
@@ -54,6 +49,8 @@ describe("listRCConfigurationHandler", () => {
       rcConfigurationModel: rccModelMock,
       userRCConfigurationModel: userRCCModelMock
     })({
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
       userId: aRemoteContentConfiguration.userId
     });
     expect(r.kind).toBe("IResponseSuccessJson");
@@ -68,11 +65,49 @@ describe("listRCConfigurationHandler", () => {
       rcConfigurationModel: rccModelMock,
       userRCConfigurationModel: userRCCModelMock
     })({
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
       userId: aRemoteContentConfiguration.userId
     });
     expect(r.kind).toBe("IResponseErrorInternal");
     expect(r.detail).toContain(
-      "Internal server error: Something went wrong trying to retrieve the configurations"
+      "Internal server error: Something went wrong trying to retrieve the user's configurations"
     );
+  });
+
+  test("should return an IResponseErrorForbiddenNotAuthorized if not called from a manage subscription", async () => {
+    findAllByUserId.mockReturnValueOnce(
+      TE.right([] as ReadonlyArray<RetrievedUserRCConfiguration>)
+    );
+    findAllByConfigurationId.mockReturnValueOnce(
+      TE.right([] as ReadonlyArray<RetrievedRCConfiguration>)
+    );
+    const r = await listRCConfigurationHandler({
+      rcConfigurationModel: rccModelMock,
+      userRCConfigurationModel: userRCCModelMock
+    })({
+      subscriptionId: aSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
+      userId: aRemoteContentConfiguration.userId
+    });
+    expect(r.kind).toBe("IResponseErrorForbiddenNotAuthorized");
+  });
+
+  test("should return an IResponseErrorForbiddenNotAuthorized if user is not in the allowed group", async () => {
+    findAllByUserId.mockReturnValueOnce(
+      TE.right([] as ReadonlyArray<RetrievedUserRCConfiguration>)
+    );
+    findAllByConfigurationId.mockReturnValueOnce(
+      TE.right([] as ReadonlyArray<RetrievedRCConfiguration>)
+    );
+    const r = await listRCConfigurationHandler({
+      rcConfigurationModel: rccModelMock,
+      userRCConfigurationModel: userRCCModelMock
+    })({
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroups,
+      userId: aRemoteContentConfiguration.userId
+    });
+    expect(r.kind).toBe("IResponseErrorForbiddenNotAuthorized");
   });
 });

@@ -19,12 +19,15 @@ import {
   anotherPublicRemoteContentConfiguration,
   anotherRemoteContentConfiguration
 } from "../__mocks__/mock.remote_content";
-import { UserRCConfiguration }from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
+import { UserRCConfiguration } from "@pagopa/io-functions-commons/dist/src/models/user_rc_configuration";
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 
 const baseUrl = "http://function:7071";
 
-export const aRemoteContentConfigurationList = [aRemoteContentConfiguration, anotherRemoteContentConfiguration];
+export const aRemoteContentConfigurationList = [
+  aRemoteContentConfiguration,
+  anotherRemoteContentConfiguration
+];
 
 const cosmosClient = new CosmosClient({
   endpoint: REMOTE_CONTENT_COSMOSDB_URI,
@@ -44,8 +47,11 @@ beforeAll(async () => {
   )();
   await fillRCConfiguration(database, aRemoteContentConfigurationList);
   const userRCConfigurations = aRemoteContentConfigurationList.map(config => {
-    return {userId: config.userId, id: config.configurationId as unknown as NonEmptyString } as UserRCConfiguration
-  }) as ReadonlyArray<UserRCConfiguration>
+    return {
+      userId: config.userId,
+      id: (config.configurationId as unknown) as NonEmptyString
+    } as UserRCConfiguration;
+  }) as ReadonlyArray<UserRCConfiguration>;
   await fillUserRCConfiguration(database, userRCConfigurations);
 });
 
@@ -84,8 +90,8 @@ describe("ListRCConfiguration", () => {
     expect(r.status).toBe(200);
     expect(response).toMatchObject({
       rcConfigList: [
-        {...anotherPublicRemoteContentConfiguration, user_id: "aUserId"},
-        {...aPublicRemoteContentConfiguration, user_id: "aUserId"}
+        { ...anotherPublicRemoteContentConfiguration, user_id: "aUserId" },
+        { ...aPublicRemoteContentConfiguration, user_id: "aUserId" }
       ]
     });
   });
@@ -98,14 +104,15 @@ const listRCConfiguration = (nodeFetch: typeof fetch) => async (
     "Content-Type": "application/json"
   };
   const headers = userId
-    ? { ...baseHeaders, "x-user-id": userId }
+    ? {
+        ...baseHeaders,
+        "x-user-id": userId,
+        "x-user-groups": "ApiRemoteContentConfigurationWrite",
+        "x-subscription-id": "MANAGE-aSubscriptionId"
+      }
     : baseHeaders;
-  return await nodeFetch(
-    `${baseUrl}/api/v1/remote-contents/configurations`,
-    {
-      method: "GET",
-      headers
-    }
-  );
+  return await nodeFetch(`${baseUrl}/api/v1/remote-contents/configurations`, {
+    method: "GET",
+    headers
+  });
 };
-

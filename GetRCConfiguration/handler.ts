@@ -29,16 +29,23 @@ import {
 } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { RequiredParamMiddleware } from "@pagopa/io-functions-commons/dist/src/utils/middlewares/required_param";
 import { parse } from "fp-ts/lib/Json";
-import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
+import {
+  RequiredSubscriptionIdMiddleware,
+  RequiredUserGroupsMiddleware,
+  RequiredUserIdMiddleware
+} from "../middlewares/required_headers_middleware";
 import { RCConfigurationResponse } from "../generated/definitions/RCConfigurationResponse";
 import { IConfig } from "../utils/config";
 import { getTask, setWithExpirationTask } from "../utils/redis_storage";
 import { RedisClientFactory } from "../utils/redis";
+import { checkGroupAndManageSubscription } from "../utils/remote_content";
 
 export const RC_CONFIGURATION_REDIS_PREFIX = "RC-CONFIGURATION";
 
 interface IHandlerParameter {
   readonly configurationId: Ulid;
+  readonly subscriptionId: NonEmptyString;
+  readonly userGroups: NonEmptyString;
   readonly userId: NonEmptyString;
 }
 
@@ -147,6 +154,8 @@ export const getRCConfigurationHandler = ({
   redisClient
 }: IGetRCConfigurationHandlerParameter) => ({
   configurationId,
+  subscriptionId,
+  userGroups,
   userId
 }: IHandlerParameter): Promise<
   | IResponseSuccessJson<RCConfigurationResponse>
@@ -155,13 +164,20 @@ export const getRCConfigurationHandler = ({
   | IResponseErrorInternal
 > =>
   pipe(
-    getOrCacheMaybeRCConfigurationById(
-      configurationId,
-      redisClient,
-      rccModel,
-      config
+    config.INTERNAL_USER_ID === userId
+      ? TE.of(true)
+      : checkGroupAndManageSubscription(subscriptionId, userGroups),
+    TE.chainW(_ =>
+      pipe(
+        getOrCacheMaybeRCConfigurationById(
+          configurationId,
+          redisClient,
+          rccModel,
+          config
+        ),
+        TE.mapLeft(handleErrorResponse)
+      )
     ),
-    TE.mapLeft(handleErrorResponse),
     TE.chainW(handleEmptyErrorResponse(configurationId)),
     TE.chainW(
       TE.fromPredicate(
@@ -210,13 +226,15 @@ export const getGetRCConfigurationExpressHandler: GetGetRCConfigurationHandler =
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
+    RequiredSubscriptionIdMiddleware(),
+    RequiredUserGroupsMiddleware(),
     RequiredUserIdMiddleware(),
     RequiredParamMiddleware("configurationId", Ulid)
   );
 
   return wrapRequestHandler(
-    middlewaresWrap((_, userId, configurationId) =>
-      handler({ configurationId, userId })
+    middlewaresWrap((_, subscriptionId, userGroups, userId, configurationId) =>
+      handler({ configurationId, subscriptionId, userGroups, userId })
     )
   );
 };

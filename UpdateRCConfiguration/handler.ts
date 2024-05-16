@@ -27,12 +27,17 @@ import {
 import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { TelemetryClient } from "applicationinsights";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
-import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
+import {
+  RequiredSubscriptionIdMiddleware,
+  RequiredUserGroupsMiddleware,
+  RequiredUserIdMiddleware
+} from "../middlewares/required_headers_middleware";
 import { makeNewRCConfigurationWithConfigurationId } from "../utils/mappers";
 import { setWithExpirationTask } from "../utils/redis_storage";
 import { RedisClientFactory } from "../utils/redis";
 import { RC_CONFIGURATION_REDIS_PREFIX } from "../GetRCConfiguration/handler";
 import { IConfig } from "../utils/config";
+import { checkGroupAndManageSubscription } from "../utils/remote_content";
 
 export const eventName = "remote.content.configuration.updated";
 
@@ -108,7 +113,7 @@ export const handleEmptyConfiguration = (
     )
   );
 
-export const handleGetLastRCConfigurationVersion = (
+export const handleGetRCConfiguration = (
   rccModel: RCConfigurationModel,
   configurationId: Ulid
 ): TE.TaskEither<IResponseErrorInternal, O.Option<RCConfiguration>> =>
@@ -124,6 +129,8 @@ export const handleGetLastRCConfigurationVersion = (
 interface IHandlerParameter {
   readonly configurationId: Ulid;
   readonly newRCConfiguration: NewRCConfigurationPublic;
+  readonly subscriptionId: NonEmptyString;
+  readonly userGroups: NonEmptyString;
   readonly userId: NonEmptyString;
 }
 
@@ -153,9 +160,16 @@ export const updateRCConfigurationHandler: UpdateRCConfigurationHandler = ({
   config,
   telemetryClient
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-}) => ({ newRCConfiguration, configurationId, userId }) =>
+}) => ({
+  newRCConfiguration,
+  configurationId,
+  subscriptionId,
+  userGroups,
+  userId
+}) =>
   pipe(
-    handleGetLastRCConfigurationVersion(rccModel, configurationId),
+    checkGroupAndManageSubscription(subscriptionId, userGroups),
+    TE.chainW(_ => pipe(handleGetRCConfiguration(rccModel, configurationId))),
     TE.chainW(handleEmptyConfiguration),
     TE.chainW(isUserAllowedToUpdateConfiguration(userId)),
     TE.map(() =>
@@ -199,14 +213,30 @@ export const getUpdateRCConfigurationExpressHandler: GetUpdateRCConfigurationHan
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
+    RequiredSubscriptionIdMiddleware(),
+    RequiredUserGroupsMiddleware(),
     RequiredUserIdMiddleware(),
     RequiredParamMiddleware("configurationId", Ulid),
     RequiredBodyPayloadMiddleware(NewRCConfigurationPublic)
   );
 
   return wrapRequestHandler(
-    middlewaresWrap((_, userId, configurationId, newRCConfiguration) =>
-      handler({ configurationId, newRCConfiguration, userId })
+    middlewaresWrap((
+      _,
+      subscriptionId,
+      userGroups,
+      userId,
+      configurationId,
+      newRCConfiguration
+      // eslint-disable-next-line max-params
+    ) =>
+      handler({
+        configurationId,
+        newRCConfiguration,
+        subscriptionId,
+        userGroups,
+        userId
+      })
     )
   );
 };

@@ -7,7 +7,7 @@ import { envConfig } from "../../__mocks__/env-config.mock";
 
 import {
   handleEmptyConfiguration,
-  handleGetLastRCConfigurationVersion,
+  handleGetRCConfiguration,
   handleUpsert,
   isUserAllowedToUpdateConfiguration
 } from "../handler";
@@ -67,11 +67,11 @@ describe("handleEmptyConfiguration", () => {
   });
 });
 
-describe("handleGetLastRCConfigurationVersion", () => {
+describe("handleGetRCConfiguration", () => {
   test("should return a left if the find return an error", async () => {
     findByConfigurationIdMock.mockReturnValueOnce(TE.left({}));
     const rccModel = rccModelMock;
-    const r = await handleGetLastRCConfigurationVersion(
+    const r = await handleGetRCConfiguration(
       rccModel,
       aRemoteContentConfiguration.configurationId
     )();
@@ -88,7 +88,7 @@ describe("handleGetLastRCConfigurationVersion", () => {
     findByConfigurationIdMock.mockReturnValueOnce(
       TE.right(O.some(aRemoteContentConfiguration))
     );
-    const r = await handleGetLastRCConfigurationVersion(
+    const r = await handleGetRCConfiguration(
       rccModelMock,
       aRemoteContentConfiguration.configurationId
     )();

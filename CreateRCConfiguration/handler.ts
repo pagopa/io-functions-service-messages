@@ -8,9 +8,9 @@ import {
   wrapRequestHandler
 } from "@pagopa/io-functions-commons/dist/src/utils/request_middleware";
 import {
+  IResponseErrorForbiddenNotAuthorized,
   IResponseErrorInternal,
   IResponseSuccessRedirectToResource,
-  ResponseErrorInternal,
   ResponseSuccessRedirectToResource
 } from "@pagopa/ts-commons/lib/responses";
 import { flow, pipe } from "fp-ts/lib/function";
@@ -18,12 +18,20 @@ import { NonEmptyString, Ulid } from "@pagopa/ts-commons/lib/strings";
 import { retrievedRCConfigurationToPublic } from "@pagopa/io-functions-commons/dist/src/utils/rc_configuration";
 import { RCConfigurationModel } from "@pagopa/io-functions-commons/dist/src/models/rc_configuration";
 import { RCConfigurationPublic } from "../generated/definitions/RCConfigurationPublic";
-import { RequiredUserIdMiddleware } from "../middlewares/required_headers_middleware";
+import {
+  RequiredSubscriptionIdMiddleware,
+  RequiredUserGroupsMiddleware,
+  RequiredUserIdMiddleware
+} from "../middlewares/required_headers_middleware";
 import { NewRCConfigurationPublic } from "../generated/definitions/NewRCConfigurationPublic";
 import { makeNewRCConfigurationWithConfigurationId } from "../utils/mappers";
+import { checkGroupAndManageSubscription } from "../utils/remote_content";
+import { handleCosmosErrorResponse } from "../utils/response";
 
 interface IHandlerParameter {
   readonly newRCConfiguration: NewRCConfigurationPublic;
+  readonly subscriptionId: NonEmptyString;
+  readonly userGroups: NonEmptyString;
   readonly userId: NonEmptyString;
 }
 
@@ -38,6 +46,7 @@ type CreateRCConfigurationHandlerReturnType = (
   // eslint-disable-next-line @typescript-eslint/ban-types
   | IResponseSuccessRedirectToResource<RCConfigurationPublic, {}>
   | IResponseErrorInternal
+  | IResponseErrorForbiddenNotAuthorized
 >;
 
 type CreateRCConfigurationHandler = (
@@ -48,13 +57,23 @@ export const createRCConfigurationHandler: CreateRCConfigurationHandler = ({
   rccModel,
   generateConfigurationId
   // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-}) => ({ newRCConfiguration, userId }) =>
+}) => ({ newRCConfiguration, subscriptionId, userGroups, userId }) =>
   pipe(
-    rccModel.create(
-      makeNewRCConfigurationWithConfigurationId(
-        generateConfigurationId,
-        userId,
-        newRCConfiguration
+    checkGroupAndManageSubscription(subscriptionId, userGroups),
+    TE.chainW(_ =>
+      pipe(
+        rccModel.create(
+          makeNewRCConfigurationWithConfigurationId(
+            generateConfigurationId,
+            userId,
+            newRCConfiguration
+          )
+        ),
+        TE.mapLeft(
+          handleCosmosErrorResponse(
+            "Something went wrong trying to create the configuration"
+          )
+        )
       )
     ),
     TE.map(
@@ -65,9 +84,6 @@ export const createRCConfigurationHandler: CreateRCConfigurationHandler = ({
           publicConfiguration
         )
       )
-    ),
-    TE.mapLeft(e =>
-      ResponseErrorInternal(`Error creating the new configuration: ${e.kind}`)
     ),
     TE.toUnion
   )();
@@ -94,13 +110,16 @@ export const getCreateRCConfigurationExpressHandler: GetCreateRCConfigurationHan
 
   const middlewaresWrap = withRequestMiddlewares(
     ContextMiddleware(),
+    RequiredSubscriptionIdMiddleware(),
+    RequiredUserGroupsMiddleware(),
     RequiredUserIdMiddleware(),
     RequiredBodyPayloadMiddleware(NewRCConfigurationPublic)
   );
 
   return wrapRequestHandler(
-    middlewaresWrap((_, userId, newRCConfiguration) =>
-      handler({ newRCConfiguration, userId })
+    middlewaresWrap(
+      (_, subscriptionId, userGroups, userId, newRCConfiguration) =>
+        handler({ newRCConfiguration, subscriptionId, userGroups, userId })
     )
   );
 };
