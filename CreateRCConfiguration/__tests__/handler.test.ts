@@ -34,6 +34,10 @@ describe("makeNewRCConfigurationWithConfigurationId", () => {
 });
 
 describe("createRCConfigurationHandler", () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+  });
+
   test("should return 500 if the model return an error", async () => {
     createNewConfigurationMock.mockReturnValueOnce(TE.left({}));
     const r = await createRCConfigurationHandler({
@@ -76,9 +80,7 @@ describe("createRCConfigurationHandler", () => {
   });
 
   test("should return 403 if group is not allowed", async () => {
-    createNewConfigurationMock.mockReturnValueOnce(
-      TE.right(aRemoteContentConfiguration)
-    );
+    createNewConfigurationMock.mockReturnValueOnce(TE.left({}));
     const r = await createRCConfigurationHandler({
       rccModel: rccModelMock,
       generateConfigurationId: ulidGeneratorAsUlid
@@ -94,9 +96,7 @@ describe("createRCConfigurationHandler", () => {
   });
 
   test("should return 403 if subscription is not manage", async () => {
-    createNewConfigurationMock.mockReturnValueOnce(
-      TE.right(aRemoteContentConfiguration)
-    );
+    createNewConfigurationMock.mockReturnValueOnce(TE.left({}));
     const r = await createRCConfigurationHandler({
       rccModel: rccModelMock,
       generateConfigurationId: ulidGeneratorAsUlid

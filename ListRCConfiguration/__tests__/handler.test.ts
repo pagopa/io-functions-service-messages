@@ -53,7 +53,6 @@ describe("listRCConfigurationHandler", () => {
       userGroups: someUserGroupsWithTheAllowedOne,
       userId: aRemoteContentConfiguration.userId
     });
-    console.log(r.detail);
     expect(r.kind).toBe("IResponseSuccessJson");
     if (r.kind === "IResponseSuccessJson") {
       expect(r.value.rcConfigList).toHaveLength(0);

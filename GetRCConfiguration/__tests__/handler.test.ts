@@ -5,10 +5,14 @@ import * as TE from "fp-ts/lib/TaskEither";
 import * as redis_storage from "../../utils/redis_storage";
 
 import {
+  aManageSubscriptionId,
   aRemoteContentConfiguration,
   aRetrievedRCConfiguration,
+  aSubscriptionId,
   findByConfigurationIdMock,
-  rccModelMock
+  rccModelMock,
+  someUserGroups,
+  someUserGroupsWithTheAllowedOne
 } from "../../__mocks__/remote-content";
 
 import {
@@ -31,6 +35,10 @@ jest
   .mockImplementation(setWithExpirationTaskMock);
 
 beforeEach(() => {
+  jest.clearAllMocks();
+});
+
+afterEach(() => {
   jest.clearAllMocks();
 });
 
@@ -59,6 +67,8 @@ describe("getRCConfigurationHandler", () => {
       redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
       userId: aRemoteContentConfiguration.userId
     });
     expect(r.kind).toBe("IResponseSuccessJson");
@@ -82,6 +92,8 @@ describe("getRCConfigurationHandler", () => {
       redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
       userId: aRemoteContentConfiguration.userId
     });
     expect(r.kind).toBe("IResponseSuccessJson");
@@ -102,7 +114,9 @@ describe("getRCConfigurationHandler", () => {
       redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
-      userId: aUserId
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
+      userId: aConfig.INTERNAL_USER_ID
     });
     expect(r.kind).toBe("IResponseSuccessJson");
     expect(getTaskMock).toHaveBeenCalled();
@@ -127,6 +141,8 @@ describe("getRCConfigurationHandler", () => {
       redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
       userId: "invalid" as NonEmptyString
     });
     expect(r.kind).toBe("IResponseErrorForbiddenNotAuthorized");
@@ -149,6 +165,8 @@ describe("getRCConfigurationHandler", () => {
       redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
       userId: aUserId
     });
     expect(r.kind).toBe("IResponseErrorNotFound");
@@ -169,6 +187,8 @@ describe("getRCConfigurationHandler", () => {
       redisClient: redisClientMock
     })({
       configurationId: aRemoteContentConfiguration.configurationId,
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
       userId: aUserId
     });
     expect(r.kind).toBe("IResponseErrorInternal");
@@ -178,5 +198,93 @@ describe("getRCConfigurationHandler", () => {
     expect(getTaskMock).toHaveBeenCalled();
     expect(findByConfigurationIdMock).toHaveBeenCalled();
     expect(setWithExpirationTaskMock).not.toHaveBeenCalled();
+  });
+
+  test("should return an IResponseErrorForbiddenNotAuthorized if subscription is not manage", async () => {
+    const r = await getRCConfigurationHandler({
+      rccModel: rccModelMock,
+      config: aConfig,
+      redisClient: redisClientMock
+    })({
+      configurationId: aRemoteContentConfiguration.configurationId,
+      subscriptionId: aSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
+      userId: aUserId
+    });
+    expect(r.kind).toBe("IResponseErrorForbiddenNotAuthorized");
+    expect(getTaskMock).not.toHaveBeenCalled();
+    expect(findByConfigurationIdMock).not.toHaveBeenCalled();
+    expect(setWithExpirationTaskMock).not.toHaveBeenCalled();
+  });
+
+  test("should return an IResponseErrorForbiddenNotAuthorized if group is not allowed", async () => {
+    const r = await getRCConfigurationHandler({
+      rccModel: rccModelMock,
+      config: aConfig,
+      redisClient: redisClientMock
+    })({
+      configurationId: aRemoteContentConfiguration.configurationId,
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroups,
+      userId: aUserId
+    });
+    expect(r.kind).toBe("IResponseErrorForbiddenNotAuthorized");
+    expect(getTaskMock).not.toHaveBeenCalled();
+    expect(findByConfigurationIdMock).not.toHaveBeenCalled();
+    expect(setWithExpirationTaskMock).not.toHaveBeenCalled();
+  });
+
+  test("should return an IResponseSuccessJson if subscription is not manage but the user-id is internal", async () => {
+    getTaskMock.mockReturnValueOnce(TE.right(O.none));
+    findByConfigurationIdMock.mockReturnValue(
+      TE.right(O.some(aRemoteContentConfiguration))
+    );
+    setWithExpirationTaskMock.mockReturnValueOnce(TE.right(true));
+    const r = await getRCConfigurationHandler({
+      rccModel: rccModelMock,
+      config: aConfig,
+      redisClient: redisClientMock
+    })({
+      configurationId: aRemoteContentConfiguration.configurationId,
+      subscriptionId: aSubscriptionId,
+      userGroups: someUserGroupsWithTheAllowedOne,
+      userId: aConfig.INTERNAL_USER_ID
+    });
+    expect(r.kind).toBe("IResponseSuccessJson");
+    expect(getTaskMock).toHaveBeenCalled();
+    expect(findByConfigurationIdMock).toHaveBeenCalled();
+    expect(setWithExpirationTaskMock).toHaveBeenCalledWith(
+      redisClientMock,
+      `${RC_CONFIGURATION_REDIS_PREFIX}-${aRemoteContentConfiguration.configurationId}`,
+      JSON.stringify(aRemoteContentConfiguration),
+      aConfig.RC_CONFIGURATION_CACHE_TTL
+    );
+  });
+
+  test("should return an IResponseSuccessJson if group is not allowed but the user-id is internal", async () => {
+    getTaskMock.mockReturnValueOnce(TE.right(O.none));
+    findByConfigurationIdMock.mockReturnValue(
+      TE.right(O.some(aRemoteContentConfiguration))
+    );
+    setWithExpirationTaskMock.mockReturnValueOnce(TE.right(true));
+    const r = await getRCConfigurationHandler({
+      rccModel: rccModelMock,
+      config: aConfig,
+      redisClient: redisClientMock
+    })({
+      configurationId: aRemoteContentConfiguration.configurationId,
+      subscriptionId: aManageSubscriptionId,
+      userGroups: someUserGroups,
+      userId: aConfig.INTERNAL_USER_ID
+    });
+    expect(r.kind).toBe("IResponseSuccessJson");
+    expect(getTaskMock).toHaveBeenCalled();
+    expect(findByConfigurationIdMock).toHaveBeenCalled();
+    expect(setWithExpirationTaskMock).toHaveBeenCalledWith(
+      redisClientMock,
+      `${RC_CONFIGURATION_REDIS_PREFIX}-${aRemoteContentConfiguration.configurationId}`,
+      JSON.stringify(aRemoteContentConfiguration),
+      aConfig.RC_CONFIGURATION_CACHE_TTL
+    );
   });
 });
