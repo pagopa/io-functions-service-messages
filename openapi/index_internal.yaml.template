@@ -10,7 +10,7 @@ info:
   description: >
     # Warning Experimental API
     These apis are experimental and for internal use.
-host: api.io.pagopa.it
+host: api-app.internal.io.pagopa.it
 basePath: /api/v1/messages-sending/internal
 schemes:
   - https
